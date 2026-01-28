@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000", {
+// const socket = io("http://localhost:5000", {
+//   transports: ["websocket"],
+// });
+
+const socket = io("https://api.ayvaus.com", {
   transports: ["websocket"],
 });
 
@@ -43,7 +47,7 @@ export default function VideoChat() {
     //   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     // });
 
-    var myPeerConnection = new RTCPeerConnection({
+    const pc = new RTCPeerConnection({
       iceServers: [
         {
           urls: "stun:stun.relay.metered.ca:80",
