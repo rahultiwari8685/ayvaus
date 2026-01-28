@@ -39,8 +39,36 @@ export default function VideoChat() {
       pcRef.current = null;
     }
 
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    // const pc = new RTCPeerConnection({
+    //   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    // });
+
+    var myPeerConnection = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80",
+          username: "37f3ba32d1181346eda6fe32",
+          credential: "UThQI3FDlqr3JN+a",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "37f3ba32d1181346eda6fe32",
+          credential: "UThQI3FDlqr3JN+a",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:443",
+          username: "37f3ba32d1181346eda6fe32",
+          credential: "UThQI3FDlqr3JN+a",
+        },
+        {
+          urls: "turns:global.relay.metered.ca:443?transport=tcp",
+          username: "37f3ba32d1181346eda6fe32",
+          credential: "UThQI3FDlqr3JN+a",
+        },
+      ],
     });
 
     // Transceivers (important for stable negotiation)
