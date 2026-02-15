@@ -76,15 +76,19 @@ export default function VideoChat() {
     });
 
     // Transceivers (important for stable negotiation)
-    pc.addTransceiver("video", { direction: "sendrecv" });
-    pc.addTransceiver("audio", { direction: "sendrecv" });
+    // pc.addTransceiver("video", { direction: "sendrecv" });
+    // pc.addTransceiver("audio", { direction: "sendrecv" });
 
     streamRef.current.getTracks().forEach((track) => {
       pc.addTrack(track, streamRef.current);
     });
 
-    pc.ontrack = (e) => {
-      remoteVideo.current.srcObject = e.streams[0];
+    pc.ontrack = (event) => {
+      if (!remoteVideo.current.srcObject) {
+        remoteVideo.current.srcObject = new MediaStream();
+      }
+
+      remoteVideo.current.srcObject.addTrack(event.track);
     };
 
     pc.onicecandidate = (e) => {
@@ -131,18 +135,30 @@ export default function VideoChat() {
       if (!pcRef.current) return;
 
       if (data.offer) {
-        await pcRef.current.setRemoteDescription(data.offer);
+        await pcRef.current.setRemoteDescription(
+          new RTCSessionDescription(data.offer),
+        );
+
         const answer = await pcRef.current.createAnswer();
         await pcRef.current.setLocalDescription(answer);
+
         socket.emit("signal", { answer });
       }
 
       if (data.answer) {
-        await pcRef.current.setRemoteDescription(data.answer);
+        await pcRef.current.setRemoteDescription(
+          new RTCSessionDescription(data.answer),
+        );
       }
 
       if (data.candidate) {
-        await pcRef.current.addIceCandidate(data.candidate);
+        try {
+          await pcRef.current.addIceCandidate(
+            new RTCIceCandidate(data.candidate),
+          );
+        } catch (err) {
+          console.log("ICE error:", err);
+        }
       }
     });
 
