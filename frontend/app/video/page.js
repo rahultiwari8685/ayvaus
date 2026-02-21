@@ -3,9 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-// const socket = io("http://localhost:5000", {
-//   transports: ["websocket"],
-// });
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  RotateCcw,
+  MessageCircle,
+  SkipForward,
+  PhoneOff,
+} from "lucide-react";
 
 const socket = io("https://api.ayvaus.com", {
   transports: ["websocket"],
@@ -22,6 +29,11 @@ export default function VideoChat() {
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [onlineCount, setOnlineCount] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [facingMode, setFacingMode] = useState("user");
+  const [showChat, setShowChat] = useState(false);
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -42,10 +54,6 @@ export default function VideoChat() {
       pcRef.current.close();
       pcRef.current = null;
     }
-
-    // const pc = new RTCPeerConnection({
-    //   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    // });
 
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -75,10 +83,6 @@ export default function VideoChat() {
       ],
     });
 
-    // Transceivers (important for stable negotiation)
-    // pc.addTransceiver("video", { direction: "sendrecv" });
-    // pc.addTransceiver("audio", { direction: "sendrecv" });
-
     streamRef.current.getTracks().forEach((track) => {
       pc.addTrack(track, streamRef.current);
     });
@@ -97,6 +101,26 @@ export default function VideoChat() {
       }
     };
 
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE State:", pc.iceConnectionState);
+
+      if (pc.iceConnectionState === "checking") {
+        setStatus("Connecting...");
+      }
+
+      if (pc.iceConnectionState === "connected") {
+        setStatus("Connected");
+      }
+
+      if (
+        pc.iceConnectionState === "disconnected" ||
+        pc.iceConnectionState === "failed" ||
+        pc.iceConnectionState === "closed"
+      ) {
+        setStatus("Looking for someone...");
+      }
+    };
+
     pcRef.current = pc;
   }
 
@@ -111,11 +135,15 @@ export default function VideoChat() {
       socket.emit("join");
     }
 
+    socket.on("online-users", (count) => {
+      setOnlineCount(count);
+    });
+
     start();
 
     socket.on("matched", ({ role }) => {
       roleRef.current = role;
-      setStatus("Connected");
+      setStatus("Connecting...");
 
       if (role === "callee") {
         socket.emit("ready");
@@ -199,69 +227,236 @@ export default function VideoChat() {
     setText("");
   }
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
-      <h1 className="text-2xl font-semibold mb-2">Ayvaus(Formally- Flirta)</h1>
-      <p className="text-sm text-gray-400 mb-4">{status}</p>
+  function toggleMute() {
+    if (!streamRef.current) return;
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-        <div className="relative">
-          <span className="absolute top-2 left-2 bg-blue-600 text-xs px-2 py-1 rounded">
-            Me
-          </span>
+    const audioTrack = streamRef.current
+      .getTracks()
+      .find((track) => track.kind === "audio");
+
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+    }
+  }
+
+  function toggleVideo() {
+    if (!streamRef.current) return;
+
+    const videoTrack = streamRef.current
+      .getTracks()
+      .find((track) => track.kind === "video");
+
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+    }
+  }
+
+  async function switchCamera() {
+    if (!streamRef.current) return;
+
+    const newFacingMode = facingMode === "user" ? "environment" : "user";
+
+    try {
+      // Stop current video track
+      const videoTrack = streamRef.current
+        .getTracks()
+        .find((track) => track.kind === "video");
+
+      if (videoTrack) videoTrack.stop();
+
+      // Get new camera stream
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacingMode },
+        audio: false,
+      });
+
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      // Replace track in peer connection
+      const sender = pcRef.current
+        ?.getSenders()
+        .find((s) => s.track?.kind === "video");
+
+      if (sender) {
+        await sender.replaceTrack(newVideoTrack);
+      }
+
+      // Replace local stream track
+      streamRef.current.removeTrack(streamRef.current.getVideoTracks()[0]);
+      streamRef.current.addTrack(newVideoTrack);
+
+      localVideo.current.srcObject = streamRef.current;
+
+      setFacingMode(newFacingMode);
+    } catch (err) {
+      console.log("Camera switch error:", err);
+    }
+  }
+
+  function exitChat() {
+    pcRef.current?.close();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    socket.disconnect();
+    window.location.href = "/";
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
+      {/* Header */}
+      <div className="absolute top-4 text-center">
+        <h1 className="text-2xl font-bold tracking-wide">
+          Ayvaus <span className="text-pink-500">(Formerly Flirta)</span>
+        </h1>
+
+        <p className="text-sm text-green-400">🟢 {onlineCount} users online</p>
+
+        <p className="text-xs text-gray-400">{status}</p>
+      </div>
+
+      {/* Guest Video Full Screen */}
+      <div className="relative w-full h-screen flex items-center justify-center">
+        <video
+          ref={remoteVideo}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover"
+        />
+
+        {/* Local Video Floating */}
+        <div className="absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl">
           <video
             ref={localVideo}
             autoPlay
             muted
             playsInline
-            className="w-72 h-56 bg-black rounded-lg"
-          />
-        </div>
-
-        <div className="relative">
-          <span className="absolute top-2 left-2 bg-pink-600 text-xs px-2 py-1 rounded">
-            Guest
-          </span>
-          <video
-            ref={remoteVideo}
-            autoPlay
-            playsInline
-            className="w-72 h-56 bg-black rounded-lg"
+            className="w-full h-full object-cover scale-x-[-1]"
           />
         </div>
       </div>
 
-      <div className="w-full max-w-md bg-gray-800 rounded-lg p-3 mb-3 h-64 flex flex-col">
-        <div className="flex-1 overflow-y-auto space-y-2">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`p-2 rounded max-w-[75%] ${
-                m.from === "me" ? "bg-blue-600 ml-auto" : "bg-gray-700 mr-auto"
-              }`}
-            >
-              {m.text}
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={sendMessage} className="flex mt-2 gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="flex-1 px-3 py-2 rounded bg-gray-700 outline-none"
-            placeholder="Type a message..."
-          />
-          <button className="bg-green-600 px-4 rounded">Send</button>
-        </form>
-      </div>
-
-      <button
-        onClick={nextChat}
-        className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full"
+      {/* Chat Drawer */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
+          showChat ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        Next
-      </button>
+        <div className="flex flex-col h-full">
+          {/* Chat Header */}
+          <div className="flex justify-between items-center p-4 border-b border-gray-700">
+            <h2 className="text-lg font-semibold">Chat</h2>
+            <button onClick={() => setShowChat(false)} className="text-xl">
+              ✖
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`p-2 rounded-lg max-w-[75%] ${
+                  m.from === "me"
+                    ? "bg-blue-600 ml-auto"
+                    : "bg-gray-700 mr-auto"
+                }`}
+              >
+                {m.text}
+              </div>
+            ))}
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={sendMessage}
+            className="p-4 flex gap-2 border-t border-gray-700"
+          >
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
+              placeholder="Type a message..."
+            />
+            <button className="bg-green-600 px-4 rounded">Send</button>
+          </form>
+        </div>
+      </div>
+
+      {/* Control Bar */}
+      <div
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md flex justify-between items-center bg-black/60 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-2xl border border-white/10"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <button
+          onClick={exitChat}
+          className="w-13 h-13 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
+        >
+          <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
+            <path d="M3 12l18 0" />
+            <path d="M16 7l5 5-5 5" />
+          </svg>
+        </button>
+        {/* Mute */}
+        <button
+          onClick={toggleMute}
+          className={`w-11 h-11 rounded-full flex items-center justify-center transition ${
+            isMuted ? "bg-red-600" : "bg-gray-700"
+          }`}
+        >
+          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+            <path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3z" />
+            <path d="M19 11a7 7 0 0 1-14 0" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
+          </svg>
+        </button>
+
+        {/* Camera */}
+        <button
+          onClick={toggleVideo}
+          className={`w-11 h-11 rounded-full flex items-center justify-center transition ${
+            isVideoOff ? "bg-red-600" : "bg-gray-700"
+          }`}
+        >
+          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="15" height="10" rx="2" />
+            <polygon points="17 7 22 10 22 14 17 17" />
+          </svg>
+        </button>
+
+        {/* Switch Camera */}
+        <button
+          onClick={switchCamera}
+          className="w-11 h-11 rounded-full bg-gray-700 flex items-center justify-center"
+        >
+          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+            <path d="M7 7h10l-3-3m3 3l-3 3" />
+            <path d="M17 17H7l3 3m-3-3l3-3" />
+          </svg>
+        </button>
+
+        {/* Chat */}
+        <button
+          onClick={() => setShowChat(!showChat)}
+          className="w-11 h-11 rounded-full bg-gray-700 flex items-center justify-center"
+        >
+          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+            <path d="M21 15a4 4 0 0 1-4 4H8l-4 4V5a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z" />
+          </svg>
+        </button>
+
+        {/* Next */}
+        <button
+          onClick={nextChat}
+          className="w-13 h-13 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
+        >
+          <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
+            <polygon points="5 4 15 12 5 20 5 4" />
+            <rect x="17" y="4" width="2" height="16" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

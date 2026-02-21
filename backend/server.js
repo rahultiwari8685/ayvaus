@@ -20,12 +20,16 @@ const io = new Server(server, {
 });
 
 const waitingQueue = [];
+let onlineUsers = 0;
 
 io.on("connection", (socket) => {
   console.log("🟢 Connected:", socket.id);
 
+  onlineUsers++;
+  io.emit("online-users", onlineUsers);
+
   socket.partner = null;
-  socket.recentPartners = new Set();
+  socket.lastPartnerId = null;
 
   function tryMatch() {
     for (let i = 0; i < waitingQueue.length; i++) {
@@ -33,16 +37,17 @@ io.on("connection", (socket) => {
 
       if (
         candidate.id !== socket.id &&
-        !socket.recentPartners.has(candidate.id) &&
-        !candidate.recentPartners.has(socket.id)
+        socket.lastPartnerId !== candidate.id &&
+        candidate.lastPartnerId !== socket.id
       ) {
         waitingQueue.splice(i, 1);
 
         socket.partner = candidate;
         candidate.partner = socket;
 
-        socket.recentPartners.add(candidate.id);
-        candidate.recentPartners.add(socket.id);
+        // Store only last partner
+        socket.lastPartnerId = candidate.id;
+        candidate.lastPartnerId = socket.id;
 
         socket.emit("matched", { role: "caller" });
         candidate.emit("matched", { role: "callee" });
@@ -74,15 +79,21 @@ io.on("connection", (socket) => {
 
   socket.on("next", () => {
     if (socket.partner) {
-      socket.partner.partner = null;
-      socket.partner.emit("partner-left");
+      const oldPartner = socket.partner;
+
+      oldPartner.partner = null;
+      oldPartner.emit("partner-left");
+
+      socket.partner = null;
     }
 
-    socket.partner = null;
     tryMatch();
   });
 
   socket.on("disconnect", () => {
+    onlineUsers--;
+    io.emit("online-users", onlineUsers);
+
     if (socket.partner) {
       socket.partner.emit("partner-left");
       socket.partner.partner = null;
