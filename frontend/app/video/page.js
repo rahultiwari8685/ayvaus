@@ -385,77 +385,71 @@ export default function VideoChat() {
 
       {/* Control Bar */}
       <div
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md flex justify-between items-center bg-black/60 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-2xl border border-white/10"
+        className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <button
-          onClick={exitChat}
-          className="w-13 h-13 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
-        >
-          <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-            <path d="M3 12l18 0" />
-            <path d="M16 7l5 5-5 5" />
-          </svg>
-        </button>
+        {/* Exit */}
+        <div className="flex flex-col items-center text-xs text-white">
+          <button
+            onClick={exitChat}
+            className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
+          >
+            ✕
+          </button>
+          <span className="mt-1 text-gray-300">Exit</span>
+        </div>
+
         {/* Mute */}
-        <button
-          onClick={toggleMute}
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition ${
-            isMuted ? "bg-red-600" : "bg-gray-700"
-          }`}
-        >
-          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-            <path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3z" />
-            <path d="M19 11a7 7 0 0 1-14 0" />
-            <line x1="12" y1="19" x2="12" y2="23" />
-            <line x1="8" y1="23" x2="16" y2="23" />
-          </svg>
-        </button>
+        <div className="flex flex-col items-center text-xs text-white">
+          <button
+            onClick={toggleMute}
+            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              isMuted ? "bg-red-600" : "bg-gray-700"
+            }`}
+          >
+            🎤
+          </button>
+          <span className="mt-1 text-gray-300">
+            {isMuted ? "Unmute" : "Mute"}
+          </span>
+        </div>
 
         {/* Camera */}
-        <button
-          onClick={toggleVideo}
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition ${
-            isVideoOff ? "bg-red-600" : "bg-gray-700"
-          }`}
-        >
-          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-            <rect x="2" y="7" width="15" height="10" rx="2" />
-            <polygon points="17 7 22 10 22 14 17 17" />
-          </svg>
-        </button>
+        <div className="flex flex-col items-center text-xs text-white">
+          <button
+            onClick={toggleVideo}
+            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              isVideoOff ? "bg-red-600" : "bg-gray-700"
+            }`}
+          >
+            📷
+          </button>
+          <span className="mt-1 text-gray-300">
+            {isVideoOff ? "Camera On" : "Camera Off"}
+          </span>
+        </div>
 
-        {/* Switch Camera */}
-        <button
-          onClick={switchCamera}
-          className="w-11 h-11 rounded-full bg-gray-700 flex items-center justify-center"
-        >
-          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-            <path d="M7 7h10l-3-3m3 3l-3 3" />
-            <path d="M17 17H7l3 3m-3-3l3-3" />
-          </svg>
-        </button>
+        {/* Switch */}
+        <div className="flex flex-col items-center text-xs text-white">
+          <button
+            onClick={switchCamera}
+            className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+          >
+            🔄
+          </button>
+          <span className="mt-1 text-gray-300">Flip</span>
+        </div>
 
-        {/* Chat */}
-        <button
-          onClick={() => setShowChat(!showChat)}
-          className="w-11 h-11 rounded-full bg-gray-700 flex items-center justify-center"
-        >
-          <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-            <path d="M21 15a4 4 0 0 1-4 4H8l-4 4V5a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z" />
-          </svg>
-        </button>
-
-        {/* Next */}
-        <button
-          onClick={nextChat}
-          className="w-13 h-13 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
-        >
-          <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-            <polygon points="5 4 15 12 5 20 5 4" />
-            <rect x="17" y="4" width="2" height="16" />
-          </svg>
-        </button>
+        {/* Skip */}
+        <div className="flex flex-col items-center text-xs text-white">
+          <button
+            onClick={nextChat}
+            className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
+          >
+            ➤
+          </button>
+          <span className="mt-1 text-orange-400 font-semibold">Skip</span>
+        </div>
       </div>
     </div>
   );
