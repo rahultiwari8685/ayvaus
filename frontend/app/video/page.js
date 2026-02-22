@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import { v4 as uuid } from "uuid";
 
 import {
   Mic,
@@ -34,6 +35,13 @@ export default function VideoChat() {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [showChat, setShowChat] = useState(false);
+
+  const [typing, setTyping] = useState(false);
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -119,6 +127,11 @@ export default function VideoChat() {
       ) {
         setStatus("Looking for someone...");
       }
+
+      if (pc.iceConnectionState === "failed") {
+        console.log("ICE failed, retrying...");
+        socket.emit("next");
+      }
     };
 
     pcRef.current = pc;
@@ -191,15 +204,64 @@ export default function VideoChat() {
     });
 
     socket.on("chat-message", (msg) => {
-      setMessages((m) => [...m, { from: "guest", text: msg }]);
+      setMessages((prev) => [...prev, msg]);
+
+      socket.emit("message-delivered", msg.id);
+
+      // Increase unread if chat is closed
+      if (!showChat) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    });
+
+    socket.on("edit-message", ({ id, newText }) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, text: newText, edited: true } : m,
+        ),
+      );
+    });
+
+    socket.on("message-delivered", (messageId) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId ? { ...m, status: "delivered" } : m,
+        ),
+      );
+    });
+
+    socket.on("typing", () => {
+      setTyping(true);
+
+      setTimeout(() => {
+        setTyping(false);
+      }, 2000);
+    });
+
+    socket.on("message-seen", (messageId) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, status: "seen" } : m)),
+      );
     });
 
     socket.on("partner-left", () => {
       setStatus("Looking for someone...");
       setMessages([]);
-      remoteVideo.current.srcObject = null;
-      createPeer();
-      socket.emit("join");
+
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+
+      if (remoteVideo.current?.srcObject) {
+        remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+        remoteVideo.current.srcObject = null;
+      }
+
+      setTimeout(() => {
+        createPeer();
+        socket.emit("join");
+      }, 500);
     });
 
     return () => {
@@ -208,13 +270,36 @@ export default function VideoChat() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       socket.off();
     };
-  }, []);
+  }, [showChat]);
+
+  useEffect(() => {
+    if (showChat) {
+      messages.forEach((msg) => {
+        if (msg.sender !== socket.id && msg.status !== "seen") {
+          socket.emit("message-seen", msg.id);
+        }
+      });
+    }
+  }, [showChat]);
 
   function nextChat() {
     setStatus("Skipping...");
     setMessages([]);
-    remoteVideo.current.srcObject = null;
-    createPeer();
+
+    // Close old peer
+    if (pcRef.current) {
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
+    // Clear remote video
+    if (remoteVideo.current?.srcObject) {
+      remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+      remoteVideo.current.srcObject = null;
+    }
+
     socket.emit("next");
   }
 
@@ -222,9 +307,58 @@ export default function VideoChat() {
     e.preventDefault();
     if (!text.trim()) return;
 
-    socket.emit("chat-message", text);
-    setMessages((m) => [...m, { from: "me", text }]);
+    const message = {
+      id: uuid(),
+      sender: socket.id,
+      text,
+      status: "sent",
+    };
+
+    socket.emit("chat-message", message);
+    setMessages((prev) => [...prev, message]);
     setText("");
+  }
+
+  async function startRecording() {
+    if (!streamRef.current) return;
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const recorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = recorder;
+    audioChunksRef.current = [];
+
+    recorder.ondataavailable = (e) => {
+      audioChunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const message = {
+          id: crypto.randomUUID(),
+          sender: socket.id,
+          type: "audio",
+          audio: reader.result,
+          status: "sent",
+        };
+
+        socket.emit("chat-message", message);
+        setMessages((prev) => [...prev, message]);
+      };
+
+      reader.readAsDataURL(blob);
+    };
+
+    recorder.start();
+    setIsRecording(true);
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
   }
 
   function toggleMute() {
@@ -302,6 +436,28 @@ export default function VideoChat() {
     window.location.href = "/";
   }
 
+  function handleImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const message = {
+        id: crypto.randomUUID(),
+        sender: socket.id,
+        type: "image",
+        image: reader.result,
+        status: "sent",
+      };
+
+      socket.emit("chat-message", message);
+      setMessages((prev) => [...prev, message]);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
       {/* Header */}
@@ -355,17 +511,68 @@ export default function VideoChat() {
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m, i) => (
               <div
-                key={i}
+                key={m.id || i}
                 className={`p-2 rounded-lg max-w-[75%] ${
-                  m.from === "me"
+                  m.sender === socket.id
                     ? "bg-blue-600 ml-auto"
                     : "bg-gray-700 mr-auto"
                 }`}
               >
-                {m.text}
+                <div className="flex items-end gap-1">
+                  <span>{m.text}</span>
+
+                  {/* Edited Label */}
+                  {m.edited && (
+                    <span className="text-xs italic text-gray-300 ml-1">
+                      edited
+                    </span>
+                  )}
+
+                  {m.sender === socket.id && (
+                    <span className="text-xs ml-1">
+                      {m.status === "sent" && "✓"}
+                      {m.status === "delivered" && "✓✓"}
+                      {m.status === "seen" && (
+                        <span className="text-blue-400">✓✓</span>
+                      )}
+                      {m.type === "audio" && (
+                        <audio controls src={m.audio} className="max-w-xs" />
+                      )}
+
+                      {m.type === "image" && (
+                        <img src={m.image} className="rounded-lg max-w-xs" />
+                      )}
+                    </span>
+                  )}
+
+                  {m.sender === socket.id && (
+                    <button
+                      onClick={() => {
+                        const newText = prompt("Edit message", m.text);
+                        if (!newText) return;
+
+                        socket.emit("edit-message", { id: m.id, newText });
+                        setMessages((prev) =>
+                          prev.map((msg) =>
+                            msg.id === m.id
+                              ? { ...msg, text: newText, edited: true }
+                              : msg,
+                          ),
+                        );
+                      }}
+                      className="text-xs text-gray-300 ml-2"
+                    >
+                      ✏
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
+
+          {typing && (
+            <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
+          )}
 
           {/* Input */}
           <form
@@ -374,10 +581,32 @@ export default function VideoChat() {
           >
             <input
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                setText(e.target.value);
+                socket.emit("typing");
+              }}
               className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
               placeholder="Type a message..."
             />
+
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              className="bg-purple-600 px-3 rounded"
+            >
+              {isRecording ? "Stop" : "🎙"}
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              id="imageUpload"
+              onChange={handleImage}
+            />
+
+            <label htmlFor="imageUpload" className="cursor-pointer px-2">
+              📷
+            </label>
             <button className="bg-green-600 px-4 rounded">Send</button>
           </form>
         </div>
@@ -440,6 +669,30 @@ export default function VideoChat() {
           <span className="mt-1 text-gray-300">Flip</span>
         </div>
 
+        {/* Chat */}
+        <div className="flex flex-col items-center text-xs text-white relative">
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowChat(true);
+                setUnreadCount(0);
+              }}
+              className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+            >
+              💬
+            </button>
+
+            {/* Unread Badge */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-2 py-0.5">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+
+          <span className="mt-1 text-gray-300">Chat</span>
+        </div>
+
         {/* Skip */}
         <div className="flex flex-col items-center text-xs text-white">
           <button
@@ -448,7 +701,7 @@ export default function VideoChat() {
           >
             ➤
           </button>
-          <span className="mt-1 text-orange-400 font-semibold">Skip</span>
+          <span className="mt-1 text-orange-400 font-semibold">Next</span>
         </div>
       </div>
     </div>

@@ -32,6 +32,13 @@ io.on("connection", (socket) => {
   socket.lastPartnerId = null;
 
   function tryMatch() {
+    // Remove disconnected sockets
+    for (let i = waitingQueue.length - 1; i >= 0; i--) {
+      if (waitingQueue[i].disconnected) {
+        waitingQueue.splice(i, 1);
+      }
+    }
+
     for (let i = 0; i < waitingQueue.length; i++) {
       const candidate = waitingQueue[i];
 
@@ -45,20 +52,17 @@ io.on("connection", (socket) => {
         socket.partner = candidate;
         candidate.partner = socket;
 
-        // Store only last partner
         socket.lastPartnerId = candidate.id;
         candidate.lastPartnerId = socket.id;
 
         socket.emit("matched", { role: "caller" });
         candidate.emit("matched", { role: "callee" });
 
-        console.log("🔗 Matched:", socket.id, candidate.id);
         return;
       }
     }
 
     waitingQueue.push(socket);
-    console.log("⏳ Waiting:", socket.id);
   }
 
   socket.on("join", () => {
@@ -73,8 +77,24 @@ io.on("connection", (socket) => {
     socket.partner?.emit("signal", data);
   });
 
+  socket.on("edit-message", (data) => {
+    socket.partner?.emit("edit-message", data);
+  });
+
+  socket.on("typing", () => {
+    socket.partner?.emit("typing");
+  });
+
   socket.on("chat-message", (msg) => {
     socket.partner?.emit("chat-message", msg);
+  });
+
+  socket.on("message-delivered", (messageId) => {
+    socket.partner?.emit("message-delivered", messageId);
+  });
+
+  socket.on("message-seen", (messageId) => {
+    socket.partner?.emit("message-seen", messageId);
   });
 
   socket.on("next", () => {

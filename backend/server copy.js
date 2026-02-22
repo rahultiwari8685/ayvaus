@@ -1,34 +1,72 @@
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import cors from "cors";
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
 
+app.get("/", (req, res) => {
+  res.send("✅ Ayvaus backend is running");
+});
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 
-let waitingUser = null;
+const waitingQueue = [];
+let onlineUsers = 0;
 
 io.on("connection", (socket) => {
-  console.log("✅ Connected:", socket.id);
+  console.log("🟢 Connected:", socket.id);
+
+  onlineUsers++;
+  io.emit("online-users", onlineUsers);
+
+  socket.partner = null;
+  socket.lastPartnerId = null;
+
+  function tryMatch() {
+    // Remove disconnected sockets
+    for (let i = waitingQueue.length - 1; i >= 0; i--) {
+      if (waitingQueue[i].disconnected) {
+        waitingQueue.splice(i, 1);
+      }
+    }
+
+    for (let i = 0; i < waitingQueue.length; i++) {
+      const candidate = waitingQueue[i];
+
+      if (
+        candidate.id !== socket.id &&
+        socket.lastPartnerId !== candidate.id &&
+        candidate.lastPartnerId !== socket.id
+      ) {
+        waitingQueue.splice(i, 1);
+
+        socket.partner = candidate;
+        candidate.partner = socket;
+
+        socket.lastPartnerId = candidate.id;
+        candidate.lastPartnerId = socket.id;
+
+        socket.emit("matched", { role: "caller" });
+        candidate.emit("matched", { role: "callee" });
+
+        return;
+      }
+    }
+
+    waitingQueue.push(socket);
+  }
 
   socket.on("join", () => {
-    if (waitingUser && waitingUser.id !== socket.id) {
-      socket.partner = waitingUser;
-      waitingUser.partner = socket;
-
-      socket.emit("matched", { role: "caller" });
-      waitingUser.emit("matched", { role: "callee" });
-
-      waitingUser = null;
-    } else {
-      waitingUser = socket;
-    }
+    tryMatch();
   });
 
   socket.on("ready", () => {
@@ -44,17 +82,34 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next", () => {
-    socket.partner?.emit("partner-left");
-    socket.partner = null;
-    waitingUser = socket;
+    if (socket.partner) {
+      const oldPartner = socket.partner;
+
+      oldPartner.partner = null;
+      oldPartner.emit("partner-left");
+
+      socket.partner = null;
+    }
+
+    tryMatch();
   });
 
   socket.on("disconnect", () => {
-    if (waitingUser === socket) waitingUser = null;
-    socket.partner?.emit("partner-left");
+    onlineUsers--;
+    io.emit("online-users", onlineUsers);
+
+    if (socket.partner) {
+      socket.partner.emit("partner-left");
+      socket.partner.partner = null;
+    }
+
+    const idx = waitingQueue.indexOf(socket);
+    if (idx !== -1) waitingQueue.splice(idx, 1);
+
+    console.log("🔴 Disconnected:", socket.id);
   });
 });
 
-server.listen(5000, () =>
-  console.log("🚀 Signaling server running on http://localhost:5000"),
-);
+server.listen(5000, () => {
+  console.log("🚀 Backend running on port 5000");
+});
