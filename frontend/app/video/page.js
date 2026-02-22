@@ -463,10 +463,10 @@ export default function VideoChat() {
       {/* Header */}
       <div className="absolute top-4 text-center">
         <h1 className="text-2xl font-bold tracking-wide">
-          Ayvaus <span className="text-pink-500">(Formerly Flirta)</span>
+          Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
         </h1>
 
-        <p className="text-sm text-green-400">🟢 {onlineCount} users online</p>
+        <p className="text-sm text-green-400">🟢 {onlineCount} Users Online</p>
 
         <p className="text-xs text-gray-400">{status}</p>
       </div>
@@ -480,7 +480,6 @@ export default function VideoChat() {
           className="w-full h-full object-cover"
         />
 
-        {/* Local Video Floating */}
         <div className="absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl">
           <video
             ref={localVideo}
@@ -492,7 +491,6 @@ export default function VideoChat() {
         </div>
       </div>
 
-      {/* Chat Drawer */}
       <div
         className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
           showChat ? "translate-x-0" : "translate-x-full"
@@ -507,7 +505,6 @@ export default function VideoChat() {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m, i) => (
               <div
@@ -574,10 +571,9 @@ export default function VideoChat() {
             <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
           )}
 
-          {/* Input */}
           <form
             onSubmit={sendMessage}
-            className="p-4 flex gap-2 border-t border-gray-700"
+            className="p-4 flex  border-t border-gray-700"
           >
             <input
               value={text}
@@ -612,12 +608,10 @@ export default function VideoChat() {
         </div>
       </div>
 
-      {/* Control Bar */}
       <div
         className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        {/* Exit */}
         <div className="flex flex-col items-center text-xs text-white">
           <button
             onClick={exitChat}
@@ -628,7 +622,6 @@ export default function VideoChat() {
           <span className="mt-1 text-gray-300">Exit</span>
         </div>
 
-        {/* Mute */}
         <div className="flex flex-col items-center text-xs text-white">
           <button
             onClick={toggleMute}
@@ -643,7 +636,6 @@ export default function VideoChat() {
           </span>
         </div>
 
-        {/* Camera */}
         <div className="flex flex-col items-center text-xs text-white">
           <button
             onClick={toggleVideo}
@@ -654,7 +646,7 @@ export default function VideoChat() {
             📷
           </button>
           <span className="mt-1 text-gray-300">
-            {isVideoOff ? "Camera On" : "Camera Off"}
+            {isVideoOff ? "On" : "Off"}
           </span>
         </div>
 
@@ -682,7 +674,6 @@ export default function VideoChat() {
               💬
             </button>
 
-            {/* Unread Badge */}
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-2 py-0.5">
                 {unreadCount}
@@ -693,7 +684,6 @@ export default function VideoChat() {
           <span className="mt-1 text-gray-300">Chat</span>
         </div>
 
-        {/* Skip */}
         <div className="flex flex-col items-center text-xs text-white">
           <button
             onClick={nextChat}
