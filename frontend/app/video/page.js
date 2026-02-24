@@ -15,7 +15,7 @@ import {
   PhoneOff,
 } from "lucide-react";
 
-const socket = io("https://api.ayvaus.com", {
+const socket = io("https://api.flirtaus.com", {
   transports: ["websocket"],
 });
 
@@ -70,23 +70,23 @@ export default function VideoChat() {
         },
         {
           urls: "turn:global.relay.metered.ca:80",
-          username: "37f3ba32d1181346eda6fe32",
-          credential: "UThQI3FDlqr3JN+a",
+          username: "1103f8f8c8afe59de448db19",
+          credential: "Z7SVdVopXdVOrthF",
         },
         {
           urls: "turn:global.relay.metered.ca:80?transport=tcp",
-          username: "37f3ba32d1181346eda6fe32",
-          credential: "UThQI3FDlqr3JN+a",
+          username: "1103f8f8c8afe59de448db19",
+          credential: "Z7SVdVopXdVOrthF",
         },
         {
           urls: "turn:global.relay.metered.ca:443",
-          username: "37f3ba32d1181346eda6fe32",
-          credential: "UThQI3FDlqr3JN+a",
+          username: "1103f8f8c8afe59de448db19",
+          credential: "Z7SVdVopXdVOrthF",
         },
         {
           urls: "turns:global.relay.metered.ca:443?transport=tcp",
-          username: "37f3ba32d1181346eda6fe32",
-          credential: "UThQI3FDlqr3JN+a",
+          username: "1103f8f8c8afe59de448db19",
+          credential: "Z7SVdVopXdVOrthF",
         },
       ],
     });

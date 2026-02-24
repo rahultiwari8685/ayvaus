@@ -6,8 +6,15 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
+app.use(
+  cors({
+    origin: ["https://flirtaus.com", "https://www.flirtaus.com"],
+    credentials: true,
+  }),
+);
+
 app.get("/", (req, res) => {
-  res.send("✅ Ayvaus backend is running");
+  res.send("✅ Flirtaus backend is running");
 });
 
 const server = http.createServer(app);
