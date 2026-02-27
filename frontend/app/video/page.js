@@ -270,7 +270,7 @@ export default function VideoChat() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       socket.off();
     };
-  }, [showChat]);
+  }, []);
 
   useEffect(() => {
     if (showChat) {

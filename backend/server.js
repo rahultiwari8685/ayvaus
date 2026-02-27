@@ -46,6 +46,11 @@ io.on("connection", (socket) => {
       }
     }
 
+    const selfIndex = waitingQueue.indexOf(socket);
+    if (selfIndex !== -1) {
+      waitingQueue.splice(selfIndex, 1);
+    }
+
     for (let i = 0; i < waitingQueue.length; i++) {
       const candidate = waitingQueue[i];
 
@@ -69,7 +74,9 @@ io.on("connection", (socket) => {
       }
     }
 
-    waitingQueue.push(socket);
+    if (!waitingQueue.includes(socket)) {
+      waitingQueue.push(socket);
+    }
   }
 
   socket.on("join", () => {
@@ -108,10 +115,16 @@ io.on("connection", (socket) => {
     if (socket.partner) {
       const oldPartner = socket.partner;
 
+      // Break connection
       oldPartner.partner = null;
+      socket.partner = null;
+
       oldPartner.emit("partner-left");
 
-      socket.partner = null;
+      // Add old partner back to queue
+      if (!oldPartner.disconnected) {
+        waitingQueue.push(oldPartner);
+      }
     }
 
     tryMatch();
