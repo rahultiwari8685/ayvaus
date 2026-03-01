@@ -163,6 +163,10 @@ export default function VideoChat() {
       }
     });
 
+    socket.on("partner-left", () => {
+      setStatus("Looking for someone...");
+    });
+
     socket.on("ready", async () => {
       if (roleRef.current !== "caller") return;
       if (!pcRef.current) return;

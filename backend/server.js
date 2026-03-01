@@ -115,19 +115,22 @@ io.on("connection", (socket) => {
   // }
 
   function tryMatch() {
-    // Remove disconnected OR already connected users
+    // Clean queue (remove disconnected or already matched users)
     for (let i = waitingQueue.length - 1; i >= 0; i--) {
       if (waitingQueue[i].disconnected || waitingQueue[i].partner) {
         waitingQueue.splice(i, 1);
       }
     }
 
-    // Match as long as 2 users available
+    // Match until less than 2 users remain
     while (waitingQueue.length >= 2) {
       const socket1 = waitingQueue.shift();
       const socket2 = waitingQueue.shift();
 
       if (!socket1 || !socket2) continue;
+
+      // Double check not already matched
+      if (socket1.partner || socket2.partner) continue;
 
       socket1.partner = socket2;
       socket2.partner = socket1;
@@ -141,7 +144,6 @@ io.on("connection", (socket) => {
       socket2.emit("matched", { role: "callee" });
     }
 
-    console.log("📋 Waiting left:", waitingQueue.length);
     logWaitingQueue();
   }
 
@@ -193,35 +195,37 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next", () => {
+    console.log("⏭ Next clicked:", socket.id);
+
+    // Break existing connection
     if (socket.partner) {
       const oldPartner = socket.partner;
 
-      // Break connection both sides
       oldPartner.partner = null;
       socket.partner = null;
 
-      // Notify old partner
       oldPartner.emit("partner-left");
 
-      // Put old partner back in queue (if still connected)
-      if (!oldPartner.disconnected && !waitingQueue.includes(oldPartner)) {
-        waitingQueue.push(oldPartner);
+      if (!oldPartner.disconnected) {
+        if (!waitingQueue.includes(oldPartner)) {
+          waitingQueue.push(oldPartner);
+        }
       }
     }
 
     // Remove self from queue if already inside
-    const selfIndex = waitingQueue.indexOf(socket);
-    if (selfIndex !== -1) {
-      waitingQueue.splice(selfIndex, 1);
+    const index = waitingQueue.indexOf(socket);
+    if (index !== -1) {
+      waitingQueue.splice(index, 1);
     }
 
-    // Add self to queue
+    // Reset partner
+    socket.partner = null;
+
+    // Add self back to queue
     waitingQueue.push(socket);
 
-    // Try matching for everyone
-    setTimeout(() => {
-      tryMatch();
-    }, 100);
+    tryMatch(); // 🔥 NO setTimeout
   });
 
   socket.on("disconnect", () => {
