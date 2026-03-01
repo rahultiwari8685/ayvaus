@@ -155,6 +155,9 @@ export default function VideoChat() {
     start();
 
     socket.on("matched", ({ role }) => {
+      if (!pcRef.current) {
+        createPeer();
+      }
       roleRef.current = role;
       setStatus("Connecting...");
 
@@ -303,6 +306,7 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
     }
+    createPeer();
 
     socket.emit("next");
   }
