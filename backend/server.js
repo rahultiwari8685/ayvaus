@@ -29,8 +29,43 @@ const io = new Server(server, {
 const waitingQueue = [];
 let onlineUsers = 0;
 
+function logWaitingQueue() {
+  console.log("📋 Waiting Users:", waitingQueue.length);
+
+  waitingQueue.forEach((s, index) => {
+    console.log(`   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp}`);
+  });
+
+  if (waitingQueue.length === 0) {
+    console.log("🧹 Waiting list cleared");
+  }
+}
+
+function logActiveConnections() {
+  const clients = Array.from(io.sockets.sockets.values());
+
+  console.log("🌐 Active Connections:", clients.length);
+
+  clients.forEach((s, index) => {
+    console.log(
+      `   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp} | Partner: ${
+        s.partner ? s.partner.id : "None"
+      }`,
+    );
+  });
+
+  console.log("--------------------------------------------------");
+}
+
 io.on("connection", (socket) => {
-  console.log("🟢 Connected:", socket.id);
+  // console.log("🟢 Connected:", socket.id);
+
+  const ip =
+    socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+
+  socket.userIp = ip;
+
+  console.log("🟢 Connected:", socket.id, "| IP:", ip);
 
   onlineUsers++;
   io.emit("online-users", onlineUsers);
@@ -38,48 +73,94 @@ io.on("connection", (socket) => {
   socket.partner = null;
   socket.lastPartnerId = null;
 
+  // function tryMatch() {
+  //   // Remove disconnected sockets
+  //   for (let i = waitingQueue.length - 1; i >= 0; i--) {
+  //     if (waitingQueue[i].disconnected) {
+  //       waitingQueue.splice(i, 1);
+  //     }
+  //   }
+
+  //   const selfIndex = waitingQueue.indexOf(socket);
+  //   if (selfIndex !== -1) {
+  //     waitingQueue.splice(selfIndex, 1);
+  //   }
+
+  //   for (let i = 0; i < waitingQueue.length; i++) {
+  //     const candidate = waitingQueue[i];
+
+  //     if (
+  //       candidate.id !== socket.id &&
+  //       socket.lastPartnerId !== candidate.id &&
+  //       candidate.lastPartnerId !== socket.id
+  //     ) {
+  //       waitingQueue.splice(i, 1);
+
+  //       socket.partner = candidate;
+  //       candidate.partner = socket;
+
+  //       socket.lastPartnerId = candidate.id;
+  //       candidate.lastPartnerId = socket.id;
+
+  //       socket.emit("matched", { role: "caller" });
+  //       candidate.emit("matched", { role: "callee" });
+
+  //       return;
+  //     }
+  //   }
+
+  //   if (!waitingQueue.includes(socket)) {
+  //     waitingQueue.push(socket);
+  //   }
+  // }
+
   function tryMatch() {
-    // Remove disconnected sockets
+    // Remove disconnected OR already connected users
     for (let i = waitingQueue.length - 1; i >= 0; i--) {
-      if (waitingQueue[i].disconnected) {
+      if (waitingQueue[i].disconnected || waitingQueue[i].partner) {
         waitingQueue.splice(i, 1);
       }
     }
 
-    const selfIndex = waitingQueue.indexOf(socket);
-    if (selfIndex !== -1) {
-      waitingQueue.splice(selfIndex, 1);
+    // Match as long as 2 users available
+    while (waitingQueue.length >= 2) {
+      const socket1 = waitingQueue.shift();
+      const socket2 = waitingQueue.shift();
+
+      if (!socket1 || !socket2) continue;
+
+      socket1.partner = socket2;
+      socket2.partner = socket1;
+
+      socket1.lastPartnerId = socket2.id;
+      socket2.lastPartnerId = socket1.id;
+
+      console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
+
+      socket1.emit("matched", { role: "caller" });
+      socket2.emit("matched", { role: "callee" });
     }
 
-    for (let i = 0; i < waitingQueue.length; i++) {
-      const candidate = waitingQueue[i];
-
-      if (
-        candidate.id !== socket.id &&
-        socket.lastPartnerId !== candidate.id &&
-        candidate.lastPartnerId !== socket.id
-      ) {
-        waitingQueue.splice(i, 1);
-
-        socket.partner = candidate;
-        candidate.partner = socket;
-
-        socket.lastPartnerId = candidate.id;
-        candidate.lastPartnerId = socket.id;
-
-        socket.emit("matched", { role: "caller" });
-        candidate.emit("matched", { role: "callee" });
-
-        return;
-      }
-    }
-
-    if (!waitingQueue.includes(socket)) {
-      waitingQueue.push(socket);
-    }
+    console.log("📋 Waiting left:", waitingQueue.length);
+    logWaitingQueue();
   }
 
+  // socket.on("join", () => {
+  //   if (!waitingQueue.includes(socket)) {
+  //     waitingQueue.push(socket);
+  //   }
+
+  //   tryMatch();
+  // });
+
   socket.on("join", () => {
+    if (!waitingQueue.includes(socket) && !socket.partner) {
+      waitingQueue.push(socket);
+
+      console.log("➕ Added to waiting:", socket.id, "| IP:", socket.userIp);
+      logWaitingQueue();
+    }
+
     tryMatch();
   });
 
@@ -115,19 +196,32 @@ io.on("connection", (socket) => {
     if (socket.partner) {
       const oldPartner = socket.partner;
 
-      // Break connection
+      // Break connection both sides
       oldPartner.partner = null;
       socket.partner = null;
 
+      // Notify old partner
       oldPartner.emit("partner-left");
 
-      // Add old partner back to queue
-      if (!oldPartner.disconnected) {
+      // Put old partner back in queue (if still connected)
+      if (!oldPartner.disconnected && !waitingQueue.includes(oldPartner)) {
         waitingQueue.push(oldPartner);
       }
     }
 
-    tryMatch();
+    // Remove self from queue if already inside
+    const selfIndex = waitingQueue.indexOf(socket);
+    if (selfIndex !== -1) {
+      waitingQueue.splice(selfIndex, 1);
+    }
+
+    // Add self to queue
+    waitingQueue.push(socket);
+
+    // Try matching for everyone
+    setTimeout(() => {
+      tryMatch();
+    }, 100);
   });
 
   socket.on("disconnect", () => {
@@ -142,7 +236,8 @@ io.on("connection", (socket) => {
     const idx = waitingQueue.indexOf(socket);
     if (idx !== -1) waitingQueue.splice(idx, 1);
 
-    console.log("🔴 Disconnected:", socket.id);
+    console.log("🔴 Disconnected:", socket.id, "| IP:", socket.userIp);
+    logActiveConnections();
   });
 });
 
