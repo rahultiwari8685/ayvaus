@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const crypto = require("crypto");
 
 const app = express();
 app.use(cors());
@@ -13,8 +14,26 @@ app.use(
   }),
 );
 
+function generateTurnCredentials() {
+  const secret = "MySuperSecretKey123";
+  const username = Math.floor(Date.now() / 1000) + 3600; // valid 1 hour
+
+  const hmac = crypto.createHmac("sha1", secret);
+  hmac.update(username.toString());
+  const password = hmac.digest("base64");
+
+  return {
+    username: username.toString(),
+    credential: password,
+  };
+}
+
 app.get("/", (req, res) => {
   res.send("✅ Flirtaus backend is running");
+});
+
+app.get("/turn-credentials", (req, res) => {
+  res.json(generateTurnCredentials());
 });
 
 const server = http.createServer(app);
@@ -73,47 +92,6 @@ io.on("connection", (socket) => {
   socket.partner = null;
   socket.lastPartnerId = null;
 
-  // function tryMatch() {
-  //   // Remove disconnected sockets
-  //   for (let i = waitingQueue.length - 1; i >= 0; i--) {
-  //     if (waitingQueue[i].disconnected) {
-  //       waitingQueue.splice(i, 1);
-  //     }
-  //   }
-
-  //   const selfIndex = waitingQueue.indexOf(socket);
-  //   if (selfIndex !== -1) {
-  //     waitingQueue.splice(selfIndex, 1);
-  //   }
-
-  //   for (let i = 0; i < waitingQueue.length; i++) {
-  //     const candidate = waitingQueue[i];
-
-  //     if (
-  //       candidate.id !== socket.id &&
-  //       socket.lastPartnerId !== candidate.id &&
-  //       candidate.lastPartnerId !== socket.id
-  //     ) {
-  //       waitingQueue.splice(i, 1);
-
-  //       socket.partner = candidate;
-  //       candidate.partner = socket;
-
-  //       socket.lastPartnerId = candidate.id;
-  //       candidate.lastPartnerId = socket.id;
-
-  //       socket.emit("matched", { role: "caller" });
-  //       candidate.emit("matched", { role: "callee" });
-
-  //       return;
-  //     }
-  //   }
-
-  //   if (!waitingQueue.includes(socket)) {
-  //     waitingQueue.push(socket);
-  //   }
-  // }
-
   function tryMatch() {
     // Clean queue (remove disconnected or already matched users)
     for (let i = waitingQueue.length - 1; i >= 0; i--) {
@@ -147,14 +125,6 @@ io.on("connection", (socket) => {
     logWaitingQueue();
   }
 
-  // socket.on("join", () => {
-  //   if (!waitingQueue.includes(socket)) {
-  //     waitingQueue.push(socket);
-  //   }
-
-  //   tryMatch();
-  // });
-
   socket.on("join", () => {
     if (!waitingQueue.includes(socket) && !socket.partner) {
       waitingQueue.push(socket);
@@ -163,7 +133,9 @@ io.on("connection", (socket) => {
       logWaitingQueue();
     }
 
-    tryMatch();
+    setTimeout(() => {
+      tryMatch();
+    }, 500);
   });
 
   socket.on("ready", () => {
@@ -225,7 +197,9 @@ io.on("connection", (socket) => {
     // Add self back to queue
     waitingQueue.push(socket);
 
-    tryMatch(); // 🔥 NO setTimeout
+    setTimeout(() => {
+      tryMatch();
+    }, 500);
   });
 
   socket.on("disconnect", () => {

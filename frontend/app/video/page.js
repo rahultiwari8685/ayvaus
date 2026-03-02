@@ -63,32 +63,47 @@ export default function VideoChat() {
       pcRef.current = null;
     }
 
+    // const pc = new RTCPeerConnection({
+    //   iceServers: [
+    //     {
+    //       urls: "stun:stun.relay.metered.ca:80",
+    //     },
+    //     {
+    //       urls: "turn:global.relay.metered.ca:80",
+    //       username: "1103f8f8c8afe59de448db19",
+    //       credential: "Z7SVdVopXdVOrthF",
+    //     },
+    //     {
+    //       urls: "turn:global.relay.metered.ca:80?transport=tcp",
+    //       username: "1103f8f8c8afe59de448db19",
+    //       credential: "Z7SVdVopXdVOrthF",
+    //     },
+    //     {
+    //       urls: "turn:global.relay.metered.ca:443",
+    //       username: "1103f8f8c8afe59de448db19",
+    //       credential: "Z7SVdVopXdVOrthF",
+    //     },
+    //     {
+    //       urls: "turns:global.relay.metered.ca:443?transport=tcp",
+    //       username: "1103f8f8c8afe59de448db19",
+    //       credential: "Z7SVdVopXdVOrthF",
+    //     },
+    //   ],
+    // });
+
+    const res = fetch("https://flirtaus.com/turn-credentials");
+    const turn = res.json();
+
     const pc = new RTCPeerConnection({
       iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
         {
-          urls: "stun:stun.relay.metered.ca:80",
-        },
-        {
-          urls: "turn:global.relay.metered.ca:80",
-          username: "1103f8f8c8afe59de448db19",
-          credential: "Z7SVdVopXdVOrthF",
-        },
-        {
-          urls: "turn:global.relay.metered.ca:80?transport=tcp",
-          username: "1103f8f8c8afe59de448db19",
-          credential: "Z7SVdVopXdVOrthF",
-        },
-        {
-          urls: "turn:global.relay.metered.ca:443",
-          username: "1103f8f8c8afe59de448db19",
-          credential: "Z7SVdVopXdVOrthF",
-        },
-        {
-          urls: "turns:global.relay.metered.ca:443?transport=tcp",
-          username: "1103f8f8c8afe59de448db19",
-          credential: "Z7SVdVopXdVOrthF",
+          urls: "turn:your_vps_ip:3478?transport=udp",
+          username: turn.username,
+          credential: turn.credential,
         },
       ],
+      iceTransportPolicy: "all",
     });
 
     streamRef.current.getTracks().forEach((track) => {
@@ -164,10 +179,6 @@ export default function VideoChat() {
       if (role === "callee") {
         socket.emit("ready");
       }
-    });
-
-    socket.on("partner-left", () => {
-      setStatus("Looking for someone...");
     });
 
     socket.on("ready", async () => {
