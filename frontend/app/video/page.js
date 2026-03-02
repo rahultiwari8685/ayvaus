@@ -55,7 +55,7 @@ export default function VideoChat() {
     localVideo.current.srcObject = stream;
   }
 
-  function createPeer() {
+  async function createPeer() {
     if (!streamRef.current) return;
 
     if (pcRef.current) {
@@ -91,8 +91,8 @@ export default function VideoChat() {
     //   ],
     // });
 
-    const res = fetch("https://flirtaus.com/turn-credentials");
-    const turn = res.json();
+    const res = await fetch("https://api.flirtaus.com/turn-credentials");
+    const turn = await res.json();
 
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -159,7 +159,7 @@ export default function VideoChat() {
       await initCamera();
       if (!mounted) return;
 
-      createPeer();
+      await createPeer();
       socket.emit("join");
     }
 
@@ -276,8 +276,8 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
-      setTimeout(() => {
-        createPeer();
+      setTimeout(async () => {
+        await createPeer();
         socket.emit("join");
       }, 500);
     });
@@ -300,7 +300,7 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  function nextChat() {
+  async function nextChat() {
     setStatus("Skipping...");
     setMessages([]);
 
@@ -317,7 +317,7 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
     }
-    createPeer();
+    await createPeer();
 
     socket.emit("next");
   }
