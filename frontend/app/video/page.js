@@ -27,6 +27,8 @@ export default function VideoChat() {
   const streamRef = useRef(null);
   const roleRef = useRef(null);
 
+  const iceQueueRef = useRef([]);
+
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -56,6 +58,8 @@ export default function VideoChat() {
   }
 
   async function createPeer() {
+    iceQueueRef.current = [];
+
     if (!streamRef.current) return;
 
     if (pcRef.current) {
@@ -63,33 +67,7 @@ export default function VideoChat() {
       pcRef.current = null;
     }
 
-    // const pc = new RTCPeerConnection({
-    //   iceServers: [
-    //     {
-    //       urls: "stun:stun.relay.metered.ca:80",
-    //     },
-    //     {
-    //       urls: "turn:global.relay.metered.ca:80",
-    //       username: "1103f8f8c8afe59de448db19",
-    //       credential: "Z7SVdVopXdVOrthF",
-    //     },
-    //     {
-    //       urls: "turn:global.relay.metered.ca:80?transport=tcp",
-    //       username: "1103f8f8c8afe59de448db19",
-    //       credential: "Z7SVdVopXdVOrthF",
-    //     },
-    //     {
-    //       urls: "turn:global.relay.metered.ca:443",
-    //       username: "1103f8f8c8afe59de448db19",
-    //       credential: "Z7SVdVopXdVOrthF",
-    //     },
-    //     {
-    //       urls: "turns:global.relay.metered.ca:443?transport=tcp",
-    //       username: "1103f8f8c8afe59de448db19",
-    //       credential: "Z7SVdVopXdVOrthF",
-    //     },
-    //   ],
-    // });
+    iceQueueRef.current = [];
 
     const res = await fetch("https://api.flirtaus.com/turn-credentials");
     const turn = await res.json();
@@ -169,9 +147,9 @@ export default function VideoChat() {
 
     start();
 
-    socket.on("matched", ({ role }) => {
+    socket.on("matched", async ({ role }) => {
       if (!pcRef.current) {
-        createPeer();
+        await createPeer();
       }
       roleRef.current = role;
       setStatus("Connecting...");
@@ -190,34 +168,82 @@ export default function VideoChat() {
       socket.emit("signal", { offer });
     });
 
+    // socket.on("signal", async (data) => {
+    //   if (!pcRef.current) return;
+
+    //   if (data.offer) {
+    //     await pcRef.current.setRemoteDescription(
+    //       new RTCSessionDescription(data.offer),
+    //     );
+
+    //     const answer = await pcRef.current.createAnswer();
+    //     await pcRef.current.setLocalDescription(answer);
+
+    //     socket.emit("signal", { answer });
+    //   }
+
+    //   if (data.answer) {
+    //     await pcRef.current.setRemoteDescription(
+    //       new RTCSessionDescription(data.answer),
+    //     );
+    //   }
+
+    //   if (data.candidate) {
+    //     try {
+    //       await pcRef.current.addIceCandidate(
+    //         new RTCIceCandidate(data.candidate),
+    //       );
+    //     } catch (err) {
+    //       console.log("ICE error:", err);
+    //     }
+    //   }
+    // });
+
     socket.on("signal", async (data) => {
       if (!pcRef.current) return;
 
-      if (data.offer) {
-        await pcRef.current.setRemoteDescription(
-          new RTCSessionDescription(data.offer),
-        );
-
-        const answer = await pcRef.current.createAnswer();
-        await pcRef.current.setLocalDescription(answer);
-
-        socket.emit("signal", { answer });
-      }
-
-      if (data.answer) {
-        await pcRef.current.setRemoteDescription(
-          new RTCSessionDescription(data.answer),
-        );
-      }
-
-      if (data.candidate) {
-        try {
-          await pcRef.current.addIceCandidate(
-            new RTCIceCandidate(data.candidate),
+      try {
+        // OFFER RECEIVED
+        if (data.offer) {
+          await pcRef.current.setRemoteDescription(
+            new RTCSessionDescription(data.offer),
           );
-        } catch (err) {
-          console.log("ICE error:", err);
+
+          // Flush queued ICE
+          while (iceQueueRef.current.length > 0) {
+            await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
+          }
+
+          const answer = await pcRef.current.createAnswer();
+          await pcRef.current.setLocalDescription(answer);
+
+          socket.emit("signal", { answer });
         }
+
+        // ANSWER RECEIVED
+        if (data.answer) {
+          await pcRef.current.setRemoteDescription(
+            new RTCSessionDescription(data.answer),
+          );
+
+          // Flush queued ICE
+          while (iceQueueRef.current.length > 0) {
+            await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
+          }
+        }
+
+        // ICE CANDIDATE RECEIVED
+        if (data.candidate) {
+          const candidate = new RTCIceCandidate(data.candidate);
+
+          if (pcRef.current.remoteDescription) {
+            await pcRef.current.addIceCandidate(candidate);
+          } else {
+            iceQueueRef.current.push(candidate);
+          }
+        }
+      } catch (err) {
+        console.log("Signal handling error:", err);
       }
     });
 
