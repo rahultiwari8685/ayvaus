@@ -46,7 +46,7 @@ const io = new Server(server, {
 });
 
 const waitingQueue = [];
-let onlineUsers = 0;
+const uniqueUsers = new Set();
 
 function logWaitingQueue() {
   console.log("📋 Waiting Users:", waitingQueue.length);
@@ -86,8 +86,8 @@ io.on("connection", (socket) => {
 
   console.log("🟢 Connected:", socket.id, "| IP:", ip);
 
-  onlineUsers++;
-  io.emit("online-users", onlineUsers);
+  uniqueUsers.add(socket.userIp);
+  io.emit("online-users", uniqueUsers.size);
 
   socket.partner = null;
   socket.lastPartnerId = null;
@@ -101,25 +101,57 @@ io.on("connection", (socket) => {
     }
 
     // Match until less than 2 users remain
-    while (waitingQueue.length >= 2) {
-      const socket1 = waitingQueue.shift();
-      const socket2 = waitingQueue.shift();
+    // while (waitingQueue.length >= 2) {
+    //   const socket1 = waitingQueue.shift();
+    //   const socket2 = waitingQueue.shift();
 
-      if (!socket1 || !socket2) continue;
+    //   if (!socket1 || !socket2) continue;
 
-      // Double check not already matched
-      if (socket1.partner || socket2.partner) continue;
+    //   // Double check not already matched
+    //   if (socket1.partner || socket2.partner) continue;
 
-      socket1.partner = socket2;
-      socket2.partner = socket1;
+    //   socket1.partner = socket2;
+    //   socket2.partner = socket1;
 
-      socket1.lastPartnerId = socket2.id;
-      socket2.lastPartnerId = socket1.id;
+    //   socket1.lastPartnerId = socket2.id;
+    //   socket2.lastPartnerId = socket1.id;
 
-      console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
+    //   console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
 
-      socket1.emit("matched", { role: "caller" });
-      socket2.emit("matched", { role: "callee" });
+    //   socket1.emit("matched", { role: "caller" });
+    //   socket2.emit("matched", { role: "callee" });
+    // }
+
+    for (let i = 0; i < waitingQueue.length; i++) {
+      for (let j = i + 1; j < waitingQueue.length; j++) {
+        const socket1 = waitingQueue[i];
+        const socket2 = waitingQueue[j];
+
+        // 🔥 Prevent same partner again
+        if (
+          socket1.lastPartnerId === socket2.id ||
+          socket2.lastPartnerId === socket1.id
+        ) {
+          continue;
+        }
+
+        // Remove both from queue
+        waitingQueue.splice(j, 1);
+        waitingQueue.splice(i, 1);
+
+        socket1.partner = socket2;
+        socket2.partner = socket1;
+
+        socket1.lastPartnerId = socket2.id;
+        socket2.lastPartnerId = socket1.id;
+
+        console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
+
+        socket1.emit("matched", { role: "caller" });
+        socket2.emit("matched", { role: "callee" });
+
+        return tryMatch(); // keep matching others
+      }
     }
 
     logWaitingQueue();
@@ -203,8 +235,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    onlineUsers--;
-    io.emit("online-users", onlineUsers);
+    // Check if any socket still using same IP
+    const stillConnected = Array.from(io.sockets.sockets.values()).some(
+      (s) => s.userIp === socket.userIp,
+    );
+
+    if (!stillConnected) {
+      uniqueUsers.delete(socket.userIp);
+    }
+
+    io.emit("online-users", uniqueUsers.size);
 
     if (socket.partner) {
       socket.partner.emit("partner-left");
