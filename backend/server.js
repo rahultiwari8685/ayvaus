@@ -67,8 +67,7 @@ function logActiveConnections() {
 
   clients.forEach((s, index) => {
     console.log(
-      `   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp} | Partner: ${
-        s.partner ? s.partner.id : "None"
+      `   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp} | Partner: ${s.partner ? s.partner.id : "None"
       }`,
     );
   });
@@ -79,18 +78,23 @@ function logActiveConnections() {
 io.on("connection", (socket) => {
   // console.log("🟢 Connected:", socket.id);
 
-  const ip =
-    socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+  const userId = socket.handshake.auth.userId;
 
-  socket.userIp = ip;
+  if (!userId) {
+    socket.disconnect();
+    return;
+  }
 
-  console.log("🟢 Connected:", socket.id, "| IP:", ip);
+  socket.userId = userId;
 
-  uniqueUsers.add(socket.userIp);
+  console.log("🟢 Connected:", socket.id, "| User:", userId);
+
+  uniqueUsers.add(userId);
   io.emit("online-users", uniqueUsers.size);
 
   socket.partner = null;
   socket.lastPartnerId = null;
+  socket.lastNextTime = 0;
 
   function tryMatch() {
     // Clean queue (remove disconnected or already matched users)
@@ -100,32 +104,15 @@ io.on("connection", (socket) => {
       }
     }
 
-    // Match until less than 2 users remain
-    // while (waitingQueue.length >= 2) {
-    //   const socket1 = waitingQueue.shift();
-    //   const socket2 = waitingQueue.shift();
 
-    //   if (!socket1 || !socket2) continue;
-
-    //   // Double check not already matched
-    //   if (socket1.partner || socket2.partner) continue;
-
-    //   socket1.partner = socket2;
-    //   socket2.partner = socket1;
-
-    //   socket1.lastPartnerId = socket2.id;
-    //   socket2.lastPartnerId = socket1.id;
-
-    //   console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
-
-    //   socket1.emit("matched", { role: "caller" });
-    //   socket2.emit("matched", { role: "callee" });
-    // }
 
     for (let i = 0; i < waitingQueue.length; i++) {
       for (let j = i + 1; j < waitingQueue.length; j++) {
         const socket1 = waitingQueue[i];
         const socket2 = waitingQueue[j];
+
+        if (!socket1 || !socket2) continue;
+        if (socket1.partner || socket2.partner) continue;
 
         // 🔥 Prevent same partner again
         if (
@@ -161,7 +148,7 @@ io.on("connection", (socket) => {
     if (!waitingQueue.includes(socket) && !socket.partner) {
       waitingQueue.push(socket);
 
-      console.log("➕ Added to waiting:", socket.id, "| IP:", socket.userIp);
+      console.log("➕ Added to waiting:", socket.id, "| User:", socket.userId);
       logWaitingQueue();
     }
 
@@ -199,6 +186,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next", () => {
+
+
+
+    // ✅ NEXT SPAM PROTECTION
+    const now = Date.now();
+
+    if (now - socket.lastNextTime < 2000) {
+      console.log("⚠️ Next blocked (too fast):", socket.id);
+      socket.emit("next-blocked");
+      return;
+    }
+
+
+
+    socket.lastNextTime = now;
     console.log("⏭ Next clicked:", socket.id);
 
     // Break existing connection
@@ -237,14 +239,15 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     // Check if any socket still using same IP
     const stillConnected = Array.from(io.sockets.sockets.values()).some(
-      (s) => s.userIp === socket.userIp,
+      (s) => s.userId === socket.userId,
     );
 
     if (!stillConnected) {
-      uniqueUsers.delete(socket.userIp);
+      uniqueUsers.delete(socket.userId);
     }
 
     io.emit("online-users", uniqueUsers.size);
+
 
     if (socket.partner) {
       socket.partner.emit("partner-left");
@@ -254,7 +257,8 @@ io.on("connection", (socket) => {
     const idx = waitingQueue.indexOf(socket);
     if (idx !== -1) waitingQueue.splice(idx, 1);
 
-    console.log("🔴 Disconnected:", socket.id, "| IP:", socket.userIp);
+
+    console.log("🔴 Disconnected:", socket.id, "| User:", socket.userId);
     logActiveConnections();
   });
 });

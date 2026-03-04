@@ -1,25 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import { v4 as uuid } from "uuid";
 
-import {
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  RotateCcw,
-  MessageCircle,
-  SkipForward,
-  PhoneOff,
-} from "lucide-react";
 
-const socket = io("https://api.flirtaus.com", {
-  transports: ["websocket"],
-});
+
+function getOrCreateUserId() {
+  let userId = localStorage.getItem("flirtaus_user_id");
+
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem("flirtaus_user_id", userId);
+  }
+
+  return userId;
+}
 
 export default function VideoChat() {
+
+
+  const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
 
@@ -98,7 +99,7 @@ export default function VideoChat() {
 
     pc.onicecandidate = (e) => {
       if (e.candidate) {
-        socket.emit("signal", { candidate: e.candidate });
+        socketRef.current.emit("signal", { candidate: e.candidate });
       }
     };
 
@@ -123,7 +124,7 @@ export default function VideoChat() {
 
       if (pc.iceConnectionState === "failed") {
         console.log("ICE failed, retrying...");
-        socket.emit("next");
+        socketRef.current.emit("next");
       }
     };
 
@@ -133,21 +134,31 @@ export default function VideoChat() {
   useEffect(() => {
     let mounted = true;
 
+    
+    socketRef.current = io("https://api.flirtaus.com", {
+  transports: ["websocket"],
+  auth: {
+    userId: getOrCreateUserId(),
+  },
+});
+
+const socket = socketRef.current;
+
     async function start() {
       await initCamera();
       if (!mounted) return;
 
       await createPeer();
-      socket.emit("join");
+      socketRef.current.emit("join");
     }
 
-    socket.on("online-users", (count) => {
+    socketRef.current.on("online-users", (count) => {
       setOnlineCount(count);
     });
 
     start();
 
-    socket.on("matched", async ({ role }) => {
+    socketRef.current.on("matched", async ({ role }) => {
       if (!pcRef.current) {
         await createPeer();
       }
@@ -155,51 +166,22 @@ export default function VideoChat() {
       setStatus("Connecting...");
 
       if (role === "callee") {
-        socket.emit("ready");
+        socketRef.current.emit("ready");
       }
     });
 
-    socket.on("ready", async () => {
+    socketRef.current.on("ready", async () => {
       if (roleRef.current !== "caller") return;
       if (!pcRef.current) return;
 
       const offer = await pcRef.current.createOffer();
       await pcRef.current.setLocalDescription(offer);
-      socket.emit("signal", { offer });
+      socketRef.current.emit("signal", { offer });
     });
 
-    // socket.on("signal", async (data) => {
-    //   if (!pcRef.current) return;
 
-    //   if (data.offer) {
-    //     await pcRef.current.setRemoteDescription(
-    //       new RTCSessionDescription(data.offer),
-    //     );
 
-    //     const answer = await pcRef.current.createAnswer();
-    //     await pcRef.current.setLocalDescription(answer);
-
-    //     socket.emit("signal", { answer });
-    //   }
-
-    //   if (data.answer) {
-    //     await pcRef.current.setRemoteDescription(
-    //       new RTCSessionDescription(data.answer),
-    //     );
-    //   }
-
-    //   if (data.candidate) {
-    //     try {
-    //       await pcRef.current.addIceCandidate(
-    //         new RTCIceCandidate(data.candidate),
-    //       );
-    //     } catch (err) {
-    //       console.log("ICE error:", err);
-    //     }
-    //   }
-    // });
-
-    socket.on("signal", async (data) => {
+    socketRef.current.on("signal", async (data) => {
       if (!pcRef.current) return;
 
       try {
@@ -217,7 +199,7 @@ export default function VideoChat() {
           const answer = await pcRef.current.createAnswer();
           await pcRef.current.setLocalDescription(answer);
 
-          socket.emit("signal", { answer });
+          socketRef.current.emit("signal", { answer });
         }
 
         // ANSWER RECEIVED
@@ -247,10 +229,10 @@ export default function VideoChat() {
       }
     });
 
-    socket.on("chat-message", (msg) => {
+    socketRef.current.on("chat-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
 
-      socket.emit("message-delivered", msg.id);
+      socketRef.current.emit("message-delivered", msg.id);
 
       // Increase unread if chat is closed
       if (!showChat) {
@@ -258,7 +240,7 @@ export default function VideoChat() {
       }
     });
 
-    socket.on("edit-message", ({ id, newText }) => {
+    socketRef.current.on("edit-message", ({ id, newText }) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === id ? { ...m, text: newText, edited: true } : m,
@@ -266,7 +248,7 @@ export default function VideoChat() {
       );
     });
 
-    socket.on("message-delivered", (messageId) => {
+    socketRef.current.on("message-delivered", (messageId) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId ? { ...m, status: "delivered" } : m,
@@ -274,7 +256,7 @@ export default function VideoChat() {
       );
     });
 
-    socket.on("typing", () => {
+    socketRef.current.on("typing", () => {
       setTyping(true);
 
       setTimeout(() => {
@@ -282,13 +264,13 @@ export default function VideoChat() {
       }, 2000);
     });
 
-    socket.on("message-seen", (messageId) => {
+    socketRef.current.on("message-seen", (messageId) => {
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? { ...m, status: "seen" } : m)),
       );
     });
 
-    socket.on("partner-left", () => {
+    socketRef.current.on("partner-left", () => {
       setStatus("Looking for someone...");
       setMessages([]);
 
@@ -304,23 +286,27 @@ export default function VideoChat() {
 
       setTimeout(async () => {
         await createPeer();
-        socket.emit("join");
+        socketRef.current.emit("join");
       }, 500);
     });
+
+    socketRef.current.on("next-blocked", () => {
+  alert("Please wait before skipping again.");
+});
 
     return () => {
       mounted = false;
       pcRef.current?.close();
       streamRef.current?.getTracks().forEach((t) => t.stop());
-      socket.off();
+   socketRef.current?.disconnect();
     };
   }, []);
 
   useEffect(() => {
     if (showChat) {
       messages.forEach((msg) => {
-        if (msg.sender !== socket.id && msg.status !== "seen") {
-          socket.emit("message-seen", msg.id);
+        if (msg.sender !== socketRef.current.id && msg.status !== "seen") {
+          socketRef.current.emit("message-seen", msg.id);
         }
       });
     }
@@ -345,7 +331,7 @@ export default function VideoChat() {
     }
     await createPeer();
 
-    socket.emit("next");
+    socketRef.current.emit("next");
   }
 
   function sendMessage(e) {
@@ -354,12 +340,12 @@ export default function VideoChat() {
 
     const message = {
       id: uuid(),
-      sender: socket.id,
+      sender: socketRef.current.id,
       text,
       status: "sent",
     };
 
-    socket.emit("chat-message", message);
+    socketRef.current.emit("chat-message", message);
     setMessages((prev) => [...prev, message]);
     setText("");
   }
@@ -384,13 +370,13 @@ export default function VideoChat() {
       reader.onloadend = () => {
         const message = {
           id: crypto.randomUUID(),
-          sender: socket.id,
+          sender: socketRef.current.id,
           type: "audio",
           audio: reader.result,
           status: "sent",
         };
 
-        socket.emit("chat-message", message);
+        socketRef.current.emit("chat-message", message);
         setMessages((prev) => [...prev, message]);
       };
 
@@ -477,7 +463,7 @@ export default function VideoChat() {
   function exitChat() {
     pcRef.current?.close();
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    socket.disconnect();
+    socketRef.current.disconnect();
     window.location.href = "/";
   }
 
@@ -490,13 +476,13 @@ export default function VideoChat() {
     reader.onload = () => {
       const message = {
         id: crypto.randomUUID(),
-        sender: socket.id,
+        sender: socketRef.current.id,
         type: "image",
         image: reader.result,
         status: "sent",
       };
 
-      socket.emit("chat-message", message);
+      socketRef.current.emit("chat-message", message);
       setMessages((prev) => [...prev, message]);
     };
 
@@ -555,7 +541,7 @@ export default function VideoChat() {
               <div
                 key={m.id || i}
                 className={`p-2 rounded-lg max-w-[75%] ${
-                  m.sender === socket.id
+                  m.sender === socketRef.current.id
                     ? "bg-blue-600 ml-auto"
                     : "bg-gray-700 mr-auto"
                 }`}
@@ -570,7 +556,7 @@ export default function VideoChat() {
                     </span>
                   )}
 
-                  {m.sender === socket.id && (
+                  {m.sender === socketRef.current.id && (
                     <span className="text-xs ml-1">
                       {m.status === "sent" && "✓"}
                       {m.status === "delivered" && "✓✓"}
@@ -587,13 +573,13 @@ export default function VideoChat() {
                     </span>
                   )}
 
-                  {m.sender === socket.id && (
+                  {m.sender === socketRef.current.id && (
                     <button
                       onClick={() => {
                         const newText = prompt("Edit message", m.text);
                         if (!newText) return;
 
-                        socket.emit("edit-message", { id: m.id, newText });
+                        socketRef.current.emit("edit-message", { id: m.id, newText });
                         setMessages((prev) =>
                           prev.map((msg) =>
                             msg.id === m.id
@@ -624,7 +610,7 @@ export default function VideoChat() {
               value={text}
               onChange={(e) => {
                 setText(e.target.value);
-                socket.emit("typing");
+                socketRef.current.emit("typing");
               }}
               className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
               placeholder="Type a message..."
