@@ -77,7 +77,7 @@ export default function VideoChat() {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         {
-          urls: "turn:your_vps_ip:3478?transport=udp",
+          urls: "turn:72.61.231.247:3478?transport=udp",
           username: turn.username,
           credential: turn.credential,
         },
