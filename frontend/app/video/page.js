@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { v4 as uuid } from "uuid";
 
-
-
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
 
@@ -18,8 +16,6 @@ function getOrCreateUserId() {
 }
 
 export default function VideoChat() {
-
-
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -134,15 +130,14 @@ export default function VideoChat() {
   useEffect(() => {
     let mounted = true;
 
-    
     socketRef.current = io("https://api.flirtaus.com", {
-  transports: ["websocket"],
-  auth: {
-    userId: getOrCreateUserId(),
-  },
-});
+      transports: ["websocket"],
+      auth: {
+        userId: getOrCreateUserId(),
+      },
+    });
 
-const socket = socketRef.current;
+    const socket = socketRef.current;
 
     async function start() {
       await initCamera();
@@ -178,8 +173,6 @@ const socket = socketRef.current;
       await pcRef.current.setLocalDescription(offer);
       socketRef.current.emit("signal", { offer });
     });
-
-
 
     socketRef.current.on("signal", async (data) => {
       if (!pcRef.current) return;
@@ -291,14 +284,14 @@ const socket = socketRef.current;
     });
 
     socketRef.current.on("next-blocked", () => {
-  alert("Please wait before skipping again.");
-});
+      alert("Please wait before skipping again.");
+    });
 
     return () => {
       mounted = false;
       pcRef.current?.close();
       streamRef.current?.getTracks().forEach((t) => t.stop());
-   socketRef.current?.disconnect();
+      socketRef.current?.disconnect();
     };
   }, []);
 
@@ -491,7 +484,6 @@ const socket = socketRef.current;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
-      {/* Header */}
       <div className="absolute top-4 text-center">
         <h1 className="text-2xl font-bold tracking-wide">
           Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
@@ -502,7 +494,6 @@ const socket = socketRef.current;
         <p className="text-xs text-gray-400">{status}</p>
       </div>
 
-      {/* Guest Video Full Screen */}
       <div className="relative w-full h-screen flex items-center justify-center">
         <video
           ref={remoteVideo}
@@ -528,7 +519,6 @@ const socket = socketRef.current;
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Chat Header */}
           <div className="flex justify-between items-center p-4 border-b border-gray-700">
             <h2 className="text-lg font-semibold">Chat</h2>
             <button onClick={() => setShowChat(false)} className="text-xl">
@@ -547,7 +537,13 @@ const socket = socketRef.current;
                 }`}
               >
                 <div className="flex items-end gap-1">
-                  <span>{m.text}</span>
+                  {m.type === "image" ? (
+                    <img src={m.image} className="rounded-lg max-w-xs" />
+                  ) : m.type === "audio" ? (
+                    <audio controls src={m.audio} className="max-w-xs" />
+                  ) : (
+                    <span>{m.text}</span>
+                  )}
 
                   {/* Edited Label */}
                   {m.edited && (
@@ -579,7 +575,10 @@ const socket = socketRef.current;
                         const newText = prompt("Edit message", m.text);
                         if (!newText) return;
 
-                        socketRef.current.emit("edit-message", { id: m.id, newText });
+                        socketRef.current.emit("edit-message", {
+                          id: m.id,
+                          newText,
+                        });
                         setMessages((prev) =>
                           prev.map((msg) =>
                             msg.id === m.id

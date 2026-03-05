@@ -8,7 +8,7 @@ export default function Home() {
       {/* Navbar */}
       <nav className="w-full flex justify-between items-center px-6 py-4">
         <h1 className="text-2xl font-bold tracking-wide">
-          Flirta <span className="text-pink-500">(Ayvaus)</span>
+          Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
         </h1>
 
         <Link
