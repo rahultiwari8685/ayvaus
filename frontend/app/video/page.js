@@ -42,6 +42,15 @@ export default function VideoChat() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   async function initCamera() {
     if (streamRef.current) return;
 
@@ -513,130 +522,192 @@ export default function VideoChat() {
         </div>
       </div>
 
-      <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
-          showChat ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex justify-between items-center p-4 border-b border-gray-700">
-            <h2 className="text-lg font-semibold">Chat</h2>
-            <button onClick={() => setShowChat(false)} className="text-xl">
-              ✖
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((m, i) => (
-              <div
-                key={m.id || i}
-                className={`p-2 rounded-lg max-w-[75%] ${
-                  m.sender === socketRef.current.id
-                    ? "bg-blue-600 ml-auto"
-                    : "bg-gray-700 mr-auto"
-                }`}
-              >
-                <div className="flex items-end gap-1">
-                  {m.type === "image" ? (
-                    <img src={m.image} className="rounded-lg max-w-xs" />
-                  ) : m.type === "audio" ? (
-                    <audio controls src={m.audio} className="max-w-xs" />
-                  ) : (
-                    <span>{m.text}</span>
-                  )}
-
-                  {/* Edited Label */}
-                  {m.edited && (
-                    <span className="text-xs italic text-gray-300 ml-1">
-                      edited
-                    </span>
-                  )}
-
-                  {m.sender === socketRef.current.id && (
-                    <span className="text-xs ml-1">
-                      {m.status === "sent" && "✓"}
-                      {m.status === "delivered" && "✓✓"}
-                      {m.status === "seen" && (
-                        <span className="text-blue-400">✓✓</span>
-                      )}
-                      {m.type === "audio" && (
-                        <audio controls src={m.audio} className="max-w-xs" />
-                      )}
-
-                      {m.type === "image" && (
-                        <img src={m.image} className="rounded-lg max-w-xs" />
-                      )}
-                    </span>
-                  )}
-
-                  {m.sender === socketRef.current.id && (
-                    <button
-                      onClick={() => {
-                        const newText = prompt("Edit message", m.text);
-                        if (!newText) return;
-
-                        socketRef.current.emit("edit-message", {
-                          id: m.id,
-                          newText,
-                        });
-                        setMessages((prev) =>
-                          prev.map((msg) =>
-                            msg.id === m.id
-                              ? { ...msg, text: newText, edited: true }
-                              : msg,
-                          ),
-                        );
-                      }}
-                      className="text-xs text-gray-300 ml-2"
-                    >
-                      ✏
-                    </button>
-                  )}
-                </div>
+      {isMobile ? (
+        showChat && (
+          <div className="fixed left-0 right-0 bottom-24 z-50 px-2">
+            {/* Chat Box */}
+            <div className="w-full h-[30vh] bg-gray-900 rounded-2xl shadow-2xl flex flex-col border border-gray-700">
+              {/* Header */}
+              <div className="flex justify-between items-center p-3 border-b border-gray-700">
+                <h2 className="text-sm font-semibold">Chat</h2>
+                <button onClick={() => setShowChat(false)}>✖</button>
               </div>
-            ))}
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-2 text-xs">
+                {messages.map((m, i) => (
+                  <div
+                    key={m.id || i}
+                    className={`p-2 rounded-lg max-w-[75%] ${
+                      m.sender === socketRef.current.id
+                        ? "bg-blue-600 ml-auto"
+                        : "bg-gray-700 mr-auto"
+                    }`}
+                  >
+                    {m.type === "image" ? (
+                      <img src={m.image} className="rounded-lg max-w-xs" />
+                    ) : m.type === "audio" ? (
+                      <audio controls src={m.audio} />
+                    ) : (
+                      <span>{m.text}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Typing */}
+              {typing && (
+                <p className="text-xs text-gray-400 px-2">Typing...</p>
+              )}
+
+              {/* Input */}
+              <form
+                onSubmit={sendMessage}
+                className="p-2 flex gap-1 border-t border-gray-700"
+              >
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    socketRef.current.emit("typing");
+                  }}
+                  className="flex-1 px-2 py-1 rounded bg-gray-800 text-sm"
+                  placeholder="Type..."
+                />
+                <button className="bg-green-600 px-3 rounded text-sm">
+                  Send
+                </button>
+              </form>
+            </div>
           </div>
+        )
+      ) : (
+        // 💻 DESKTOP (NO CHANGE)
+        <div
+          className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
+            showChat ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h2 className="text-lg font-semibold">Chat</h2>
+              <button onClick={() => setShowChat(false)} className="text-xl">
+                ✖
+              </button>
+            </div>
 
-          {typing && (
-            <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
-          )}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.map((m, i) => (
+                <div
+                  key={m.id || i}
+                  className={`p-2 rounded-lg max-w-[75%] ${
+                    m.sender === socketRef.current.id
+                      ? "bg-blue-600 ml-auto"
+                      : "bg-gray-700 mr-auto"
+                  }`}
+                >
+                  <div className="flex items-end gap-1">
+                    {m.type === "image" ? (
+                      <img src={m.image} className="rounded-lg max-w-xs" />
+                    ) : m.type === "audio" ? (
+                      <audio controls src={m.audio} className="max-w-xs" />
+                    ) : (
+                      <span>{m.text}</span>
+                    )}
 
-          <form
-            onSubmit={sendMessage}
-            className="p-4 flex  border-t border-gray-700"
-          >
-            <input
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                socketRef.current.emit("typing");
-              }}
-              className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
-              placeholder="Type a message..."
-            />
+                    {/* Edited Label */}
+                    {m.edited && (
+                      <span className="text-xs italic text-gray-300 ml-1">
+                        edited
+                      </span>
+                    )}
 
-            <button
-              type="button"
-              onClick={isRecording ? stopRecording : startRecording}
-              className="bg-purple-600 px-3 rounded"
+                    {m.sender === socketRef.current.id && (
+                      <span className="text-xs ml-1">
+                        {m.status === "sent" && "✓"}
+                        {m.status === "delivered" && "✓✓"}
+                        {m.status === "seen" && (
+                          <span className="text-blue-400">✓✓</span>
+                        )}
+                        {m.type === "audio" && (
+                          <audio controls src={m.audio} className="max-w-xs" />
+                        )}
+
+                        {m.type === "image" && (
+                          <img src={m.image} className="rounded-lg max-w-xs" />
+                        )}
+                      </span>
+                    )}
+
+                    {m.sender === socketRef.current.id && (
+                      <button
+                        onClick={() => {
+                          const newText = prompt("Edit message", m.text);
+                          if (!newText) return;
+
+                          socketRef.current.emit("edit-message", {
+                            id: m.id,
+                            newText,
+                          });
+                          setMessages((prev) =>
+                            prev.map((msg) =>
+                              msg.id === m.id
+                                ? { ...msg, text: newText, edited: true }
+                                : msg,
+                            ),
+                          );
+                        }}
+                        className="text-xs text-gray-300 ml-2"
+                      >
+                        ✏
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {typing && (
+              <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
+            )}
+
+            <form
+              onSubmit={sendMessage}
+              className="p-4 flex  border-t border-gray-700"
             >
-              {isRecording ? "Stop" : "🎙"}
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              id="imageUpload"
-              onChange={handleImage}
-            />
+              <input
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  socketRef.current.emit("typing");
+                }}
+                className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
+                placeholder="Type a message..."
+              />
 
-            <label htmlFor="imageUpload" className="cursor-pointer px-2">
-              📷
-            </label>
-            <button className="bg-green-600 px-4 rounded">Send</button>
-          </form>
+              <button
+                type="button"
+                onClick={isRecording ? stopRecording : startRecording}
+                className="bg-purple-600 px-3 rounded"
+              >
+                {isRecording ? "Stop" : "🎙"}
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                id="imageUpload"
+                onChange={handleImage}
+              />
+
+              <label htmlFor="imageUpload" className="cursor-pointer px-2">
+                📷
+              </label>
+              <button className="bg-green-600 px-4 rounded">Send</button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
