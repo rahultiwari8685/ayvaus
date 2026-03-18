@@ -565,6 +565,16 @@ export default function VideoChat() {
                 onSubmit={sendMessage}
                 className="p-2 flex items-center gap-2 border-t border-gray-700"
               >
+                {/* Input */}
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    socketRef.current.emit("typing");
+                  }}
+                  className="flex-1 px-2 py-1 rounded bg-gray-800 text-sm"
+                  placeholder="Type..."
+                />
                 {/* Image Upload */}
                 <input
                   type="file"
@@ -589,17 +599,6 @@ export default function VideoChat() {
                 >
                   {isRecording ? "⏹" : "🎤"}
                 </button>
-
-                {/* Input */}
-                <input
-                  value={text}
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    socketRef.current.emit("typing");
-                  }}
-                  className="flex-1 px-2 py-1 rounded bg-gray-800 text-sm"
-                  placeholder="Type..."
-                />
 
                 {/* Send */}
                 <button className="bg-green-600 px-3 rounded text-sm">➤</button>
