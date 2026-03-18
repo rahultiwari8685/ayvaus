@@ -563,8 +563,34 @@ export default function VideoChat() {
               {/* Input */}
               <form
                 onSubmit={sendMessage}
-                className="p-2 flex gap-1 border-t border-gray-700"
+                className="p-2 flex items-center gap-2 border-t border-gray-700"
               >
+                {/* Image Upload */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  id="mobileImageUpload"
+                  onChange={handleImage}
+                />
+
+                <label
+                  htmlFor="mobileImageUpload"
+                  className="text-lg cursor-pointer"
+                >
+                  📷
+                </label>
+
+                {/* Voice */}
+                <button
+                  type="button"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className="text-lg"
+                >
+                  {isRecording ? "⏹" : "🎤"}
+                </button>
+
+                {/* Input */}
                 <input
                   value={text}
                   onChange={(e) => {
@@ -574,9 +600,9 @@ export default function VideoChat() {
                   className="flex-1 px-2 py-1 rounded bg-gray-800 text-sm"
                   placeholder="Type..."
                 />
-                <button className="bg-green-600 px-3 rounded text-sm">
-                  Send
-                </button>
+
+                {/* Send */}
+                <button className="bg-green-600 px-3 rounded text-sm">➤</button>
               </form>
             </div>
           </div>
