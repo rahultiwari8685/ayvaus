@@ -524,86 +524,78 @@ export default function VideoChat() {
 
       {isMobile ? (
         showChat && (
-          <div className="fixed left-0 right-0 bottom-24 z-50 px-2">
-            {/* Chat Box */}
-            <div className="w-full h-[30vh] bg-gray-900 rounded-2xl shadow-2xl flex flex-col border border-gray-700">
-              {/* Header */}
-              <div className="flex justify-between items-center p-3 border-b border-gray-700">
-                <h2 className="text-sm font-semibold">Chat</h2>
-                <button onClick={() => setShowChat(false)}>✖</button>
-              </div>
+          <div className="fixed inset-0 z-50 flex flex-col backdrop-blur-md bg-black/40">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h2 className="text-lg font-semibold">Chat</h2>
+              <button onClick={() => setShowChat(false)}>✖</button>
+            </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-2 space-y-2 text-xs">
-                {messages.map((m, i) => (
-                  <div
-                    key={m.id || i}
-                    className={`p-2 rounded-lg max-w-[75%] ${
-                      m.sender === socketRef.current.id
-                        ? "bg-blue-600 ml-auto"
-                        : "bg-gray-700 mr-auto"
-                    }`}
-                  >
-                    {m.type === "image" ? (
-                      <img src={m.image} className="rounded-lg max-w-xs" />
-                    ) : m.type === "audio" ? (
-                      <audio controls src={m.audio} />
-                    ) : (
-                      <span>{m.text}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.map((m, i) => (
+                <div
+                  key={m.id || i}
+                  className={`p-2 rounded-2xl max-w-[75%] ${
+                    m.sender === socketRef.current.id
+                      ? "bg-blue-600/80 ml-auto"
+                      : "bg-gray-800/80 mr-auto"
+                  }`}
+                >
+                  {m.image ? (
+                    <img src={m.image} className="rounded-xl max-w-[200px]" />
+                  ) : m.audio ? (
+                    <audio controls src={m.audio} />
+                  ) : (
+                    <span>{m.text}</span>
+                  )}
+                </div>
+              ))}
+            </div>
 
-              {/* Typing */}
-              {typing && (
-                <p className="text-xs text-gray-400 px-2">Typing...</p>
-              )}
+            {/* Typing */}
+            {typing && <p className="text-xs text-gray-300 px-3">Typing...</p>}
+
+            {/* Input */}
+            <form
+              onSubmit={sendMessage}
+              className="p-3 flex items-center gap-2 border-t border-gray-700 bg-black/50"
+            >
+              {/* Image */}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                id="mobileImageUpload"
+                onChange={handleImage}
+              />
+              <label htmlFor="mobileImageUpload" className="text-xl">
+                📷
+              </label>
+
+              {/* Voice */}
+              <button
+                type="button"
+                onClick={isRecording ? stopRecording : startRecording}
+                className="text-xl"
+              >
+                {isRecording ? "⏹" : "🎤"}
+              </button>
 
               {/* Input */}
-              <form
-                onSubmit={sendMessage}
-                className="p-2 flex items-center gap-2 border-t border-gray-700"
-              >
-                {/* Input */}
-                <input
-                  value={text}
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    socketRef.current.emit("typing");
-                  }}
-                  className="flex-1 px-2 py-1 rounded bg-gray-800 text-sm"
-                  placeholder="Type..."
-                />
-                {/* Image Upload */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  id="mobileImageUpload"
-                  onChange={handleImage}
-                />
+              <input
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  socketRef.current.emit("typing");
+                }}
+                className="flex-1 px-3 py-2 rounded-full bg-gray-800/80 text-sm outline-none"
+                placeholder="Type..."
+              />
 
-                <label
-                  htmlFor="mobileImageUpload"
-                  className="text-lg cursor-pointer"
-                >
-                  📷
-                </label>
-
-                {/* Voice */}
-                <button
-                  type="button"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className="text-lg"
-                >
-                  {isRecording ? "⏹" : "🎤"}
-                </button>
-
-                {/* Send */}
-                <button className="bg-green-600 px-3 rounded text-sm">➤</button>
-              </form>
-            </div>
+              {/* Send */}
+              <button className="bg-green-600 px-4 py-2 rounded-full">➤</button>
+            </form>
           </div>
         )
       ) : (
