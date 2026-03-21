@@ -44,6 +44,10 @@ export default function VideoChat() {
 
   const [isMobile, setIsMobile] = useState(false);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -61,6 +65,25 @@ export default function VideoChat() {
 
     streamRef.current = stream;
     localVideo.current.srcObject = stream;
+  }
+
+  function handleTouchStart(e) {
+    draggingRef.current = true;
+  }
+
+  function handleTouchMove(e) {
+    if (!draggingRef.current) return;
+
+    const touch = e.touches[0];
+
+    setPosition({
+      x: touch.clientX - 60,
+      y: touch.clientY - 80,
+    });
+  }
+
+  function handleTouchEnd() {
+    draggingRef.current = false;
   }
 
   async function createPeer() {
@@ -493,25 +516,55 @@ export default function VideoChat() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
-      <div className="absolute top-4 text-center">
-        <h1 className="text-2xl font-bold tracking-wide">
-          Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
-        </h1>
+      {!(isMobile && showChat) && (
+        <div className="absolute top-4 text-center">
+          <h1 className="text-2xl font-bold tracking-wide">
+            Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
+          </h1>
 
-        <p className="text-sm text-green-400">🟢 {onlineCount} Users Online</p>
+          <p className="text-sm text-green-400">
+            🟢 {onlineCount} Users Online
+          </p>
 
-        <p className="text-xs text-gray-400">{status}</p>
-      </div>
+          <p className="text-xs text-gray-400">{status}</p>
+        </div>
+      )}
 
       <div className="relative w-full h-screen flex items-center justify-center">
         <video
           ref={remoteVideo}
           autoPlay
           playsInline
-          className="w-full h-full object-cover"
+          onClick={() => {
+            if (isMobile && showChat) {
+              setIsExpanded((prev) => !prev);
+            }
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className={`object-cover transition-all duration-300 ${
+            isMobile && showChat
+              ? isExpanded
+                ? "fixed inset-0 z-[999] w-full h-full"
+                : "fixed z-[999] w-32 h-44 rounded-xl border-2 border-white shadow-2xl"
+              : "w-full h-full"
+          }`}
+          style={
+            isMobile && showChat && !isExpanded
+              ? {
+                  top: position.y || 16,
+                  left: position.x || window.innerWidth - 140,
+                }
+              : {}
+          }
         />
 
-        <div className="absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl">
+        <div
+          className={`absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
+            isMobile && showChat ? "hidden" : "block"
+          }`}
+        >
           <video
             ref={localVideo}
             autoPlay
@@ -524,42 +577,54 @@ export default function VideoChat() {
 
       {isMobile ? (
         showChat && (
-          <div className="fixed inset-0 z-50 flex flex-col backdrop-blur-md bg-black/40">
+          <div className="fixed inset-0 z-[900] flex flex-col bg-black/70 ">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-700">
-              <h2 className="text-lg font-semibold">Chat</h2>
-              <button onClick={() => setShowChat(false)}>✖</button>
+            <div className="flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-md">
+              <div>
+                <h2 className="text-sm font-semibold">Stranger</h2>
+                <p className="text-xs text-green-400">{status}</p>
+              </div>
+
+              <button onClick={() => setShowChat(false)} className="text-xl">
+                ✖
+              </button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
               {messages.map((m, i) => (
                 <div
                   key={m.id || i}
-                  className={`p-2 rounded-2xl max-w-[75%] ${
+                  className={`flex ${
                     m.sender === socketRef.current.id
-                      ? "bg-blue-600/80 ml-auto"
-                      : "bg-gray-800/80 mr-auto"
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
-                  {m.image ? (
-                    <img src={m.image} className="rounded-xl max-w-[200px]" />
-                  ) : m.audio ? (
-                    <audio controls src={m.audio} />
-                  ) : (
-                    <span>{m.text}</span>
-                  )}
+                  <div
+                    className={`px-3 py-2 rounded-2xl max-w-[75%] text-sm shadow ${
+                      m.sender === socketRef.current.id
+                        ? "bg-green-500 text-black rounded-br-none"
+                        : "bg-white/80 text-black rounded-bl-none"
+                    }`}
+                  >
+                    {m.type === "image" ? (
+                      <img src={m.image} className="rounded-lg max-w-[200px]" />
+                    ) : m.type === "audio" ? (
+                      <audio controls src={m.audio} />
+                    ) : (
+                      <span>{m.text}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Typing */}
             {typing && <p className="text-xs text-gray-300 px-3">Typing...</p>}
 
-            {/* Input */}
             <form
               onSubmit={sendMessage}
-              className="p-3 flex items-center gap-2 border-t border-gray-700 bg-black/50"
+              className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-md"
             >
               {/* Image */}
               <input
@@ -569,18 +634,12 @@ export default function VideoChat() {
                 id="mobileImageUpload"
                 onChange={handleImage}
               />
-              <label htmlFor="mobileImageUpload" className="text-xl">
-                📷
-              </label>
-
-              {/* Voice */}
-              <button
-                type="button"
-                onClick={isRecording ? stopRecording : startRecording}
-                className="text-xl"
+              <label
+                htmlFor="mobileImageUpload"
+                className="text-xl cursor-pointer"
               >
-                {isRecording ? "⏹" : "🎤"}
-              </button>
+                📎
+              </label>
 
               {/* Input */}
               <input
@@ -589,12 +648,24 @@ export default function VideoChat() {
                   setText(e.target.value);
                   socketRef.current.emit("typing");
                 }}
-                className="flex-1 px-3 py-2 rounded-full bg-gray-800/80 text-sm outline-none"
-                placeholder="Type..."
+                className="flex-1 px-4 py-2 rounded-full bg-gray-800 text-sm outline-none"
+                placeholder="Message"
               />
 
-              {/* Send */}
-              <button className="bg-green-600 px-4 py-2 rounded-full">➤</button>
+              {/* Voice / Send */}
+              {text.trim() ? (
+                <button className="bg-green-500 text-black px-4 py-2 rounded-full">
+                  ➤
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className="text-xl"
+                >
+                  🎤
+                </button>
+              )}
             </form>
           </div>
         )
@@ -726,92 +797,94 @@ export default function VideoChat() {
         </div>
       )}
 
-      <div
-        className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
-        <div className="flex flex-col items-center text-xs text-white">
-          <button
-            onClick={exitChat}
-            className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
-          >
-            ✕
-          </button>
-          <span className="mt-1 text-gray-300">Exit</span>
-        </div>
-
-        <div className="flex flex-col items-center text-xs text-white">
-          <button
-            onClick={toggleMute}
-            className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              isMuted ? "bg-red-600" : "bg-gray-700"
-            }`}
-          >
-            🎤
-          </button>
-          <span className="mt-1 text-gray-300">
-            {isMuted ? "Unmute" : "Mute"}
-          </span>
-        </div>
-
-        <div className="flex flex-col items-center text-xs text-white">
-          <button
-            onClick={toggleVideo}
-            className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              isVideoOff ? "bg-red-600" : "bg-gray-700"
-            }`}
-          >
-            📷
-          </button>
-          <span className="mt-1 text-gray-300">
-            {isVideoOff ? "On" : "Off"}
-          </span>
-        </div>
-
-        {/* Switch */}
-        <div className="flex flex-col items-center text-xs text-white">
-          <button
-            onClick={switchCamera}
-            className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
-          >
-            🔄
-          </button>
-          <span className="mt-1 text-gray-300">Flip</span>
-        </div>
-
-        {/* Chat */}
-        <div className="flex flex-col items-center text-xs text-white relative">
-          <div className="relative">
+      {!(isMobile && showChat) && (
+        <div
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <div className="flex flex-col items-center text-xs text-white">
             <button
-              onClick={() => {
-                setShowChat(true);
-                setUnreadCount(0);
-              }}
-              className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+              onClick={exitChat}
+              className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
             >
-              💬
+              ✕
             </button>
-
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-2 py-0.5">
-                {unreadCount}
-              </span>
-            )}
+            <span className="mt-1 text-gray-300">Exit</span>
           </div>
 
-          <span className="mt-1 text-gray-300">Chat</span>
-        </div>
+          <div className="flex flex-col items-center text-xs text-white">
+            <button
+              onClick={toggleMute}
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                isMuted ? "bg-red-600" : "bg-gray-700"
+              }`}
+            >
+              🎤
+            </button>
+            <span className="mt-1 text-gray-300">
+              {isMuted ? "Unmute" : "Mute"}
+            </span>
+          </div>
 
-        <div className="flex flex-col items-center text-xs text-white">
-          <button
-            onClick={nextChat}
-            className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
-          >
-            ➤
-          </button>
-          <span className="mt-1 text-orange-400 font-semibold">Next</span>
+          <div className="flex flex-col items-center text-xs text-white">
+            <button
+              onClick={toggleVideo}
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                isVideoOff ? "bg-red-600" : "bg-gray-700"
+              }`}
+            >
+              📷
+            </button>
+            <span className="mt-1 text-gray-300">
+              {isVideoOff ? "On" : "Off"}
+            </span>
+          </div>
+
+          {/* Switch */}
+          <div className="flex flex-col items-center text-xs text-white">
+            <button
+              onClick={switchCamera}
+              className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+            >
+              🔄
+            </button>
+            <span className="mt-1 text-gray-300">Flip</span>
+          </div>
+
+          {/* Chat */}
+          <div className="flex flex-col items-center text-xs text-white relative">
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowChat(true);
+                  setUnreadCount(0);
+                }}
+                className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+              >
+                💬
+              </button>
+
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-2 py-0.5">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+
+            <span className="mt-1 text-gray-300">Chat</span>
+          </div>
+
+          <div className="flex flex-col items-center text-xs text-white">
+            <button
+              onClick={nextChat}
+              className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
+            >
+              ➤
+            </button>
+            <span className="mt-1 text-orange-400 font-semibold">Next</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
