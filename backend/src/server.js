@@ -67,7 +67,8 @@ function logActiveConnections() {
 
   clients.forEach((s, index) => {
     console.log(
-      `   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp} | Partner: ${s.partner ? s.partner.id : "None"
+      `   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp} | Partner: ${
+        s.partner ? s.partner.id : "None"
       }`,
     );
   });
@@ -103,8 +104,6 @@ io.on("connection", (socket) => {
         waitingQueue.splice(i, 1);
       }
     }
-
-
 
     for (let i = 0; i < waitingQueue.length; i++) {
       for (let j = i + 1; j < waitingQueue.length; j++) {
@@ -186,9 +185,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next", () => {
-
-
-
     // ✅ NEXT SPAM PROTECTION
     const now = Date.now();
 
@@ -197,8 +193,6 @@ io.on("connection", (socket) => {
       socket.emit("next-blocked");
       return;
     }
-
-
 
     socket.lastNextTime = now;
     console.log("⏭ Next clicked:", socket.id);
@@ -248,7 +242,6 @@ io.on("connection", (socket) => {
 
     io.emit("online-users", uniqueUsers.size);
 
-
     if (socket.partner) {
       socket.partner.emit("partner-left");
       socket.partner.partner = null;
@@ -256,7 +249,6 @@ io.on("connection", (socket) => {
 
     const idx = waitingQueue.indexOf(socket);
     if (idx !== -1) waitingQueue.splice(idx, 1);
-
 
     console.log("🔴 Disconnected:", socket.id, "| User:", socket.userId);
     logActiveConnections();
