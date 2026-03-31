@@ -163,7 +163,7 @@ export default function VideoChat() {
     let mounted = true;
 
     socketRef.current = io("https://api.flirtaus.com", {
-      transports: ["websocket"],
+      transports: ["websocket", "polling"],
       auth: {
         userId: getOrCreateUserId(),
       },
