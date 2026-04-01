@@ -1,8 +1,42 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleSeriousMode = async () => {
+    const token = localStorage.getItem("token");
+
+    // ❌ Not logged in
+    if (!token) {
+      alert("Please login first");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      // 🔍 Check profile status
+      const res = await fetch("https://api.flirtaus.com/api/serious/check", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!data.is_serious_profile) {
+        router.push("/serious/register");
+      } else {
+        router.push("/serious/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white flex flex-col">
       {/* Navbar */}
@@ -25,6 +59,7 @@ export default function Home() {
 
         {/* MODE SELECTION */}
         <div className="mt-12 grid md:grid-cols-3 gap-6 w-full max-w-6xl">
+          {/* FUN MODE */}
           <Link href="/video">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">🎉</div>
@@ -35,16 +70,19 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/serious/register">
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
-              <div className="text-4xl mb-4">❤️</div>
-              <h3 className="text-xl font-semibold mb-2">Serious Mode</h3>
-              <p className="text-gray-400 text-sm">
-                Find meaningful connections. Profile required.
-              </p>
-            </div>
-          </Link>
+          {/* ❤️ SERIOUS MODE (UPDATED) */}
+          <div
+            onClick={handleSeriousMode}
+            className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
+          >
+            <div className="text-4xl mb-4">❤️</div>
+            <h3 className="text-xl font-semibold mb-2">Serious Mode</h3>
+            <p className="text-gray-400 text-sm">
+              Find meaningful connections. Profile required.
+            </p>
+          </div>
 
+          {/* CORPORATE */}
           <Link href="/corporate">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">💼</div>
@@ -54,33 +92,6 @@ export default function Home() {
               </p>
             </div>
           </Link>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-20 px-6 bg-black/40 backdrop-blur-lg">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10 text-center">
-          <div>
-            <div className="text-4xl mb-4">🎥</div>
-            <h3 className="text-xl font-semibold mb-2">Live Video Chat</h3>
-            <p className="text-gray-400">
-              High-quality real-time video connections.
-            </p>
-          </div>
-
-          <div>
-            <div className="text-4xl mb-4">🔁</div>
-            <h3 className="text-xl font-semibold mb-2">Reconnect Feature</h3>
-            <p className="text-gray-400">
-              Reconnect with previous matches (Serious Mode).
-            </p>
-          </div>
-
-          <div>
-            <div className="text-4xl mb-4">🌍</div>
-            <h3 className="text-xl font-semibold mb-2">Global Network</h3>
-            <p className="text-gray-400">Meet people worldwide instantly.</p>
-          </div>
         </div>
       </section>
 
