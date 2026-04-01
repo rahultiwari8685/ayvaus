@@ -12,7 +12,7 @@ export default function Home() {
     // ❌ Not logged in
     if (!token) {
       alert("Please login first");
-      router.push("/login");
+      router.push("/serious/login");
       return;
     }
 
