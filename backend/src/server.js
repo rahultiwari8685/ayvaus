@@ -7,11 +7,18 @@ import { Server } from "socket.io";
 import crypto from "crypto";
 
 import { connectDB } from "./config/db.js";
-import authRoutes from "./src/routes/authRoutes.js";
-import seriousRoutes from "./src/routes/seriousRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import seriousRoutes from "./routes/seriousRoutes.js";
 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/serious", seriousRoutes);
 
 app.use(
   cors({
@@ -41,12 +48,6 @@ app.get("/", (req, res) => {
 app.get("/turn-credentials", (req, res) => {
   res.json(generateTurnCredentials());
 });
-
-app.use(express.json()); // ✅ ADD THIS
-app.use(express.urlencoded({ extended: true }));
-
-app.use("/api/auth", authRoutes);
-app.use("/api/serious", seriousRoutes);
 
 connectDB();
 
