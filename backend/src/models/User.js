@@ -1,33 +1,19 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema(
-  {
-    name: String,
-    email: String,
-    password: String,
+const UserSchema = new mongoose.Schema({
+  name: String,
+  email: String,
 
-    // 🔥 Serious Mode Fields
-    age: Number,
-    gender: {
-      type: String,
-      enum: ["male", "female", "other"],
-    },
-    looking_for: {
-      type: String,
-      enum: ["male", "female", "any"],
-    },
-    intent: {
-      type: String,
-      enum: ["marriage", "relationship", "live_in", "friendship"],
-    },
-    bio: String,
+  age: Number,
+  gender: String,
+  looking_for: String,
+  intent: String,
+  bio: String,
 
-    is_serious_profile: {
-      type: Boolean,
-      default: false,
-    },
+  is_serious_profile: {
+    type: Boolean,
+    default: false,
   },
-  { timestamps: true },
-);
+});
 
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+export default mongoose.model("User", UserSchema);

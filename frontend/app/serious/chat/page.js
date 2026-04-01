@@ -7,7 +7,6 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white flex flex-col items-center justify-center px-6">
-      {/* Title */}
       <h1 className="text-3xl md:text-5xl font-bold text-center mb-6">
         Welcome to <span className="text-pink-500">Serious Mode ❤️</span>
       </h1>
@@ -17,9 +16,7 @@ export default function Chat() {
         people you liked.
       </p>
 
-      {/* Actions */}
       <div className="grid md:grid-cols-2 gap-6 w-full max-w-3xl">
-        {/* Start Matching */}
         <div
           onClick={() => router.push("/serious/chat")}
           className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
@@ -43,7 +40,6 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Optional: Back */}
       <button
         onClick={() => router.push("/")}
         className="mt-10 text-sm text-gray-500 hover:text-white"

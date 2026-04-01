@@ -1,8 +1,12 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
-const crypto = require("crypto");
+import express from "express";
+import http from "http";
+
+import cors from "cors";
+import { Server } from "socket.io";
+
+import crypto from "crypto";
+import seriousRoutes from "./routes/seriousRoutes.js";
+import { connectDB } from "./config/db.js";
 
 const app = express();
 app.use(cors());
@@ -35,6 +39,10 @@ app.get("/", (req, res) => {
 app.get("/turn-credentials", (req, res) => {
   res.json(generateTurnCredentials());
 });
+
+app.use("/api/serious", seriousRoutes);
+
+connectDB();
 
 const server = http.createServer(app);
 
