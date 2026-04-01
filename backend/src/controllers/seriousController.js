@@ -4,7 +4,8 @@ export const createProfile = async (req, res) => {
   try {
     const { name, age, gender, looking_for, intent, bio } = req.body;
 
-    const userId = req.user.id; // from auth
+    // 🔥 TEMP FIX (hardcode user)
+    const userId = "PUT_REAL_USER_ID_FROM_DB";
 
     if (!name || !age || !gender || !intent) {
       return res.status(400).json({
@@ -16,7 +17,7 @@ export const createProfile = async (req, res) => {
       userId,
       {
         name,
-        age,
+        age: Number(age), // 🔥 FIX TYPE
         gender,
         looking_for,
         intent,
@@ -26,8 +27,15 @@ export const createProfile = async (req, res) => {
       { new: true },
     );
 
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     res.json({ success: true, user });
   } catch (err) {
+    console.log("❌ ERROR:", err); // 🔥 ADD THIS
     res.status(500).json({ message: "Server error" });
   }
 };

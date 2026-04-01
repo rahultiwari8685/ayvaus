@@ -27,29 +27,38 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     if (!form.name || !form.age || !form.gender || !form.intent) {
-      alert("Fill all required fields");
+      alert("Please fill all required fields");
       return;
     }
 
     setLoading(true);
 
     try {
+      // 🔥 OPTIONAL: if you have login system
+      const token = localStorage.getItem("token");
+
       const res = await fetch("https://api.flirtaus.com/api/serious/profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }), // 🔥 important
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          age: Number(form.age), // 🔥 fix type
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
+        alert("Profile created successfully ❤️");
         router.push("/serious/dashboard");
       } else {
-        alert(data.message);
+        alert(data.message || "Something went wrong");
       }
     } catch (err) {
+      console.error(err);
       alert("Server error");
     } finally {
       setLoading(false);
@@ -67,6 +76,7 @@ export default function RegisterPage() {
         <input
           name="name"
           placeholder="Full Name"
+          value={form.name}
           onChange={handleChange}
           className="w-full mb-4 p-3 bg-black/40 border border-white/10 rounded-lg"
         />
@@ -76,6 +86,7 @@ export default function RegisterPage() {
           name="age"
           type="number"
           placeholder="Age"
+          value={form.age}
           onChange={handleChange}
           className="w-full mb-4 p-3 bg-black/40 border border-white/10 rounded-lg"
         />
@@ -83,6 +94,7 @@ export default function RegisterPage() {
         {/* Gender */}
         <select
           name="gender"
+          value={form.gender}
           onChange={handleChange}
           className="w-full mb-4 p-3 bg-black/40 border border-white/10 rounded-lg"
         >
@@ -94,6 +106,7 @@ export default function RegisterPage() {
         {/* Looking For */}
         <select
           name="looking_for"
+          value={form.looking_for}
           onChange={handleChange}
           className="w-full mb-4 p-3 bg-black/40 border border-white/10 rounded-lg"
         >
@@ -110,10 +123,13 @@ export default function RegisterPage() {
           <div className="grid grid-cols-2 gap-2">
             {["marriage", "relationship", "live_in", "friendship"].map((i) => (
               <button
+                type="button" // 🔥 IMPORTANT (prevents form submit)
                 key={i}
                 onClick={() => handleIntentSelect(i)}
-                className={`p-2 rounded-lg border ${
-                  form.intent === i ? "bg-pink-600" : "border-white/20"
+                className={`p-2 rounded-lg border transition ${
+                  form.intent === i
+                    ? "bg-pink-600 border-pink-600"
+                    : "border-white/20 hover:border-white/40"
                 }`}
               >
                 {i}
@@ -126,6 +142,7 @@ export default function RegisterPage() {
         <textarea
           name="bio"
           placeholder="About you..."
+          value={form.bio}
           onChange={handleChange}
           className="w-full mb-4 p-3 bg-black/40 border border-white/10 rounded-lg"
         />
@@ -134,7 +151,11 @@ export default function RegisterPage() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full py-3 bg-pink-600 rounded-lg"
+          className={`w-full py-3 rounded-lg font-semibold transition ${
+            loading
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-pink-600 hover:bg-pink-700"
+          }`}
         >
           {loading ? "Saving..." : "Create Profile"}
         </button>
