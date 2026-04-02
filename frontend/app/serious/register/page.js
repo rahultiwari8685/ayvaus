@@ -55,14 +55,13 @@ export default function Profile() {
       });
 
       const data = await res.json();
-
+      router.push("/serious/match");
       if (res.ok) {
         // ✅ Save token
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
 
         // ✅ Redirect
-        router.push("/serious/match");
       } else {
         setError(data.message || "Registration failed");
       }
