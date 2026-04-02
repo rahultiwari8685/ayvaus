@@ -16,7 +16,7 @@ export default function Home() {
     }
 
     // ✅ Logged in → go directly to app
-    router.push("/serious/match");
+    router.push("/serious/dashboard");
   };
 
   return (
