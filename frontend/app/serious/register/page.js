@@ -2,26 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Register() {
   const router = useRouter();
-
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
   });
-
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!form.name || !form.email || !form.password) {
-      alert("Fill all fields");
-      return;
-    }
-
     setLoading(true);
-
     try {
       const res = await fetch("https://api.flirtaus.com/api/auth/register", {
         method: "POST",
@@ -33,61 +26,61 @@ export default function Register() {
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (data.token) {
         localStorage.setItem("token", data.token);
 
-        alert("Registered successfully ✅");
-
-        router.push("/serious/register"); // go to profile form
+        // 👉 go to profile setup after register
+        router.push("/serious/profile");
       } else {
-        alert(data.message);
+        alert(data.message || "Registration failed");
       }
     } catch (err) {
-      alert("Server error");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("Error registering");
     }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="w-full max-w-md bg-white/5 p-6 rounded-xl">
-        <h2 className="text-2xl text-center mb-4">Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white px-4">
+      <div className="w-full max-w-md p-8 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 shadow-xl">
+        <h2 className="text-3xl font-bold text-center mb-6">
+          Create Account 💖
+        </h2>
 
         <input
-          placeholder="Name"
-          className="w-full mb-3 p-3 bg-black/40 rounded"
+          type="text"
+          placeholder="Full Name"
+          className="w-full p-3 mb-4 rounded-lg bg-black/40 border border-white/10 focus:outline-none"
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         <input
+          type="email"
           placeholder="Email"
-          className="w-full mb-3 p-3 bg-black/40 rounded"
+          className="w-full p-3 mb-4 rounded-lg bg-black/40 border border-white/10 focus:outline-none"
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-3 bg-black/40 rounded"
+          className="w-full p-3 mb-6 rounded-lg bg-black/40 border border-white/10 focus:outline-none"
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
 
         <button
           onClick={handleRegister}
-          className="w-full py-3 bg-pink-600 rounded"
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-pink-500 to-red-500 hover:scale-105 transition"
         >
           {loading ? "Creating..." : "Register"}
         </button>
 
-        <p className="text-sm mt-4 text-center">
+        <p className="text-center text-gray-400 mt-6">
           Already have an account?{" "}
-          <span
-            className="text-pink-500 cursor-pointer"
-            onClick={() => router.push("/serious/login")}
-          >
+          <Link href="/serious/login" className="text-pink-500">
             Login
-          </span>
+          </Link>
         </p>
       </div>
     </div>

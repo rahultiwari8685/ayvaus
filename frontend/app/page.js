@@ -9,9 +9,9 @@ export default function Home() {
   const handleSeriousMode = async () => {
     const token = localStorage.getItem("token");
 
+    // ✅ If NOT logged in → go to REGISTER (not login)
     if (!token) {
-      alert("Please login first");
-      router.push("/serious/login");
+      router.push("/serious/register");
       return;
     }
 
@@ -24,6 +24,7 @@ export default function Home() {
 
       const data = await res.json();
 
+      // ✅ If profile not created → go to register
       if (!data.is_serious_profile) {
         router.push("/serious/register");
       } else {
