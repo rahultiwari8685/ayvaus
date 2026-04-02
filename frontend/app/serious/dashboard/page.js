@@ -21,7 +21,7 @@ export default function SeriousDashboard() {
       <div className="grid md:grid-cols-2 gap-6 w-full max-w-3xl">
         {/* Start Matching */}
         <div
-          onClick={() => router.push("/serious/chat")}
+          onClick={() => router.push("/serious/match")}
           className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
         >
           <div className="text-4xl mb-4">💖</div>
