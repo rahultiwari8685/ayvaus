@@ -18,13 +18,13 @@ export default function Profile() {
   const [error, setError] = useState("");
 
   // ✅ Check token on load
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
 
-    if (!token) {
-      router.push("/serious/login");
-    }
-  }, []);
+  //   if (!token) {
+  //     router.push("/serious/login");
+  //   }
+  // }, []);
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
