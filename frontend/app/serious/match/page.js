@@ -15,7 +15,7 @@ function getOrCreateUserId() {
   return userId;
 }
 
-export default function VideoChat() {
+export default function SeriousChat() {
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -162,13 +162,26 @@ export default function VideoChat() {
   useEffect(() => {
     let mounted = true;
 
+    // socketRef.current = io("https://api.flirtaus.com", {
+    //   transports: ["websocket", "polling"],
+    //     auth: {
+    //       userId: getOrCreateUserId(),
+    //     },
+    //   auth: {
+    //     mode: "random", // ✅ only this change
+    //   },
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/serious/login";
+    }
+
     socketRef.current = io("https://api.flirtaus.com", {
-      transports: ["websocket", "polling"],
-      // auth: {
-      //   userId: getOrCreateUserId(),
-      // },
+      transports: ["websocket"],
       auth: {
-        mode: "random", // ✅ only this change
+        token, // ✅ send token
+        mode: "serious", // ✅ important
       },
     });
 

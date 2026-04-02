@@ -10,6 +10,9 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import seriousRoutes from "./routes/seriousRoutes.js";
 
+import jwt from "jsonwebtoken";
+import User from "./models/User.js";
+
 const app = express();
 
 app.use(express.json());
@@ -26,6 +29,9 @@ app.use(
     credentials: true,
   }),
 );
+
+const randomQueue = [];
+const seriousQueue = [];
 
 function generateTurnCredentials() {
   const secret = "MySuperSecretKey123";
@@ -60,20 +66,20 @@ const io = new Server(server, {
   },
 });
 
-const waitingQueue = [];
+// const waitingQueue = [];
 const uniqueUsers = new Set();
 
-function logWaitingQueue() {
-  console.log("📋 Waiting Users:", waitingQueue.length);
+// function logWaitingQueue() {
+//   console.log("📋 Waiting Users:", waitingQueue.length);
 
-  waitingQueue.forEach((s, index) => {
-    console.log(`   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp}`);
-  });
+//   waitingQueue.forEach((s, index) => {
+//     console.log(`   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp}`);
+//   });
 
-  if (waitingQueue.length === 0) {
-    console.log("🧹 Waiting list cleared");
-  }
-}
+//   if (waitingQueue.length === 0) {
+//     console.log("🧹 Waiting list cleared");
+//   }
+// }
 
 function logActiveConnections() {
   const clients = Array.from(io.sockets.sockets.values());
@@ -91,83 +97,175 @@ function logActiveConnections() {
   console.log("--------------------------------------------------");
 }
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   // console.log("🟢 Connected:", socket.id);
 
-  const userId = socket.handshake.auth.userId;
+  // const userId = socket.handshake.auth.userId;
 
-  if (!userId) {
-    socket.disconnect();
-    return;
+  // if (!userId) {
+  //   socket.disconnect();
+  //   return;
+  // }
+
+  // socket.userId = userId;
+
+  const { token, mode } = socket.handshake.auth;
+
+  socket.mode = mode;
+
+  // ❤️ SERIOUS MODE
+  if (mode === "serious") {
+    if (!token) return socket.disconnect();
+
+    const decoded = jwt.verify(token, "YOUR_SECRET");
+    const user = await User.findById(decoded.id);
+
+    if (!user || !user.is_serious_profile) {
+      return socket.disconnect();
+    }
+
+    socket.user = user;
+    console.log("❤️ Serious User:", user.name);
   }
 
-  socket.userId = userId;
+  // 🎉 RANDOM MODE
+  if (mode === "random") {
+    console.log("🎉 Random User:", socket.id);
+  }
 
-  console.log("🟢 Connected:", socket.id, "| User:", userId);
+  // console.log("🟢 Connected:", socket.id, "| User:", userId);
 
-  uniqueUsers.add(userId);
+  console.log(
+    "🟢 Connected:",
+    socket.id,
+    "| Mode:",
+    socket.mode,
+    "| User:",
+    socket.user ? socket.user.name : "Anonymous",
+  );
+
+  // uniqueUsers.add(userId);
+
+  if (socket.mode === "serious") {
+    uniqueUsers.add(socket.user._id.toString());
+  } else {
+    uniqueUsers.add(socket.id);
+  }
+
   io.emit("online-users", uniqueUsers.size);
 
   socket.partner = null;
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
-  function tryMatch() {
-    // Clean queue (remove disconnected or already matched users)
-    for (let i = waitingQueue.length - 1; i >= 0; i--) {
-      if (waitingQueue[i].disconnected || waitingQueue[i].partner) {
-        waitingQueue.splice(i, 1);
-      }
-    }
+  // function tryMatch() {
+  //   // Clean queue (remove disconnected or already matched users)
+  //   for (let i = waitingQueue.length - 1; i >= 0; i--) {
+  //     if (waitingQueue[i].disconnected || waitingQueue[i].partner) {
+  //       waitingQueue.splice(i, 1);
+  //     }
+  //   }
 
-    for (let i = 0; i < waitingQueue.length; i++) {
-      for (let j = i + 1; j < waitingQueue.length; j++) {
-        const socket1 = waitingQueue[i];
-        const socket2 = waitingQueue[j];
+  //   for (let i = 0; i < waitingQueue.length; i++) {
+  //     for (let j = i + 1; j < waitingQueue.length; j++) {
+  //       const socket1 = waitingQueue[i];
+  //       const socket2 = waitingQueue[j];
 
-        if (!socket1 || !socket2) continue;
-        if (socket1.partner || socket2.partner) continue;
+  //       if (!socket1 || !socket2) continue;
+  //       if (socket1.partner || socket2.partner) continue;
 
-        // 🔥 Prevent same partner again
-        if (
-          socket1.lastPartnerId === socket2.id ||
-          socket2.lastPartnerId === socket1.id
-        ) {
-          continue;
-        }
+  //       // 🔥 Prevent same partner again
+  //       if (
+  //         socket1.lastPartnerId === socket2.id ||
+  //         socket2.lastPartnerId === socket1.id
+  //       ) {
+  //         continue;
+  //       }
 
-        // Remove both from queue
-        waitingQueue.splice(j, 1);
-        waitingQueue.splice(i, 1);
+  //       // Remove both from queue
+  //       waitingQueue.splice(j, 1);
+  //       waitingQueue.splice(i, 1);
 
-        socket1.partner = socket2;
-        socket2.partner = socket1;
+  //       socket1.partner = socket2;
+  //       socket2.partner = socket1;
 
-        socket1.lastPartnerId = socket2.id;
-        socket2.lastPartnerId = socket1.id;
+  //       socket1.lastPartnerId = socket2.id;
+  //       socket2.lastPartnerId = socket1.id;
 
-        console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
+  //       console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
 
-        socket1.emit("matched", { role: "caller" });
-        socket2.emit("matched", { role: "callee" });
+  //       socket1.emit("matched", { role: "caller" });
+  //       socket2.emit("matched", { role: "callee" });
 
-        return tryMatch(); // keep matching others
-      }
-    }
+  //       return tryMatch(); // keep matching others
+  //     }
+  //   }
 
-    logWaitingQueue();
+  //   logWaitingQueue();
+  // }
+
+  function isCompatible(u1, u2) {
+    return (
+      u1.gender === u2.looking_for &&
+      u2.gender === u1.looking_for &&
+      u1.intent === u2.intent &&
+      Math.abs(u1.age - u2.age) <= 5
+    );
   }
 
-  socket.on("join", () => {
-    if (!waitingQueue.includes(socket) && !socket.partner) {
-      waitingQueue.push(socket);
+  function tryMatch(mode) {
+    const queue = mode === "serious" ? seriousQueue : randomQueue;
 
-      console.log("➕ Added to waiting:", socket.id, "| User:", socket.userId);
-      logWaitingQueue();
+    for (let i = 0; i < queue.length; i++) {
+      for (let j = i + 1; j < queue.length; j++) {
+        const s1 = queue[i];
+        const s2 = queue[j];
+
+        if (!s1 || !s2) continue;
+        if (s1.partner || s2.partner) continue;
+
+        // ❤️ ONLY FOR SERIOUS
+        if (mode === "serious") {
+          if (!isCompatible(s1.user, s2.user)) continue;
+        }
+
+        // match users
+        queue.splice(j, 1);
+        queue.splice(i, 1);
+
+        s1.partner = s2;
+        s2.partner = s1;
+
+        s1.emit("matched", { role: "caller" });
+        s2.emit("matched", { role: "callee" });
+
+        return tryMatch(mode);
+      }
+    }
+  }
+
+  // socket.on("join", () => {
+  //   if (!waitingQueue.includes(socket) && !socket.partner) {
+  //     waitingQueue.push(socket);
+
+  //     console.log("➕ Added to waiting:", socket.id, "| User:", socket.userId);
+  //     logWaitingQueue();
+  //   }
+
+  //   setTimeout(() => {
+  //     tryMatch();
+  //   }, 500);
+  // });
+
+  socket.on("join", () => {
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
+    if (!queue.includes(socket) && !socket.partner) {
+      queue.push(socket);
     }
 
     setTimeout(() => {
-      tryMatch();
+      tryMatch(socket.mode);
     }, 500);
   });
 
@@ -199,20 +297,64 @@ io.on("connection", (socket) => {
     socket.partner?.emit("message-seen", messageId);
   });
 
+  // socket.on("next", () => {
+  //   // ✅ NEXT SPAM PROTECTION
+  //   const now = Date.now();
+
+  //   if (now - socket.lastNextTime < 2000) {
+  //     console.log("⚠️ Next blocked (too fast):", socket.id);
+  //     socket.emit("next-blocked");
+  //     return;
+  //   }
+
+  //   socket.lastNextTime = now;
+  //   console.log("⏭ Next clicked:", socket.id);
+
+  //   // Break existing connection
+  //   if (socket.partner) {
+  //     const oldPartner = socket.partner;
+
+  //     oldPartner.partner = null;
+  //     socket.partner = null;
+
+  //     oldPartner.emit("partner-left");
+
+  //     if (!oldPartner.disconnected) {
+  //       if (!waitingQueue.includes(oldPartner)) {
+  //         waitingQueue.push(oldPartner);
+  //       }
+  //     }
+  //   }
+
+  //   // Remove self from queue if already inside
+  //   const index = waitingQueue.indexOf(socket);
+  //   if (index !== -1) {
+  //     waitingQueue.splice(index, 1);
+  //   }
+
+  //   // Reset partner
+  //   socket.partner = null;
+
+  //   // Add self back to queue
+  //   waitingQueue.push(socket);
+
+  //   setTimeout(() => {
+  //     tryMatch();
+  //   }, 500);
+  // });
+
   socket.on("next", () => {
-    // ✅ NEXT SPAM PROTECTION
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
     const now = Date.now();
 
     if (now - socket.lastNextTime < 2000) {
-      console.log("⚠️ Next blocked (too fast):", socket.id);
       socket.emit("next-blocked");
       return;
     }
 
     socket.lastNextTime = now;
-    console.log("⏭ Next clicked:", socket.id);
 
-    // Break existing connection
     if (socket.partner) {
       const oldPartner = socket.partner;
 
@@ -222,33 +364,34 @@ io.on("connection", (socket) => {
       oldPartner.emit("partner-left");
 
       if (!oldPartner.disconnected) {
-        if (!waitingQueue.includes(oldPartner)) {
-          waitingQueue.push(oldPartner);
+        if (!queue.includes(oldPartner)) {
+          queue.push(oldPartner);
         }
       }
     }
 
-    // Remove self from queue if already inside
-    const index = waitingQueue.indexOf(socket);
+    const index = queue.indexOf(socket);
     if (index !== -1) {
-      waitingQueue.splice(index, 1);
+      queue.splice(index, 1);
     }
 
-    // Reset partner
     socket.partner = null;
 
-    // Add self back to queue
-    waitingQueue.push(socket);
+    queue.push(socket);
 
     setTimeout(() => {
-      tryMatch();
+      tryMatch(socket.mode);
     }, 500);
   });
 
   socket.on("disconnect", () => {
     // Check if any socket still using same IP
     const stillConnected = Array.from(io.sockets.sockets.values()).some(
-      (s) => s.userId === socket.userId,
+      // (s) => s.userId === socket.userId,
+      (s) =>
+        socket.mode === "serious"
+          ? s.user?._id?.toString() === socket.user?._id?.toString()
+          : s.id === socket.id,
     );
 
     if (!stillConnected) {
@@ -262,8 +405,13 @@ io.on("connection", (socket) => {
       socket.partner.partner = null;
     }
 
-    const idx = waitingQueue.indexOf(socket);
-    if (idx !== -1) waitingQueue.splice(idx, 1);
+    // const idx = waitingQueue.indexOf(socket);
+
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
+    const idx = queue.indexOf(socket);
+    if (idx !== -1) queue.splice(idx, 1);
+    // if (idx !== -1) waitingQueue.splice(idx, 1);
 
     console.log("🔴 Disconnected:", socket.id, "| User:", socket.userId);
     logActiveConnections();
