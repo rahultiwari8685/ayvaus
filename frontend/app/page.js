@@ -6,34 +6,17 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
 
-  const handleSeriousMode = async () => {
+  const handleSeriousMode = () => {
     const token = localStorage.getItem("token");
 
-    // ✅ If NOT logged in → go to REGISTER (not login)
+    // ✅ Not logged in → go to register
     if (!token) {
       router.push("/serious/register");
       return;
     }
 
-    try {
-      const res = await fetch("https://api.flirtaus.com/api/serious/check", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      // ✅ If profile not created → go to register
-      if (!data.is_serious_profile) {
-        router.push("/serious/register");
-      } else {
-        router.push("/serious/dashboard");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
-    }
+    // ✅ Logged in → go directly to app
+    router.push("/serious/match");
   };
 
   return (
@@ -66,6 +49,7 @@ export default function Home() {
             </div>
           </Link>
 
+          {/* SERIOUS MODE */}
           <div
             onClick={handleSeriousMode}
             className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
@@ -77,6 +61,7 @@ export default function Home() {
             </p>
           </div>
 
+          {/* CORPORATE */}
           <Link href="/corporate">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">💼</div>
