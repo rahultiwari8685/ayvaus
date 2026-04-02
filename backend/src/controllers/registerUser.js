@@ -2,21 +2,26 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export const createProfile = async (req, res) => {
+const SECRET = "YOUR_SECRET";
+
+export const registerUser = async (req, res) => {
   try {
     const { name, email, password, age, gender, looking_for, intent, bio } =
       req.body;
 
-    // check user
+    // ✅ Check existing user
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
     }
 
-    // hash password
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user + profile together
+    // ✅ Create full user + profile
     const user = await User.create({
       name,
       email,
@@ -26,20 +31,24 @@ export const createProfile = async (req, res) => {
       looking_for,
       intent,
       bio,
-      is_serious_profile: true, // ✅ important
+      is_serious_profile: true,
     });
 
-    // create token
-    const token = jwt.sign({ id: user._id }, "YOUR_SECRET", {
+    // ✅ Generate token
+    const token = jwt.sign({ id: user._id }, SECRET, {
       expiresIn: "7d",
     });
 
     res.json({
+      success: true,
       token,
       user,
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Server error" });
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

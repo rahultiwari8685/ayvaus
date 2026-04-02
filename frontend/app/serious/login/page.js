@@ -18,7 +18,7 @@ export default function Login() {
   const handleLogin = async () => {
     setError("");
 
-    // ✅ validation
+    // ✅ Validation
     if (!form.email || !form.password) {
       return setError("Please enter email and password");
     }
@@ -36,18 +36,23 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (data.token) {
-        // ✅ save token
+      // ✅ Correct check
+      if (res.ok) {
+        // ✅ Save token
         localStorage.setItem("token", data.token);
 
-        // ✅ redirect correctly
-        router.push("/serious/video");
+        // ✅ Smart redirect
+        if (data.profileComplete) {
+          router.push("/serious/video");
+        } else {
+          router.push("/serious/profile");
+        }
       } else {
         setError(data.message || "Login failed");
       }
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Network error. Please try again.");
     }
 
     setLoading(false);
@@ -73,6 +78,7 @@ export default function Login() {
           type="email"
           placeholder="Email"
           className="w-full p-3 mb-4 rounded-lg bg-black/40 border border-white/10 focus:outline-none"
+          value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
 
@@ -81,6 +87,7 @@ export default function Login() {
           type="password"
           placeholder="Password"
           className="w-full p-3 mb-6 rounded-lg bg-black/40 border border-white/10 focus:outline-none"
+          value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
 
