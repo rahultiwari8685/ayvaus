@@ -9,7 +9,6 @@ export default function Home() {
   const handleSeriousMode = async () => {
     const token = localStorage.getItem("token");
 
-    // ❌ Not logged in
     if (!token) {
       alert("Please login first");
       router.push("/serious/login");
@@ -17,7 +16,6 @@ export default function Home() {
     }
 
     try {
-      // 🔍 Check profile status
       const res = await fetch("https://api.flirtaus.com/api/serious/check", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -39,14 +37,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white flex flex-col">
-      {/* Navbar */}
       <nav className="w-full flex justify-between items-center px-6 py-4">
         <h1 className="text-2xl font-bold tracking-wide">
           Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
         </h1>
       </nav>
 
-      {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center text-center px-6">
         <h2 className="text-4xl md:text-6xl font-bold leading-tight max-w-4xl">
           Choose Your <span className="text-pink-500">Experience</span>
@@ -57,7 +53,6 @@ export default function Home() {
           networking — Flirta has it all.
         </p>
 
-        {/* MODE SELECTION */}
         <div className="mt-12 grid md:grid-cols-3 gap-6 w-full max-w-6xl">
           {/* FUN MODE */}
           <Link href="/video">
@@ -70,7 +65,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* ❤️ SERIOUS MODE (UPDATED) */}
           <div
             onClick={handleSeriousMode}
             className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
@@ -82,7 +76,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* CORPORATE */}
           <Link href="/corporate">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">💼</div>
@@ -95,7 +88,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-6 text-center text-gray-500 text-sm border-t border-white/10">
         © {new Date().getFullYear()} Flirta. All rights reserved.
       </footer>
