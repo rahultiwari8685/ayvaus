@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
-app.use("/api/auth", authRoutes);
+// app.use("/api/auth", authRoutes);
 app.use("/api/serious", seriousRoutes);
 
 app.use(
