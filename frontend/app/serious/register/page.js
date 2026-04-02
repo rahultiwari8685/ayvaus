@@ -59,9 +59,10 @@ export default function Profile() {
       if (res.ok) {
         // ✅ Save token
         localStorage.setItem("token", data.token);
+        console.log("Registered user:", data.token);
 
         // ✅ Redirect
-        router.push("/serious/video");
+        router.push("/serious/match");
       } else {
         setError(data.message || "Registration failed");
       }
