@@ -21,7 +21,7 @@ export default function Login() {
       });
 
       const data = await res.json();
-
+      router.push("/serious/dashboard"); // go back to flow
       if (data.token) {
         localStorage.setItem("token", data.token);
         router.push("/serious"); // go back to flow

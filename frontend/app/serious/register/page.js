@@ -55,7 +55,7 @@ export default function Register() {
       });
 
       const data = await res.json();
-
+      router.push("/serious/login");
       if (data.token) {
         localStorage.setItem("token", data.token);
 
