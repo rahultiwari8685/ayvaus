@@ -1,4 +1,8 @@
 import express from "express";
+
+import dotenv from "dotenv";
+dotenv.config();
+
 import http from "http";
 
 import cors from "cors";
