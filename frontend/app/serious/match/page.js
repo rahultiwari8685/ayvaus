@@ -50,6 +50,8 @@ export default function SeriousChat() {
 
   const [onlineUsers, setOnlineUsers] = useState([]);
 
+  const [partner, setPartner] = useState(null);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
