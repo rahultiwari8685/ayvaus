@@ -71,7 +71,10 @@ const io = new Server(server, {
 });
 
 // const waitingQueue = [];
-const uniqueUsers = new Set();
+// const uniqueUsers = new Set();
+
+const randomUsers = new Set();
+const seriousUsers = new Map(); // userId → socket.id
 
 // function logWaitingQueue() {
 //   console.log("📋 Waiting Users:", waitingQueue.length);
@@ -150,13 +153,34 @@ io.on("connection", async (socket) => {
 
   // uniqueUsers.add(userId);
 
+  // if (socket.mode === "serious") {
+  //   uniqueUsers.add(socket.user._id.toString());
+  // } else {
+  //   uniqueUsers.add(socket.id);
+  // }
+
+  // io.emit("online-users", uniqueUsers.size);
+
   if (socket.mode === "serious") {
-    uniqueUsers.add(socket.user._id.toString());
+    const userId = socket.user._id.toString();
+
+    // remove old connection (important for refresh)
+    if (seriousUsers.has(userId)) {
+      const oldSocketId = seriousUsers.get(userId);
+      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      if (oldSocket) oldSocket.disconnect(true);
+    }
+
+    seriousUsers.set(userId, socket.id);
   } else {
-    uniqueUsers.add(socket.id);
+    randomUsers.add(socket.id);
   }
 
-  io.emit("online-users", uniqueUsers.size);
+  // emit correct count
+  socket.emit(
+    "online-users",
+    socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+  );
 
   socket.partner = null;
   socket.lastPartnerId = null;
@@ -390,17 +414,33 @@ io.on("connection", async (socket) => {
 
   socket.on("disconnect", () => {
     // Check if any socket still using same IP
-    const stillConnected = Array.from(io.sockets.sockets.values()).some(
-      // (s) => s.userId === socket.userId,
-      (s) =>
-        socket.mode === "serious"
-          ? s.user?._id?.toString() === socket.user?._id?.toString()
-          : s.id === socket.id,
-    );
+    // const stillConnected = Array.from(io.sockets.sockets.values()).some(
+    //   // (s) => s.userId === socket.userId,
+    //   (s) =>
+    //     socket.mode === "serious"
+    //       ? s.user?._id?.toString() === socket.user?._id?.toString()
+    //       : s.id === socket.id,
+    // );
 
-    if (!stillConnected) {
-      uniqueUsers.delete(socket.userId);
+    // if (!stillConnected) {
+    //   uniqueUsers.delete(socket.userId);
+    // }
+
+    if (socket.mode === "serious") {
+      const userId = socket.user?._id?.toString();
+
+      if (userId && seriousUsers.get(userId) === socket.id) {
+        seriousUsers.delete(userId);
+      }
+    } else {
+      randomUsers.delete(socket.id);
     }
+
+    // send updated count
+    socket.emit(
+      "online-users",
+      socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+    );
 
     io.emit("online-users", uniqueUsers.size);
 
@@ -417,7 +457,15 @@ io.on("connection", async (socket) => {
     if (idx !== -1) queue.splice(idx, 1);
     // if (idx !== -1) waitingQueue.splice(idx, 1);
 
-    console.log("🔴 Disconnected:", socket.id, "| User:", socket.userId);
+    // console.log("🔴 Disconnected:", socket.id, "| User:", socket.userId);
+
+    console.log(
+      "🔴 Disconnected:",
+      socket.id,
+      "| User:",
+      socket.user ? socket.user.name : "Anonymous",
+    );
+
     logActiveConnections();
   });
 });
