@@ -577,7 +577,7 @@ export default function SeriousChat() {
             </div>
           ))} */}
 
-          {partner ? (
+          {/* {partner ? (
             <div className="absolute top-4 left-4 bg-black/60 px-4 py-2 rounded-lg">
               <p className="font-semibold">
                 {partner.name}, {partner.age}
@@ -588,7 +588,7 @@ export default function SeriousChat() {
             <div className="absolute top-4 left-4 text-gray-400">
               Searching for match...
             </div>
-          )}
+          )} */}
         </div>
       )}
 
@@ -856,6 +856,23 @@ export default function SeriousChat() {
               <button className="bg-green-600 px-4 rounded">Send</button>
             </form>
           </div>
+        </div>
+      )}
+
+      {!(isMobile && showChat) && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50">
+          {partner ? (
+            <div className="bg-black/70 backdrop-blur-lg px-6 py-3 rounded-xl border border-white/10 shadow-xl text-center">
+              <p className="text-white font-semibold text-sm">
+                ❤️ {partner.name}, {partner.age}
+              </p>
+              <p className="text-gray-400 text-xs">{partner.gender}</p>
+            </div>
+          ) : (
+            <div className="text-gray-400 text-sm text-center">
+              Searching for match...
+            </div>
+          )}
         </div>
       )}
 
