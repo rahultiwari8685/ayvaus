@@ -39,7 +39,7 @@ const seriousQueue = [];
 
 function generateTurnCredentials() {
   const secret = "MySuperSecretKey123";
-  const username = Math.floor(Date.now() / 1000) + 3600; // valid 1 hour
+  const username = Math.floor(Date.now() / 1000) + 3600;
 
   const hmac = crypto.createHmac("sha1", secret);
   hmac.update(username.toString());
@@ -286,8 +286,26 @@ io.on("connection", async (socket) => {
         s1.partner = s2;
         s2.partner = s1;
 
-        s1.emit("matched", { role: "caller" });
-        s2.emit("matched", { role: "callee" });
+        // s1.emit("matched", { role: "caller" });
+        // s2.emit("matched", { role: "callee" });
+
+        s1.emit("matched", {
+          role: "caller",
+          partner: {
+            name: s2.user?.name || "Stranger",
+            age: s2.user?.age,
+            gender: s2.user?.gender,
+          },
+        });
+
+        s2.emit("matched", {
+          role: "callee",
+          partner: {
+            name: s1.user?.name || "Stranger",
+            age: s1.user?.age,
+            gender: s1.user?.gender,
+          },
+        });
 
         return tryMatch(mode);
       }

@@ -197,13 +197,22 @@ export default function SeriousChat() {
       socketRef.current.emit("join");
     }
 
+    socket.on("matched", (data) => {
+      setPartner(data.partner);
+    });
+
+    socket.on("partner-left", () => {
+      setPartner(null);
+    });
+
     // socketRef.current.on("online-users", (count) => {
     //   setOnlineCount(count);
     // });
 
-    socketRef.current.on("online-users-list", (users) => {
-      setOnlineUsers(users);
-    });
+    // socketRef.current.on("online-users-list", (users) => {
+    //   setOnlineUsers(users);
+    // });
+
     start();
 
     socketRef.current.on("matched", async ({ role }) => {
@@ -557,14 +566,27 @@ export default function SeriousChat() {
             <p className="text-gray-500 text-xs">No users online</p>
           )}
 
-          {onlineUsers.map((u, i) => (
+          {/* {onlineUsers.map((u, i) => (
             <div key={i} className="mb-2 p-2 bg-white/10 rounded-lg text-sm">
               <p className="font-semibold">
                 {u.name}, {u.age}
               </p>
               <p className="text-gray-400 text-xs">{u.gender}</p>
             </div>
-          ))}
+          ))} */}
+
+          {partner ? (
+            <div className="absolute top-4 left-4 bg-black/60 px-4 py-2 rounded-lg">
+              <p className="font-semibold">
+                {partner.name}, {partner.age}
+              </p>
+              <p className="text-gray-400 text-sm">{partner.gender}</p>
+            </div>
+          ) : (
+            <div className="absolute top-4 left-4 text-gray-400">
+              Searching for match...
+            </div>
+          )}
         </div>
       )}
 
