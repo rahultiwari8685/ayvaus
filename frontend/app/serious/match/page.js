@@ -48,6 +48,8 @@ export default function SeriousChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
 
+  const [onlineUsers, setOnlineUsers] = useState([]);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -180,8 +182,8 @@ export default function SeriousChat() {
     socketRef.current = io("https://api.flirtaus.com", {
       transports: ["websocket"],
       auth: {
-        token, // ✅ send token
-        mode: "serious", // ✅ important
+        token,
+        mode: "serious",
       },
     });
 
@@ -195,10 +197,13 @@ export default function SeriousChat() {
       socketRef.current.emit("join");
     }
 
-    socketRef.current.on("online-users", (count) => {
-      setOnlineCount(count);
-    });
+    // socketRef.current.on("online-users", (count) => {
+    //   setOnlineCount(count);
+    // });
 
+    socketRef.current.on("online-users-list", (users) => {
+      setOnlineUsers(users);
+    });
     start();
 
     socketRef.current.on("matched", async ({ role }) => {
@@ -533,16 +538,33 @@ export default function SeriousChat() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
       {!(isMobile && showChat) && (
-        <div className="absolute top-4 text-center">
-          <h1 className="text-2xl font-bold tracking-wide">
-            Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
-          </h1>
+        // <div className="absolute top-4 text-center">
+        //   <h1 className="text-2xl font-bold tracking-wide">
+        //     Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
+        //   </h1>
 
-          <p className="text-sm text-green-400">
-            🟢 {onlineCount} Users Online
-          </p>
+        //   <p className="text-sm text-green-400">
+        //     🟢 {onlineCount} Users Online
+        //   </p>
 
-          <p className="text-xs text-gray-400">{status}</p>
+        //   <p className="text-xs text-gray-400">{status}</p>
+        // </div>
+
+        <div className="absolute right-4 top-4 bg-black/60 p-3 rounded-lg w-60 max-h-80 overflow-y-auto">
+          <h3 className="text-sm text-gray-300 mb-2">❤️ Online Users</h3>
+
+          {onlineUsers.length === 0 && (
+            <p className="text-gray-500 text-xs">No users online</p>
+          )}
+
+          {onlineUsers.map((u, i) => (
+            <div key={i} className="mb-2 p-2 bg-white/10 rounded-lg text-sm">
+              <p className="font-semibold">
+                {u.name}, {u.age}
+              </p>
+              <p className="text-gray-400 text-xs">{u.gender}</p>
+            </div>
+          ))}
         </div>
       )}
 

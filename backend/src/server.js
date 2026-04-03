@@ -104,6 +104,12 @@ function logActiveConnections() {
   console.log("--------------------------------------------------");
 }
 
+function emitSeriousUsers() {
+  const users = Array.from(seriousUsers.values());
+
+  io.emit("online-users-list", users);
+}
+
 io.on("connection", async (socket) => {
   // console.log("🟢 Connected:", socket.id);
 
@@ -171,7 +177,23 @@ io.on("connection", async (socket) => {
       if (oldSocket) oldSocket.disconnect(true);
     }
 
-    seriousUsers.set(userId, socket.id);
+    // seriousUsers.set(userId, socket.id);
+
+    // seriousUsers.set(userId, {
+    //   socketId: socket.id,
+    //   name: user.name,
+    //   age: user.age,
+    //   gender: user.gender,
+    // });
+
+    seriousUsers.set(userId, {
+      socketId: socket.id,
+      name: socket.user.name,
+      age: socket.user.age,
+      gender: socket.user.gender,
+    });
+
+    emitSeriousUsers();
   } else {
     randomUsers.add(socket.id);
   }
@@ -431,6 +453,7 @@ io.on("connection", async (socket) => {
 
       if (userId && seriousUsers.get(userId) === socket.id) {
         seriousUsers.delete(userId);
+        emitSeriousUsers();
       }
     } else {
       randomUsers.delete(socket.id);
