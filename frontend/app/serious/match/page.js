@@ -561,7 +561,7 @@ export default function SeriousChat() {
         //   <p className="text-xs text-gray-400">{status}</p>
         // </div>
 
-        <div className="absolute right-4 top-4 bg-black/60 p-3 rounded-lg w-60 max-h-80 overflow-y-auto">
+        <div className="absolute  top-4 bg-black/60 p-3 rounded-lg w-60  overflow-y-auto">
           <h3 className="text-sm text-gray-300 mb-2">❤️ Online Users</h3>
 
           {onlineUsers.length === 0 && (
