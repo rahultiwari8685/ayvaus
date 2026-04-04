@@ -203,13 +203,13 @@ export default function SeriousChat() {
       setPartner(data.partner);
     });
 
+    socketRef.current.on("online-users", (count) => {
+      setOnlineCount(count);
+    });
+
     socket.on("partner-left", () => {
       setPartner(null);
     });
-
-    // socketRef.current.on("online-users", (count) => {
-    //   setOnlineCount(count);
-    // });
 
     // socketRef.current.on("online-users-list", (users) => {
     //   setOnlineUsers(users);
@@ -549,46 +549,14 @@ export default function SeriousChat() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
       {!(isMobile && showChat) && (
-        // <div className="absolute top-4 text-center">
-        //   <h1 className="text-2xl font-bold tracking-wide">
-        //     Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
-        //   </h1>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
 
-        //   <p className="text-sm text-green-400">
-        //     🟢 {onlineCount} Users Online
-        //   </p>
-
-        //   <p className="text-xs text-gray-400">{status}</p>
-        // </div>
-
-        <div className="absolute  top-4 bg-black/60 p-3 rounded-lg w-60  overflow-y-auto">
-          <h3 className="text-sm text-gray-300 mb-2">❤️ Online Users</h3>
-
-          {onlineUsers.length === 0 && (
-            <p className="text-gray-500 text-xs">No users online</p>
-          )}
-
-          {/* {onlineUsers.map((u, i) => (
-            <div key={i} className="mb-2 p-2 bg-white/10 rounded-lg text-sm">
-              <p className="font-semibold">
-                {u.name}, {u.age}
-              </p>
-              <p className="text-gray-400 text-xs">{u.gender}</p>
-            </div>
-          ))} */}
-
-          {/* {partner ? (
-            <div className="absolute top-4 left-4 bg-black/60 px-4 py-2 rounded-lg">
-              <p className="font-semibold">
-                {partner.name}, {partner.age}
-              </p>
-              <p className="text-gray-400 text-sm">{partner.gender}</p>
-            </div>
-          ) : (
-            <div className="absolute top-4 left-4 text-gray-400">
-              Searching for match...
-            </div>
-          )} */}
+            <p className="text-sm text-white font-semibold">
+              ❤️ {onlineCount} online
+            </p>
+          </div>
         </div>
       )}
 
