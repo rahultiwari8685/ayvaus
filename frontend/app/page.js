@@ -9,13 +9,10 @@ export default function Home() {
   const handleSeriousMode = () => {
     const token = localStorage.getItem("token");
 
-    // ✅ Not logged in → go to register
     if (!token) {
       router.push("/serious/register");
       return;
     }
-
-    // ✅ Logged in → go directly to app
     router.push("/serious/dashboard");
   };
 
@@ -38,7 +35,6 @@ export default function Home() {
         </p>
 
         <div className="mt-12 grid md:grid-cols-3 gap-6 w-full max-w-6xl">
-          {/* FUN MODE */}
           <Link href="/video">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">🎉</div>
@@ -49,7 +45,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* SERIOUS MODE */}
           <div
             onClick={handleSeriousMode}
             className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
@@ -61,7 +56,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* CORPORATE */}
           <Link href="/corporate">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">💼</div>

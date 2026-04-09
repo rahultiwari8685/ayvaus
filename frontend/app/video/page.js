@@ -164,11 +164,8 @@ export default function VideoChat() {
 
     socketRef.current = io("https://api.flirtaus.com", {
       transports: ["websocket", "polling"],
-      // auth: {
-      //   userId: getOrCreateUserId(),
-      // },
       auth: {
-        mode: "random", // ✅ only this change
+        mode: "random",
       },
     });
 
@@ -344,7 +341,6 @@ export default function VideoChat() {
     setStatus("Skipping...");
     setMessages([]);
 
-    // Close old peer
     if (pcRef.current) {
       pcRef.current.ontrack = null;
       pcRef.current.onicecandidate = null;
@@ -352,7 +348,6 @@ export default function VideoChat() {
       pcRef.current = null;
     }
 
-    // Clear remote video
     if (remoteVideo.current?.srcObject) {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
@@ -673,7 +668,6 @@ export default function VideoChat() {
           </div>
         )
       ) : (
-        // 💻 DESKTOP (NO CHANGE)
         <div
           className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
             showChat ? "translate-x-0" : "translate-x-full"

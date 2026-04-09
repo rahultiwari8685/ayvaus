@@ -60,6 +60,7 @@ export default function Profile() {
         // ✅ Save token
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
+        console.log("Registered user:", data);
 
         // ✅ Redirect
       } else {

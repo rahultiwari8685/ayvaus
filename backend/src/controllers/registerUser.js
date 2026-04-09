@@ -9,7 +9,6 @@ export const registerUser = async (req, res) => {
     const { name, email, password, age, gender, looking_for, intent, bio } =
       req.body;
 
-    // ✅ Check existing user
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({
@@ -18,10 +17,8 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Create full user + profile
     const user = await User.create({
       name,
       email,
@@ -34,7 +31,6 @@ export const registerUser = async (req, res) => {
       is_serious_profile: true,
     });
 
-    // ✅ Generate token
     const token = jwt.sign({ id: user._id }, SECRET, {
       expiresIn: "7d",
     });

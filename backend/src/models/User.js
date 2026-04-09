@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
 
   is_serious_profile: {
     type: Boolean,
-    default: true, // ✅ always true now
+    default: true,
   },
 });
 
