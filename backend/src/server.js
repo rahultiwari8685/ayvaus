@@ -93,7 +93,7 @@ io.on("connection", async (socket) => {
   if (mode === "serious") {
     if (!token) return socket.disconnect();
 
-    const decoded = jwt.verify(token, "YOUR_SECRET");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
     if (!user || !user.is_serious_profile) {
@@ -138,10 +138,17 @@ io.on("connection", async (socket) => {
     randomUsers.add(socket.id);
   }
 
-  io.emit(
-    "online-users",
-    socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-  );
+  // io.emit(
+  //   "online-users",
+  //   socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+  // );
+
+  io.sockets.sockets.forEach((s) => {
+    s.emit(
+      "online-users",
+      s.mode === "serious" ? seriousUsers.size : randomUsers.size,
+    );
+  });
 
   socket.partner = null;
   socket.lastPartnerId = null;
