@@ -202,10 +202,25 @@ export default function SeriousChat() {
 
     start();
 
-    socketRef.current.on("matched", async ({ role }) => {
+    // socketRef.current.on("matched", async ({ role }) => {
+    //   if (!pcRef.current) {
+    //     await createPeer();
+    //   }
+    //   roleRef.current = role;
+    //   setStatus("Connecting...");
+
+    //   if (role === "callee") {
+    //     socketRef.current.emit("ready");
+    //   }
+    // });
+
+    socket.on("matched", async ({ role, partner }) => {
+      setPartner(partner);
+
       if (!pcRef.current) {
         await createPeer();
       }
+
       roleRef.current = role;
       setStatus("Connecting...");
 
