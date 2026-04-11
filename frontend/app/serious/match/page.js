@@ -188,9 +188,9 @@ export default function SeriousChat() {
       socketRef.current.emit("join");
     }
 
-    socket.on("matched", (data) => {
-      setPartner(data.partner);
-    });
+    // socket.on("matched", (data) => {
+    //   setPartner(data.partner);
+    // });
 
     socketRef.current.on("online-users", (count) => {
       setOnlineCount(count);

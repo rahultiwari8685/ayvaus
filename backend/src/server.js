@@ -177,11 +177,15 @@ io.on("connection", async (socket) => {
         s1.partner = s2;
         s2.partner = s1;
 
-        // ✅ store last partner
         s1.lastPartnerId = s2.id;
         s2.lastPartnerId = s1.id;
 
-        console.log("🤝 Matched:", s1.user.name, "↔", s2.user.name);
+        console.log(
+          "🤝 Matched:",
+          s1.user?.name || "User1",
+          "↔",
+          s2.user?.name || "User2",
+        );
 
         s1.emit("matched", {
           role: "caller",
@@ -213,9 +217,8 @@ io.on("connection", async (socket) => {
       queue.push(socket);
     }
 
-    setTimeout(() => {
-      tryMatch(socket.mode);
-    }, 500);
+    // 🔥 immediate match
+    tryMatch(socket.mode);
   });
 
   socket.on("ready", () => {
