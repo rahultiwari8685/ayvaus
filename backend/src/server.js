@@ -1,30 +1,20 @@
 import express from "express";
-
 import dotenv from "dotenv";
 dotenv.config();
-
 import http from "http";
-
 import cors from "cors";
 import { Server } from "socket.io";
-
 import crypto from "crypto";
-
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import seriousRoutes from "./routes/seriousRoutes.js";
-
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
-
 const app = express();
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
-
-// app.use("/api/auth", authRoutes);
 app.use("/api/serious", seriousRoutes);
 
 app.use(
@@ -70,23 +60,8 @@ const io = new Server(server, {
   },
 });
 
-// const waitingQueue = [];
-// const uniqueUsers = new Set();
-
 const randomUsers = new Set();
-const seriousUsers = new Map(); // userId → socket.id
-
-// function logWaitingQueue() {
-//   console.log("📋 Waiting Users:", waitingQueue.length);
-
-//   waitingQueue.forEach((s, index) => {
-//     console.log(`   ${index + 1}. Socket: ${s.id} | IP: ${s.userIp}`);
-//   });
-
-//   if (waitingQueue.length === 0) {
-//     console.log("🧹 Waiting list cleared");
-//   }
-// }
+const seriousUsers = new Map();
 
 function logActiveConnections() {
   const clients = Array.from(io.sockets.sockets.values());
@@ -111,22 +86,10 @@ function emitSeriousUsers() {
 }
 
 io.on("connection", async (socket) => {
-  // console.log("🟢 Connected:", socket.id);
-
-  // const userId = socket.handshake.auth.userId;
-
-  // if (!userId) {
-  //   socket.disconnect();
-  //   return;
-  // }
-
-  // socket.userId = userId;
-
   const { token, mode } = socket.handshake.auth;
 
   socket.mode = mode;
 
-  // ❤️ SERIOUS MODE
   if (mode === "serious") {
     if (!token) return socket.disconnect();
 
@@ -141,12 +104,9 @@ io.on("connection", async (socket) => {
     console.log("❤️ Serious User:", user.name);
   }
 
-  // 🎉 RANDOM MODE
   if (mode === "random") {
     console.log("🎉 Random User:", socket.id);
   }
-
-  // console.log("🟢 Connected:", socket.id, "| User:", userId);
 
   console.log(
     "🟢 Connected:",
@@ -157,38 +117,14 @@ io.on("connection", async (socket) => {
     socket.user ? socket.user.name : "Anonymous",
   );
 
-  // uniqueUsers.add(userId);
-
-  // if (socket.mode === "serious") {
-  //   uniqueUsers.add(socket.user._id.toString());
-  // } else {
-  //   uniqueUsers.add(socket.id);
-  // }
-
-  // io.emit("online-users", uniqueUsers.size);
-
   if (socket.mode === "serious") {
     const userId = socket.user._id.toString();
 
-    // remove old connection (important for refresh)
     if (seriousUsers.has(userId)) {
-      // const oldSocketId = seriousUsers.get(userId);
-
       const old = seriousUsers.get(userId);
       const oldSocket = io.sockets.sockets.get(old.socketId);
-
-      // const oldSocket = io.sockets.sockets.get(oldSocketId);
       if (oldSocket) oldSocket.disconnect(true);
     }
-
-    // seriousUsers.set(userId, socket.id);
-
-    // seriousUsers.set(userId, {
-    //   socketId: socket.id,
-    //   name: user.name,
-    //   age: user.age,
-    //   gender: user.gender,
-    // });
 
     seriousUsers.set(userId, {
       socketId: socket.id,
@@ -202,12 +138,6 @@ io.on("connection", async (socket) => {
     randomUsers.add(socket.id);
   }
 
-  // emit correct count
-  // socket.emit(
-  //   "online-users",
-  //   socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-  // );
-
   io.emit(
     "online-users",
     socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
@@ -217,60 +147,14 @@ io.on("connection", async (socket) => {
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
-  // function tryMatch() {
-  //   // Clean queue (remove disconnected or already matched users)
-  //   for (let i = waitingQueue.length - 1; i >= 0; i--) {
-  //     if (waitingQueue[i].disconnected || waitingQueue[i].partner) {
-  //       waitingQueue.splice(i, 1);
-  //     }
-  //   }
-
-  //   for (let i = 0; i < waitingQueue.length; i++) {
-  //     for (let j = i + 1; j < waitingQueue.length; j++) {
-  //       const socket1 = waitingQueue[i];
-  //       const socket2 = waitingQueue[j];
-
-  //       if (!socket1 || !socket2) continue;
-  //       if (socket1.partner || socket2.partner) continue;
-
-  //       // 🔥 Prevent same partner again
-  //       if (
-  //         socket1.lastPartnerId === socket2.id ||
-  //         socket2.lastPartnerId === socket1.id
-  //       ) {
-  //         continue;
-  //       }
-
-  //       // Remove both from queue
-  //       waitingQueue.splice(j, 1);
-  //       waitingQueue.splice(i, 1);
-
-  //       socket1.partner = socket2;
-  //       socket2.partner = socket1;
-
-  //       socket1.lastPartnerId = socket2.id;
-  //       socket2.lastPartnerId = socket1.id;
-
-  //       console.log("🤝 Matched:", socket1.id, "↔", socket2.id);
-
-  //       socket1.emit("matched", { role: "caller" });
-  //       socket2.emit("matched", { role: "callee" });
-
-  //       return tryMatch(); // keep matching others
-  //     }
-  //   }
-
-  //   logWaitingQueue();
+  // function isCompatible(u1, u2) {
+  //   return (
+  //     u1.gender === u2.looking_for &&
+  //     u2.gender === u1.looking_for &&
+  //     u1.intent === u2.intent &&
+  //     Math.abs(u1.age - u2.age) <= 5
+  //   );
   // }
-
-  function isCompatible(u1, u2) {
-    return (
-      u1.gender === u2.looking_for &&
-      u2.gender === u1.looking_for &&
-      u1.intent === u2.intent &&
-      Math.abs(u1.age - u2.age) <= 5
-    );
-  }
 
   function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
@@ -283,20 +167,21 @@ io.on("connection", async (socket) => {
         if (!s1 || !s2) continue;
         if (s1.partner || s2.partner) continue;
 
-        // ❤️ ONLY FOR SERIOUS
-        if (mode === "serious") {
-          if (!isCompatible(s1.user, s2.user)) continue;
+        if (s1.lastPartnerId === s2.id || s2.lastPartnerId === s1.id) {
+          continue;
         }
 
-        // match users
         queue.splice(j, 1);
         queue.splice(i, 1);
 
         s1.partner = s2;
         s2.partner = s1;
 
-        // s1.emit("matched", { role: "caller" });
-        // s2.emit("matched", { role: "callee" });
+        // ✅ store last partner
+        s1.lastPartnerId = s2.id;
+        s2.lastPartnerId = s1.id;
+
+        console.log("🤝 Matched:", s1.user.name, "↔", s2.user.name);
 
         s1.emit("matched", {
           role: "caller",
@@ -320,19 +205,6 @@ io.on("connection", async (socket) => {
       }
     }
   }
-
-  // socket.on("join", () => {
-  //   if (!waitingQueue.includes(socket) && !socket.partner) {
-  //     waitingQueue.push(socket);
-
-  //     console.log("➕ Added to waiting:", socket.id, "| User:", socket.userId);
-  //     logWaitingQueue();
-  //   }
-
-  //   setTimeout(() => {
-  //     tryMatch();
-  //   }, 500);
-  // });
 
   socket.on("join", () => {
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
@@ -374,57 +246,10 @@ io.on("connection", async (socket) => {
     socket.partner?.emit("message-seen", messageId);
   });
 
-  // socket.on("next", () => {
-  //   // ✅ NEXT SPAM PROTECTION
-  //   const now = Date.now();
-
-  //   if (now - socket.lastNextTime < 2000) {
-  //     console.log("⚠️ Next blocked (too fast):", socket.id);
-  //     socket.emit("next-blocked");
-  //     return;
-  //   }
-
-  //   socket.lastNextTime = now;
-  //   console.log("⏭ Next clicked:", socket.id);
-
-  //   // Break existing connection
-  //   if (socket.partner) {
-  //     const oldPartner = socket.partner;
-
-  //     oldPartner.partner = null;
-  //     socket.partner = null;
-
-  //     oldPartner.emit("partner-left");
-
-  //     if (!oldPartner.disconnected) {
-  //       if (!waitingQueue.includes(oldPartner)) {
-  //         waitingQueue.push(oldPartner);
-  //       }
-  //     }
-  //   }
-
-  //   // Remove self from queue if already inside
-  //   const index = waitingQueue.indexOf(socket);
-  //   if (index !== -1) {
-  //     waitingQueue.splice(index, 1);
-  //   }
-
-  //   // Reset partner
-  //   socket.partner = null;
-
-  //   // Add self back to queue
-  //   waitingQueue.push(socket);
-
-  //   setTimeout(() => {
-  //     tryMatch();
-  //   }, 500);
-  // });
-
   socket.on("next", () => {
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     const now = Date.now();
-
     if (now - socket.lastNextTime < 2000) {
       socket.emit("next-blocked");
       return;
@@ -440,26 +265,62 @@ io.on("connection", async (socket) => {
 
       oldPartner.emit("partner-left");
 
-      if (!oldPartner.disconnected) {
-        if (!queue.includes(oldPartner)) {
-          queue.push(oldPartner);
-        }
+      if (!queue.includes(oldPartner)) {
+        setTimeout(() => queue.push(oldPartner), 300);
       }
     }
 
     const index = queue.indexOf(socket);
-    if (index !== -1) {
-      queue.splice(index, 1);
-    }
+    if (index !== -1) queue.splice(index, 1);
 
     socket.partner = null;
 
-    queue.push(socket);
-
     setTimeout(() => {
+      queue.push(socket);
       tryMatch(socket.mode);
-    }, 500);
+    }, 300);
   });
+
+  // socket.on("next", () => {
+  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
+  //   const now = Date.now();
+
+  //   if (now - socket.lastNextTime < 2000) {
+  //     socket.emit("next-blocked");
+  //     return;
+  //   }
+
+  //   socket.lastNextTime = now;
+
+  //   if (socket.partner) {
+  //     const oldPartner = socket.partner;
+
+  //     oldPartner.partner = null;
+  //     socket.partner = null;
+
+  //     oldPartner.emit("partner-left");
+
+  //     if (!oldPartner.disconnected) {
+  //       if (!queue.includes(oldPartner)) {
+  //         queue.push(oldPartner);
+  //       }
+  //     }
+  //   }
+
+  //   const index = queue.indexOf(socket);
+  //   if (index !== -1) {
+  //     queue.splice(index, 1);
+  //   }
+
+  //   socket.partner = null;
+
+  //   queue.push(socket);
+
+  //   setTimeout(() => {
+  //     tryMatch(socket.mode);
+  //   }, 500);
+  // });
 
   socket.on("disconnect", () => {
     if (socket.mode === "serious") {
@@ -472,12 +333,6 @@ io.on("connection", async (socket) => {
     } else {
       randomUsers.delete(socket.id);
     }
-
-    // ✅ send updated count to ALL users
-    // io.emit(
-    //   "online-users",
-    //   socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-    // );
 
     io.sockets.sockets.forEach((s) => {
       s.emit(

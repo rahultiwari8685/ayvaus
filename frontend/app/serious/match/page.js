@@ -48,8 +48,6 @@ export default function SeriousChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
 
-  const [onlineUsers, setOnlineUsers] = useState([]);
-
   const [partner, setPartner] = useState(null);
 
   useEffect(() => {
@@ -166,15 +164,6 @@ export default function SeriousChat() {
   useEffect(() => {
     let mounted = true;
 
-    // socketRef.current = io("https://api.flirtaus.com", {
-    //   transports: ["websocket", "polling"],
-    //     auth: {
-    //       userId: getOrCreateUserId(),
-    //     },
-    //   auth: {
-    //     mode: "random", // ✅ only this change
-    //   },
-
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -211,10 +200,6 @@ export default function SeriousChat() {
       setPartner(null);
     });
 
-    // socketRef.current.on("online-users-list", (users) => {
-    //   setOnlineUsers(users);
-    // });
-
     start();
 
     socketRef.current.on("matched", async ({ role }) => {
@@ -242,13 +227,11 @@ export default function SeriousChat() {
       if (!pcRef.current) return;
 
       try {
-        // OFFER RECEIVED
         if (data.offer) {
           await pcRef.current.setRemoteDescription(
             new RTCSessionDescription(data.offer),
           );
 
-          // Flush queued ICE
           while (iceQueueRef.current.length > 0) {
             await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
           }
@@ -259,19 +242,16 @@ export default function SeriousChat() {
           socketRef.current.emit("signal", { answer });
         }
 
-        // ANSWER RECEIVED
         if (data.answer) {
           await pcRef.current.setRemoteDescription(
             new RTCSessionDescription(data.answer),
           );
 
-          // Flush queued ICE
           while (iceQueueRef.current.length > 0) {
             await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
           }
         }
 
-        // ICE CANDIDATE RECEIVED
         if (data.candidate) {
           const candidate = new RTCIceCandidate(data.candidate);
 
@@ -288,10 +268,8 @@ export default function SeriousChat() {
 
     socketRef.current.on("chat-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
-
       socketRef.current.emit("message-delivered", msg.id);
 
-      // Increase unread if chat is closed
       if (!showChat) {
         setUnreadCount((prev) => prev + 1);
       }
@@ -372,8 +350,8 @@ export default function SeriousChat() {
   async function nextChat() {
     setStatus("Skipping...");
     setMessages([]);
+    setPartner(null);
 
-    // Close old peer
     if (pcRef.current) {
       pcRef.current.ontrack = null;
       pcRef.current.onicecandidate = null;
@@ -381,7 +359,6 @@ export default function SeriousChat() {
       pcRef.current = null;
     }
 
-    // Clear remote video
     if (remoteVideo.current?.srcObject) {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
@@ -481,14 +458,12 @@ export default function SeriousChat() {
     const newFacingMode = facingMode === "user" ? "environment" : "user";
 
     try {
-      // Stop current video track
       const videoTrack = streamRef.current
         .getTracks()
         .find((track) => track.kind === "video");
 
       if (videoTrack) videoTrack.stop();
 
-      // Get new camera stream
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: newFacingMode },
         audio: false,
@@ -496,7 +471,6 @@ export default function SeriousChat() {
 
       const newVideoTrack = newStream.getVideoTracks()[0];
 
-      // Replace track in peer connection
       const sender = pcRef.current
         ?.getSenders()
         .find((s) => s.track?.kind === "video");
@@ -505,7 +479,6 @@ export default function SeriousChat() {
         await sender.replaceTrack(newVideoTrack);
       }
 
-      // Replace local stream track
       streamRef.current.removeTrack(streamRef.current.getVideoTracks()[0]);
       streamRef.current.addTrack(newVideoTrack);
 
@@ -608,7 +581,6 @@ export default function SeriousChat() {
       {isMobile ? (
         showChat && (
           <div className="fixed inset-0 z-[900] flex flex-col bg-black/70 ">
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-md">
               <div>
                 <h2 className="text-sm font-semibold">Stranger</h2>
@@ -620,7 +592,6 @@ export default function SeriousChat() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
               {messages.map((m, i) => (
                 <div
@@ -656,7 +627,6 @@ export default function SeriousChat() {
               onSubmit={sendMessage}
               className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-md"
             >
-              {/* Image */}
               <input
                 type="file"
                 accept="image/*"
@@ -671,7 +641,6 @@ export default function SeriousChat() {
                 📎
               </label>
 
-              {/* Input */}
               <input
                 value={text}
                 onChange={(e) => {
@@ -682,7 +651,6 @@ export default function SeriousChat() {
                 placeholder="Message"
               />
 
-              {/* Voice / Send */}
               {text.trim() ? (
                 <button className="bg-green-500 text-black px-4 py-2 rounded-full">
                   ➤
@@ -700,7 +668,6 @@ export default function SeriousChat() {
           </div>
         )
       ) : (
-        // 💻 DESKTOP (NO CHANGE)
         <div
           className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
             showChat ? "translate-x-0" : "translate-x-full"
@@ -733,7 +700,6 @@ export default function SeriousChat() {
                       <span>{m.text}</span>
                     )}
 
-                    {/* Edited Label */}
                     {m.edited && (
                       <span className="text-xs italic text-gray-300 ml-1">
                         edited
@@ -887,7 +853,6 @@ export default function SeriousChat() {
             </span>
           </div>
 
-          {/* Switch */}
           <div className="flex flex-col items-center text-xs text-white">
             <button
               onClick={switchCamera}
@@ -898,7 +863,6 @@ export default function SeriousChat() {
             <span className="mt-1 text-gray-300">Flip</span>
           </div>
 
-          {/* Chat */}
           <div className="flex flex-col items-center text-xs text-white relative">
             <div className="relative">
               <button

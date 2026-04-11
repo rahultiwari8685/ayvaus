@@ -27,7 +27,7 @@ export default function Profile() {
   const handleSubmit = async () => {
     setError("");
 
-    // ✅ Validation
+    
     if (
       !form.name ||
       !form.email ||
