@@ -170,6 +170,22 @@ export default function SeriousChat() {
       window.location.href = "/serious/login";
     }
 
+    // socketRef.current = io("https://api.flirtaus.com", {
+    //   transports: ["websocket"],
+    //   auth: {
+    //     token,
+    //     mode: "serious",
+    //   },
+    // });
+
+    if (!token) {
+      window.location.href = "/serious/login";
+      return;
+    }
+
+    socketRef.current?.disconnect();
+
+    // ✅ ONLY CONNECT AFTER TOKEN EXISTS
     socketRef.current = io("https://api.flirtaus.com", {
       transports: ["websocket"],
       auth: {
@@ -180,18 +196,35 @@ export default function SeriousChat() {
 
     const socket = socketRef.current;
 
-    async function start() {
-      await initCamera();
-      if (!mounted) return;
+    // async function start() {
+    //   await initCamera();
+    //   if (!mounted) return;
 
-      await createPeer();
-      socketRef.current.emit("join");
-      socketRef.current.emit("get-online-count");
-    }
+    //   await createPeer();
+    //   socketRef.current.emit("join");
+    //   socketRef.current.emit("get-online-count");
+    // }
 
-    socketRef.current.on("connect", () => {
+    socketRef.current.on("connect", async () => {
       console.log("✅ Connected to server");
-      socketRef.current.emit("get-online-count");
+
+      try {
+        // ✅ Step 1: init camera
+        await initCamera();
+
+        // ✅ Step 2: create peer AFTER camera ready
+        await createPeer();
+
+        // ✅ Step 3: emit join AFTER everything ready
+        socketRef.current.emit("join");
+
+        // ✅ Step 4: get count
+        socketRef.current.emit("get-online-count");
+
+        console.log("🚀 Joined queue");
+      } catch (err) {
+        console.log("❌ Init error:", err);
+      }
     });
 
     socketRef.current.on("online-users", (count) => {
@@ -203,11 +236,13 @@ export default function SeriousChat() {
       }
     });
 
+    socketRef.current.on("connect", async () => {
+      console.log("✅ Connected:", socketRef.current.id);
+    });
+
     socket.on("partner-left", () => {
       setPartner(null);
     });
-
-    start();
 
     // socketRef.current.on("matched", async ({ role }) => {
     //   if (!pcRef.current) {

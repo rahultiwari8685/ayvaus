@@ -91,7 +91,9 @@ io.on("connection", async (socket) => {
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
 
-  socket.mode = mode;
+  socket.mode = mode || "random";
+
+  console.log("MODE:", socket.mode);
 
   if (mode === "serious") {
     if (!token) return socket.disconnect();
@@ -136,30 +138,6 @@ io.on("connection", async (socket) => {
         );
       });
     }, 100);
-  }
-
-  if (socket.mode === "serious") {
-    const userId = socket.user._id.toString();
-
-    if (seriousUsers.has(userId)) {
-      const old = seriousUsers.get(userId);
-      const oldSocket = io.sockets.sockets.get(old.socketId);
-      if (oldSocket) oldSocket.disconnect(true);
-    }
-
-    seriousUsers.set(userId, {
-      socketId: socket.id,
-      name: socket.user.name,
-      age: socket.user.age,
-      gender: socket.user.gender,
-    });
-
-    console.log("🔥 Serious users:", seriousUsers.size);
-
-    emitSeriousUsers();
-    emitOnlineCount();
-  } else {
-    randomUsers.add(socket.id);
   }
 
   socket.partner = null;
@@ -223,13 +201,29 @@ io.on("connection", async (socket) => {
   socket.on("join", () => {
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
+    if (socket.mode === "serious") {
+      if (!seriousUsers.has(socket.id)) {
+        seriousUsers.set(socket.id, {
+          socketId: socket.id,
+          name: socket.user.name,
+          age: socket.user.age,
+          gender: socket.user.gender,
+        });
+
+        console.log("🔥 Serious users:", seriousUsers.size);
+
+        emitSeriousUsers();
+      }
+    }
+
     if (!queue.includes(socket) && !socket.partner) {
       queue.push(socket);
     }
 
-    emitOnlineCount(); // ✅ important
+    emitOnlineCount();
 
-    // 🔥 immediate match
+    console.log("🚀 JOIN EVENT:", socket.id);
+
     tryMatch(socket.mode);
   });
 
@@ -339,14 +333,9 @@ io.on("connection", async (socket) => {
 
   socket.on("disconnect", () => {
     if (socket.mode === "serious") {
-      const userId = socket.user?._id?.toString();
-
-      if (userId && seriousUsers.get(userId)?.socketId === socket.id) {
-        seriousUsers.delete(userId);
-        emitSeriousUsers();
-
-        emitOnlineCount();
-      }
+      seriousUsers.delete(socket.id);
+      emitSeriousUsers();
+      emitOnlineCount();
     } else {
       randomUsers.delete(socket.id);
     }
