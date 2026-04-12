@@ -43,7 +43,7 @@ export default function Login() {
 
         // ✅ Smart redirect
         if (data.profileComplete) {
-          router.push("/serious/video");
+          router.push("/serious/match");
         } else {
           router.push("/serious/profile");
         }
