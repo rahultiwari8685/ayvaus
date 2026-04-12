@@ -186,6 +186,7 @@ export default function SeriousChat() {
 
       await createPeer();
       socketRef.current.emit("join");
+      socketRef.current.emit("get-online-count");
     }
 
     socketRef.current.on("connect", () => {
@@ -194,8 +195,12 @@ export default function SeriousChat() {
     });
 
     socketRef.current.on("online-users", (count) => {
-      console.log("👥 Online:", count);
-      setOnlineCount(count);
+      console.log("👥 Online received:", count);
+
+      // ❗ prevent invalid overwrite
+      if (typeof count === "number" && count >= 0) {
+        setOnlineCount(count);
+      }
     });
 
     socket.on("partner-left", () => {

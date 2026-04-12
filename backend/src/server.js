@@ -151,6 +151,8 @@ io.on("connection", async (socket) => {
       gender: socket.user.gender,
     });
 
+    console.log("🔥 Serious users:", seriousUsers.size);
+
     emitSeriousUsers();
     emitOnlineCount();
   } else {
@@ -362,6 +364,16 @@ io.on("connection", async (socket) => {
       socket.user ? socket.user.name : "Anonymous",
     );
   });
+
+  // ✅ SEND COUNT TO NEW USER
+  setTimeout(() => {
+    socket.emit(
+      "online-users",
+      socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+    );
+
+    console.log("📤 Initial count sent:", seriousUsers.size);
+  }, 300);
 });
 
 server.listen(5000, () => {
