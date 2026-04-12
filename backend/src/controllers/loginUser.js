@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET;
 
 export const loginUser = async (req, res) => {
+  console.log("LOGIN SECRET:", process.env.JWT_SECRET);
   try {
     const { email, password } = req.body;
 

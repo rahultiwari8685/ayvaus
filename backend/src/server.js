@@ -14,6 +14,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+console.log("ENV SECRET:", process.env.JWT_SECRET);
+
 app.use(cors());
 app.use("/api/serious", seriousRoutes);
 
@@ -86,6 +88,7 @@ function emitSeriousUsers() {
 }
 
 io.on("connection", async (socket) => {
+  console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
 
   socket.mode = mode;
