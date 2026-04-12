@@ -224,6 +224,13 @@ io.on("connection", async (socket) => {
       queue.push(socket);
     }
 
+    io.sockets.sockets.forEach((s) => {
+      s.emit(
+        "online-users",
+        s.mode === "serious" ? seriousUsers.size : randomUsers.size,
+      );
+    });
+
     // 🔥 immediate match
     tryMatch(socket.mode);
   });

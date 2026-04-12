@@ -188,11 +188,16 @@ export default function SeriousChat() {
       socketRef.current.emit("join");
     }
 
-    // socket.on("matched", (data) => {
-    //   setPartner(data.partner);
+    // socketRef.current.on("online-users", (count) => {
+    //   setOnlineCount(count);
     // });
 
+    socketRef.current.on("connect", () => {
+      console.log("✅ Connected to server");
+    });
+
     socketRef.current.on("online-users", (count) => {
+      console.log("👥 Online:", count);
       setOnlineCount(count);
     });
 
