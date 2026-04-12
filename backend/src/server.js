@@ -90,7 +90,7 @@ function emitSeriousUsers() {
 io.on("connection", async (socket) => {
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
-
+  console.log("TOKEN RECEIVED:", token?.slice(0, 20));
   // socket.mode = mode || "random";
 
   if (token) {
@@ -104,7 +104,14 @@ io.on("connection", async (socket) => {
   if (socket.mode === "serious") {
     if (!token) return socket.disconnect();
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      console.log("❌ Invalid token:", err.message);
+      return socket.disconnect(); // 🔥 IMPORTANT
+    }
     const user = await User.findById(decoded.id);
 
     if (!user || !user.is_serious_profile) {
