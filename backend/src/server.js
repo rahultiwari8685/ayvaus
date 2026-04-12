@@ -101,7 +101,7 @@ io.on("connection", async (socket) => {
 
   console.log("FINAL MODE:", socket.mode);
 
-  if (mode === "serious") {
+  if (socket.mode === "serious") {
     if (!token) return socket.disconnect();
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
