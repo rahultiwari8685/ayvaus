@@ -104,6 +104,13 @@ io.on("connection", async (socket) => {
     console.log("❤️ Serious User:", user.name);
   }
 
+  socket.on("get-online-count", () => {
+    socket.emit(
+      "online-users",
+      socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+    );
+  });
+
   if (mode === "random") {
     console.log("🎉 Random User:", socket.id);
   }
@@ -116,6 +123,17 @@ io.on("connection", async (socket) => {
     "| User:",
     socket.user ? socket.user.name : "Anonymous",
   );
+
+  function emitOnlineCount() {
+    setTimeout(() => {
+      io.sockets.sockets.forEach((s) => {
+        s.emit(
+          "online-users",
+          s.mode === "serious" ? seriousUsers.size : randomUsers.size,
+        );
+      });
+    }, 100);
+  }
 
   if (socket.mode === "serious") {
     const userId = socket.user._id.toString();
@@ -134,34 +152,14 @@ io.on("connection", async (socket) => {
     });
 
     emitSeriousUsers();
+    emitOnlineCount();
   } else {
     randomUsers.add(socket.id);
   }
 
-  // io.emit(
-  //   "online-users",
-  //   socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-  // );
-
-  io.sockets.sockets.forEach((s) => {
-    s.emit(
-      "online-users",
-      s.mode === "serious" ? seriousUsers.size : randomUsers.size,
-    );
-  });
-
   socket.partner = null;
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
-
-  // function isCompatible(u1, u2) {
-  //   return (
-  //     u1.gender === u2.looking_for &&
-  //     u2.gender === u1.looking_for &&
-  //     u1.intent === u2.intent &&
-  //     Math.abs(u1.age - u2.age) <= 5
-  //   );
-  // }
 
   function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
@@ -224,12 +222,7 @@ io.on("connection", async (socket) => {
       queue.push(socket);
     }
 
-    io.sockets.sockets.forEach((s) => {
-      s.emit(
-        "online-users",
-        s.mode === "serious" ? seriousUsers.size : randomUsers.size,
-      );
-    });
+    emitOnlineCount(); // ✅ important
 
     // 🔥 immediate match
     tryMatch(socket.mode);
@@ -346,17 +339,12 @@ io.on("connection", async (socket) => {
       if (userId && seriousUsers.get(userId)?.socketId === socket.id) {
         seriousUsers.delete(userId);
         emitSeriousUsers();
+
+        emitOnlineCount();
       }
     } else {
       randomUsers.delete(socket.id);
     }
-
-    io.sockets.sockets.forEach((s) => {
-      s.emit(
-        "online-users",
-        s.mode === "serious" ? seriousUsers.size : randomUsers.size,
-      );
-    });
 
     if (socket.partner) {
       socket.partner.emit("partner-left");
