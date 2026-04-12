@@ -91,9 +91,15 @@ io.on("connection", async (socket) => {
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
 
-  socket.mode = mode || "random";
+  // socket.mode = mode || "random";
 
-  console.log("MODE:", socket.mode);
+  if (token) {
+    socket.mode = "serious"; // ✅ force
+  } else {
+    socket.mode = "random";
+  }
+
+  console.log("FINAL MODE:", socket.mode);
 
   if (mode === "serious") {
     if (!token) return socket.disconnect();
@@ -199,6 +205,7 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("join", () => {
+    console.log("JOIN MODE:", socket.mode); // 👈 ADD THIS
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (socket.mode === "serious") {
