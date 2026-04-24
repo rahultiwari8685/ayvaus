@@ -159,7 +159,7 @@ io.on("connection", async (socket) => {
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
-  function tryMatch(mode) {
+  async function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
 
     const connection = await Connection.create({
