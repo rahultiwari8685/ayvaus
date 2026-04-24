@@ -18,7 +18,6 @@ export default function Login() {
   const handleLogin = async () => {
     setError("");
 
-    // ✅ Validation
     if (!form.email || !form.password) {
       return setError("Please enter email and password");
     }
@@ -36,12 +35,9 @@ export default function Login() {
 
       const data = await res.json();
 
-      // ✅ Correct check
       if (res.ok) {
-        // ✅ Save token
         localStorage.setItem("token", data.token);
 
-        // ✅ Smart redirect
         if (data.profileComplete) {
           router.push("/serious/match");
         } else {

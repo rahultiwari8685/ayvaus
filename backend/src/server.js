@@ -11,6 +11,8 @@ import authRoutes from "./routes/authRoutes.js";
 import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
+import Connection from "./models/Connection.js";
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -92,10 +94,9 @@ io.on("connection", async (socket) => {
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
-  // socket.mode = mode || "random";
 
   if (token) {
-    socket.mode = "serious"; // ✅ force
+    socket.mode = "serious";
   } else {
     socket.mode = "random";
   }
@@ -111,7 +112,7 @@ io.on("connection", async (socket) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       console.log("❌ Invalid token:", err.message);
-      return socket.disconnect(); // 🔥 IMPORTANT
+      return socket.disconnect();
     }
     const user = await User.findById(decoded.id);
 
@@ -160,6 +161,19 @@ io.on("connection", async (socket) => {
 
   function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
+
+    const connection = await Connection.create({
+  user1: s1.user._id,
+  user2: s2.user._id,
+  socket1: s1.id,
+  socket2: s2.id,
+  startedAt: new Date(),
+  mode: "serious",
+});
+
+
+s1.connectionId = connection._id;
+s2.connectionId = connection._id;
 
     for (let i = 0; i < queue.length; i++) {
       for (let j = i + 1; j < queue.length; j++) {
@@ -213,7 +227,7 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("join", () => {
-    console.log("JOIN MODE:", socket.mode); // 👈 ADD THIS
+    console.log("JOIN MODE:", socket.mode);
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (socket.mode === "serious") {
@@ -270,81 +284,62 @@ io.on("connection", async (socket) => {
     socket.partner?.emit("message-seen", messageId);
   });
 
-  socket.on("next", () => {
-    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+socket.on("next", async () => {
+  const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
-    const now = Date.now();
-    if (now - socket.lastNextTime < 2000) {
-      socket.emit("next-blocked");
-      return;
-    }
+  const now = Date.now();
+  if (now - socket.lastNextTime < 2000) {
+    socket.emit("next-blocked");
+    return;
+  }
 
-    socket.lastNextTime = now;
+  socket.lastNextTime = now;
 
-    if (socket.partner) {
-      const oldPartner = socket.partner;
+  // ✅ STEP 1: UPDATE CONNECTION AS SKIPPED
+  if (socket.connectionId) {
+    try {
+      const conn = await Connection.findById(socket.connectionId);
 
-      oldPartner.partner = null;
-      socket.partner = null;
+      if (conn && conn.status === "active") {
+        conn.endedAt = new Date();
+        conn.duration = Math.floor(
+          (conn.endedAt - conn.startedAt) / 1000
+        );
+        conn.status = "skipped";
 
-      oldPartner.emit("partner-left");
+        await conn.save();
 
-      if (!queue.includes(oldPartner)) {
-        setTimeout(() => queue.push(oldPartner), 300);
+        console.log("⏭️ Connection skipped:", conn._id);
       }
+    } catch (err) {
+      console.log("❌ Skip update error:", err.message);
     }
+  }
 
-    const index = queue.indexOf(socket);
-    if (index !== -1) queue.splice(index, 1);
+  // ✅ STEP 2: NORMAL NEXT LOGIC
+  if (socket.partner) {
+    const oldPartner = socket.partner;
 
+    oldPartner.partner = null;
     socket.partner = null;
 
-    setTimeout(() => {
-      queue.push(socket);
-      tryMatch(socket.mode);
-    }, 300);
-  });
+    oldPartner.emit("partner-left");
 
-  // socket.on("next", () => {
-  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+    if (!queue.includes(oldPartner)) {
+      setTimeout(() => queue.push(oldPartner), 300);
+    }
+  }
 
-  //   const now = Date.now();
+  const index = queue.indexOf(socket);
+  if (index !== -1) queue.splice(index, 1);
 
-  //   if (now - socket.lastNextTime < 2000) {
-  //     socket.emit("next-blocked");
-  //     return;
-  //   }
+  socket.partner = null;
 
-  //   socket.lastNextTime = now;
-
-  //   if (socket.partner) {
-  //     const oldPartner = socket.partner;
-
-  //     oldPartner.partner = null;
-  //     socket.partner = null;
-
-  //     oldPartner.emit("partner-left");
-
-  //     if (!oldPartner.disconnected) {
-  //       if (!queue.includes(oldPartner)) {
-  //         queue.push(oldPartner);
-  //       }
-  //     }
-  //   }
-
-  //   const index = queue.indexOf(socket);
-  //   if (index !== -1) {
-  //     queue.splice(index, 1);
-  //   }
-
-  //   socket.partner = null;
-
-  //   queue.push(socket);
-
-  //   setTimeout(() => {
-  //     tryMatch(socket.mode);
-  //   }, 500);
-  // });
+  setTimeout(() => {
+    queue.push(socket);
+    tryMatch(socket.mode);
+  }, 300);
+});
 
   socket.on("disconnect", () => {
     if (socket.mode === "serious") {
@@ -354,6 +349,20 @@ io.on("connection", async (socket) => {
     } else {
       randomUsers.delete(socket.id);
     }
+
+    if (socket.connectionId) {
+  const conn = await Connection.findById(socket.connectionId);
+
+  if (conn && conn.status === "active") {
+    conn.endedAt = new Date();
+    conn.duration = Math.floor(
+      (conn.endedAt - conn.startedAt) / 1000
+    );
+    conn.status = "ended";
+
+    await conn.save();
+  }
+}
 
     if (socket.partner) {
       socket.partner.emit("partner-left");
@@ -372,7 +381,6 @@ io.on("connection", async (socket) => {
     );
   });
 
-  // ✅ SEND COUNT TO NEW USER
   setTimeout(() => {
     socket.emit(
       "online-users",

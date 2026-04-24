@@ -19,11 +19,9 @@ export default function SeriousChat() {
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
-
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const roleRef = useRef(null);
-
   const iceQueueRef = useRef([]);
 
   const [status, setStatus] = useState("Looking for someone...");
@@ -34,20 +32,15 @@ export default function SeriousChat() {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [showChat, setShowChat] = useState(false);
-
   const [typing, setTyping] = useState(false);
-
   const [unreadCount, setUnreadCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-
   const [isMobile, setIsMobile] = useState(false);
-
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
-
   const [partner, setPartner] = useState(null);
 
   useEffect(() => {
@@ -170,14 +163,6 @@ export default function SeriousChat() {
       window.location.href = "/serious/login";
     }
 
-    // socketRef.current = io("https://api.flirtaus.com", {
-    //   transports: ["websocket"],
-    //   auth: {
-    //     token,
-    //     mode: "serious",
-    //   },
-    // });
-
     if (!token) {
       window.location.href = "/serious/login";
       return;
@@ -185,7 +170,6 @@ export default function SeriousChat() {
 
     socketRef.current?.disconnect();
 
-    // ✅ ONLY CONNECT AFTER TOKEN EXISTS
     socketRef.current = io("https://api.flirtaus.com", {
       transports: ["websocket"],
       auth: {
@@ -196,29 +180,15 @@ export default function SeriousChat() {
 
     const socket = socketRef.current;
 
-    // async function start() {
-    //   await initCamera();
-    //   if (!mounted) return;
-
-    //   await createPeer();
-    //   socketRef.current.emit("join");
-    //   socketRef.current.emit("get-online-count");
-    // }
-
     socketRef.current.on("connect", async () => {
       console.log("✅ Connected to server");
 
       try {
-        // ✅ Step 1: init camera
         await initCamera();
-
-        // ✅ Step 2: create peer AFTER camera ready
         await createPeer();
 
-        // ✅ Step 3: emit join AFTER everything ready
         socketRef.current.emit("join");
 
-        // ✅ Step 4: get count
         socketRef.current.emit("get-online-count");
 
         console.log("🚀 Joined queue");
@@ -243,18 +213,6 @@ export default function SeriousChat() {
     socket.on("partner-left", () => {
       setPartner(null);
     });
-
-    // socketRef.current.on("matched", async ({ role }) => {
-    //   if (!pcRef.current) {
-    //     await createPeer();
-    //   }
-    //   roleRef.current = role;
-    //   setStatus("Connecting...");
-
-    //   if (role === "callee") {
-    //     socketRef.current.emit("ready");
-    //   }
-    // });
 
     socket.on("matched", async ({ role, partner }) => {
       setPartner(partner);

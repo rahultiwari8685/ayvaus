@@ -27,7 +27,6 @@ export default function Profile() {
   const handleSubmit = async () => {
     setError("");
 
-    
     if (
       !form.name ||
       !form.email ||
@@ -57,12 +56,9 @@ export default function Profile() {
       const data = await res.json();
       router.push("/serious/match");
       if (res.ok) {
-        // ✅ Save token
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
         console.log("Registered user:", data);
-
-        // ✅ Redirect
       } else {
         setError(data.message || "Registration failed");
       }
@@ -87,7 +83,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* NAME */}
         <input
           type="text"
           placeholder="Name"
@@ -95,7 +90,6 @@ export default function Profile() {
           onChange={(e) => handleChange("name", e.target.value)}
         />
 
-        {/* EMAIL */}
         <input
           type="email"
           placeholder="Email"
@@ -103,7 +97,6 @@ export default function Profile() {
           onChange={(e) => handleChange("email", e.target.value)}
         />
 
-        {/* PASSWORD */}
         <input
           type="password"
           placeholder="Password"
@@ -111,7 +104,6 @@ export default function Profile() {
           onChange={(e) => handleChange("password", e.target.value)}
         />
 
-        {/* AGE */}
         <input
           type="number"
           placeholder="Age"
@@ -119,7 +111,6 @@ export default function Profile() {
           onChange={(e) => handleChange("age", e.target.value)}
         />
 
-        {/* GENDER */}
         <select
           className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
           onChange={(e) => handleChange("gender", e.target.value)}
@@ -130,7 +121,6 @@ export default function Profile() {
           <option>Other</option>
         </select>
 
-        {/* LOOKING FOR */}
         <select
           className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
           onChange={(e) => handleChange("looking_for", e.target.value)}
@@ -141,7 +131,6 @@ export default function Profile() {
           <option>Everyone</option>
         </select>
 
-        {/* INTENT */}
         <select
           className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
           onChange={(e) => handleChange("intent", e.target.value)}
@@ -152,7 +141,6 @@ export default function Profile() {
           <option>Serious Relationship</option>
         </select>
 
-        {/* BIO */}
         <textarea
           placeholder="Bio"
           rows={3}
@@ -165,7 +153,7 @@ export default function Profile() {
           disabled={loading}
           className="w-full py-3 rounded-lg bg-gradient-to-r from-pink-500 to-red-500"
         >
-          {loading ? "Creating..." : "Register & Continue"}
+          {loading ? "Creating..." : "Register"}
         </button>
       </div>
     </div>
