@@ -162,19 +162,6 @@ io.on("connection", async (socket) => {
   async function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
 
-    const connection = await Connection.create({
-  user1: s1.user._id,
-  user2: s2.user._id,
-  socket1: s1.id,
-  socket2: s2.id,
-  startedAt: new Date(),
-  mode: "serious",
-});
-
-
-s1.connectionId = connection._id;
-s2.connectionId = connection._id;
-
     for (let i = 0; i < queue.length; i++) {
       for (let j = i + 1; j < queue.length; j++) {
         const s1 = queue[i];
@@ -187,39 +174,36 @@ s2.connectionId = connection._id;
           continue;
         }
 
+        // remove from queue
         queue.splice(j, 1);
         queue.splice(i, 1);
 
         s1.partner = s2;
         s2.partner = s1;
 
-        s1.lastPartnerId = s2.id;
-        s2.lastPartnerId = s1.id;
+        // ✅ CREATE CONNECTION HERE
+        try {
+          const connection = await Connection.create({
+            user1: s1.user._id,
+            user2: s2.user._id,
+            socket1: s1.id,
+            socket2: s2.id,
+            startedAt: new Date(),
+            status: "active",
+            mode: "serious",
+          });
 
-        console.log(
-          "🤝 Matched:",
-          s1.user?.name || "User1",
-          "↔",
-          s2.user?.name || "User2",
-        );
+          s1.connectionId = connection._id;
+          s2.connectionId = connection._id;
 
-        s1.emit("matched", {
-          role: "caller",
-          partner: {
-            name: s2.user?.name || "Stranger",
-            age: s2.user?.age,
-            gender: s2.user?.gender,
-          },
-        });
+          console.log("📌 Connection created:", connection._id);
+        } catch (err) {
+          console.log("❌ Connection error:", err.message);
+        }
 
-        s2.emit("matched", {
-          role: "callee",
-          partner: {
-            name: s1.user?.name || "Stranger",
-            age: s1.user?.age,
-            gender: s1.user?.gender,
-          },
-        });
+        // emit match
+        s1.emit("matched", { role: "caller" });
+        s2.emit("matched", { role: "callee" });
 
         return tryMatch(mode);
       }
@@ -284,64 +268,62 @@ s2.connectionId = connection._id;
     socket.partner?.emit("message-seen", messageId);
   });
 
-socket.on("next", async () => {
-  const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+  socket.on("next", async () => {
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
-  const now = Date.now();
-  if (now - socket.lastNextTime < 2000) {
-    socket.emit("next-blocked");
-    return;
-  }
-
-  socket.lastNextTime = now;
-
-  // ✅ STEP 1: UPDATE CONNECTION AS SKIPPED
-  if (socket.connectionId) {
-    try {
-      const conn = await Connection.findById(socket.connectionId);
-
-      if (conn && conn.status === "active") {
-        conn.endedAt = new Date();
-        conn.duration = Math.floor(
-          (conn.endedAt - conn.startedAt) / 1000
-        );
-        conn.status = "skipped";
-
-        await conn.save();
-
-        console.log("⏭️ Connection skipped:", conn._id);
-      }
-    } catch (err) {
-      console.log("❌ Skip update error:", err.message);
+    const now = Date.now();
+    if (now - socket.lastNextTime < 2000) {
+      socket.emit("next-blocked");
+      return;
     }
-  }
 
-  // ✅ STEP 2: NORMAL NEXT LOGIC
-  if (socket.partner) {
-    const oldPartner = socket.partner;
+    socket.lastNextTime = now;
 
-    oldPartner.partner = null;
+    // ✅ STEP 1: UPDATE CONNECTION AS SKIPPED
+    if (socket.connectionId) {
+      try {
+        const conn = await Connection.findById(socket.connectionId);
+
+        if (conn && conn.status === "active") {
+          conn.endedAt = new Date();
+          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+          conn.status = "skipped";
+
+          await conn.save();
+
+          console.log("⏭️ Connection skipped:", conn._id);
+        }
+      } catch (err) {
+        console.log("❌ Skip update error:", err.message);
+      }
+    }
+
+    // ✅ STEP 2: NORMAL NEXT LOGIC
+    if (socket.partner) {
+      const oldPartner = socket.partner;
+
+      oldPartner.partner = null;
+      socket.partner = null;
+
+      oldPartner.emit("partner-left");
+
+      if (!queue.includes(oldPartner)) {
+        setTimeout(() => queue.push(oldPartner), 300);
+      }
+    }
+
+    const index = queue.indexOf(socket);
+    if (index !== -1) queue.splice(index, 1);
+
     socket.partner = null;
 
-    oldPartner.emit("partner-left");
+    setTimeout(() => {
+      queue.push(socket);
+      tryMatch(socket.mode);
+    }, 300);
+  });
 
-    if (!queue.includes(oldPartner)) {
-      setTimeout(() => queue.push(oldPartner), 300);
-    }
-  }
-
-  const index = queue.indexOf(socket);
-  if (index !== -1) queue.splice(index, 1);
-
-  socket.partner = null;
-
-  setTimeout(() => {
-    queue.push(socket);
-    tryMatch(socket.mode);
-  }, 300);
-});
-
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     if (socket.mode === "serious") {
       seriousUsers.delete(socket.id);
       emitSeriousUsers();
@@ -351,18 +333,16 @@ socket.on("next", async () => {
     }
 
     if (socket.connectionId) {
-  const conn = await Connection.findById(socket.connectionId);
+      const conn = await Connection.findById(socket.connectionId);
 
-  if (conn && conn.status === "active") {
-    conn.endedAt = new Date();
-    conn.duration = Math.floor(
-      (conn.endedAt - conn.startedAt) / 1000
-    );
-    conn.status = "ended";
+      if (conn && conn.status === "active") {
+        conn.endedAt = new Date();
+        conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+        conn.status = "ended";
 
-    await conn.save();
-  }
-}
+        await conn.save();
+      }
+    }
 
     if (socket.partner) {
       socket.partner.emit("partner-left");
