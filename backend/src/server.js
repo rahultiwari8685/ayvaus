@@ -291,6 +291,13 @@ io.on("connection", async (socket) => {
 
           await conn.save();
 
+          // ✅ CLEAR CONNECTION (IMPORTANT FIX)
+          socket.connectionId = null;
+
+          if (socket.partner) {
+            socket.partner.connectionId = null;
+          }
+
           console.log("⏭️ Connection skipped:", conn._id);
         }
       } catch (err) {
@@ -341,12 +348,49 @@ io.on("connection", async (socket) => {
         conn.status = "ended";
 
         await conn.save();
+
+        // ✅ IMPORTANT FIX
+        socket.connectionId = null;
+
+        if (socket.partner) {
+          socket.partner.connectionId = null;
+        }
+
+        console.log("🔚 Connection ended:", conn._id);
       }
     }
 
+    // if (socket.partner) {
+    //   socket.partner.emit("partner-left");
+    //   socket.partner.partner = null;
+    // }
+
     if (socket.partner) {
-      socket.partner.emit("partner-left");
-      socket.partner.partner = null;
+      const partner = socket.partner;
+
+      partner.emit("partner-left");
+
+      // ✅ ALSO CLOSE PARTNER CONNECTION
+      if (partner.connectionId) {
+        try {
+          const conn = await Connection.findById(partner.connectionId);
+
+          if (conn && conn.status === "active") {
+            conn.endedAt = new Date();
+            conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+            conn.status = "ended";
+
+            await conn.save();
+
+            console.log("🔚 Partner connection ended:", conn._id);
+          }
+        } catch (err) {
+          console.log("❌ Partner error:", err.message);
+        }
+      }
+
+      partner.connectionId = null;
+      partner.partner = null;
     }
 
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
