@@ -62,6 +62,10 @@ export default function SeriousDashboard() {
     fetchHistory();
   }, []);
 
+  function getOnlineStatus() {
+    return Math.random() > 0.5; // temp random
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-10">
       {/* HEADER */}
@@ -84,25 +88,15 @@ export default function SeriousDashboard() {
       </div>
 
       {/* TOP CARDS */}
-      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-12">
-        {/* MATCH */}
+      <div className="max-w-3xl mx-auto mb-12">
         <div
           onClick={() => router.push("/serious/match")}
-          className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
+          className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer text-center"
         >
           <div className="text-4xl mb-4">💖</div>
           <h3 className="text-xl font-semibold mb-2">Start Matching</h3>
           <p className="text-gray-400 text-sm">
             Meet new people and build connections.
-          </p>
-        </div>
-
-        {/* HISTORY CARD (STATIC INFO) */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-white/10">
-          <div className="text-4xl mb-4">📜</div>
-          <h3 className="text-xl font-semibold mb-2">History</h3>
-          <p className="text-gray-400 text-sm">
-            See who you connected with recently.
           </p>
         </div>
       </div>
@@ -121,7 +115,18 @@ export default function SeriousDashboard() {
                 className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center"
               >
                 <div>
-                  <h3 className="font-semibold">{item.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        getOnlineStatus() ? "bg-green-400" : "bg-gray-500"
+                      }`}
+                    ></span>
+
+                    <h3 className="font-semibold">{item.name}</h3>
+                    <p className="text-xs text-gray-400">
+                      {getOnlineStatus() ? "Online" : "Offline"}
+                    </p>
+                  </div>
 
                   <p className="text-xs text-gray-400">
                     {item.age} • {item.gender}
