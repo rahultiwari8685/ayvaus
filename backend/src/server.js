@@ -371,6 +371,60 @@ io.on("connection", async (socket) => {
   }, 300);
 });
 
+app.get("/api/user/yesterday-history", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const start = new Date(yesterday.setHours(0, 0, 0, 0));
+    const end = new Date(yesterday.setHours(23, 59, 59, 999));
+
+    const connections = await Connection.find({
+      $or: [{ user1: userId }, { user2: userId }],
+      startedAt: { $gte: start, $lte: end },
+    })
+      .populate("user1", "name age gender")
+      .populate("user2", "name age gender")
+      .sort({ startedAt: -1 });
+
+    const result = connections
+      .map((conn) => {
+        const isUser1 = conn.user1 && conn.user1._id.toString() === userId;
+
+        const partner = isUser1 ? conn.user2 : conn.user1;
+
+        if (!partner) return null;
+
+        return {
+          name: partner.name,
+          age: partner.age,
+          gender: partner.gender,
+          duration: conn.duration,
+          status: conn.status,
+
+          // ✅ formatted time (ADD HERE)
+          startedAt: new Date(conn.startedAt).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+          }),
+
+          endedAt: conn.endedAt
+            ? new Date(conn.endedAt).toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+              })
+            : null,
+        };
+      })
+      .filter(Boolean);
+
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 server.listen(5000, () => {
   console.log("🚀 Backend running on port 5000");
 });

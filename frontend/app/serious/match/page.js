@@ -159,14 +159,10 @@ export default function SeriousChat() {
 
     const token = localStorage.getItem("token");
 
-    // if (!token) {
-    //   window.location.href = "/serious/login";
-    // }
-
     if (!token) {
       console.log("❌ No token → redirect");
       window.location.href = "/serious/login";
-      return; // ✅ VERY IMPORTANT
+      return;
     }
 
     socketRef.current?.disconnect();
