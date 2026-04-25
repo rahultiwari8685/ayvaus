@@ -37,6 +37,7 @@ export default function Login() {
 
       if (res.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.user._id);
 
         if (data.profileComplete) {
           router.push("/serious/match");

@@ -12,11 +12,13 @@ export default function SeriousDashboard() {
       </h1>
 
       <p className="text-gray-400 text-center max-w-xl mb-10">
-        Find meaningful connections, build relationships, and reconnect with
-        people you liked.
+        Find meaningful connections, build relationships, and view your past
+        conversations.
       </p>
 
+      {/* GRID */}
       <div className="grid md:grid-cols-2 gap-6 w-full max-w-3xl">
+        {/* LEFT → MATCH */}
         <div
           onClick={() => router.push("/serious/match")}
           className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
@@ -24,18 +26,19 @@ export default function SeriousDashboard() {
           <div className="text-4xl mb-4">💖</div>
           <h3 className="text-xl font-semibold mb-2">Start Matching</h3>
           <p className="text-gray-400 text-sm">
-            Meet new people based on your preferences.
+            Meet new people and start meaningful conversations.
           </p>
         </div>
 
+        {/* RIGHT → HISTORY (NEW) */}
         <div
-          onClick={() => router.push("/serious/reconnect")}
-          className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
+          onClick={() => router.push("/serious/history")}
+          className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-white/10 hover:scale-105 transition cursor-pointer"
         >
-          <div className="text-4xl mb-4">🔁</div>
-          <h3 className="text-xl font-semibold mb-2">Reconnect</h3>
+          <div className="text-4xl mb-4">📜</div>
+          <h3 className="text-xl font-semibold mb-2">History</h3>
           <p className="text-gray-400 text-sm">
-            Chat again with people you already connected with.
+            View your past connections and chat duration.
           </p>
         </div>
       </div>
