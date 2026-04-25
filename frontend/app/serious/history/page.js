@@ -5,6 +5,18 @@ import { useEffect, useState } from "react";
 export default function HistoryPage() {
   const [data, setData] = useState([]);
 
+  function formatDuration(seconds) {
+    if (!seconds) return "0s";
+
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    if (mins === 0) return `${secs}s`;
+    if (secs === 0) return `${mins}m`;
+
+    return `${mins}m ${secs}s`;
+  }
+
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -42,7 +54,9 @@ export default function HistoryPage() {
                 {item.age} • {item.gender}
               </p>
 
-              <p className="text-sm mt-2">⏱ Duration: {item.duration}s</p>
+              <p className="text-sm mt-2">
+                ⏱ Duration: {formatDuration(item.duration)}
+              </p>
 
               <p className="text-xs text-gray-500">🕒 {item.startedAt}</p>
 
