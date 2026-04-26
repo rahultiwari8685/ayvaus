@@ -56,7 +56,7 @@ export default function Home() {
             </p>
           </div>
 
-          <Link href="/corporate">
+          {/* <Link href="/corporate">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 hover:scale-105 transition cursor-pointer">
               <div className="text-4xl mb-4">💼</div>
               <h3 className="text-xl font-semibold mb-2">Corporate Mode</h3>
@@ -64,7 +64,7 @@ export default function Home() {
                 Connect companies & students.
               </p>
             </div>
-          </Link>
+          </Link> */}
         </div>
       </section>
 

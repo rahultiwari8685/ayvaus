@@ -415,7 +415,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     yesterday.setDate(yesterday.getDate());
 
     const start = new Date(yesterday.setHours(0, 0, 0, 0));
-    const end = new Date(yesterday.setHours(47, 59, 59, 999));
+    const end = new Date(yesterday.setHours(23, 59, 59, 999));
 
     const connections = await Connection.find({
       $or: [{ user1: userId }, { user2: userId }],
@@ -428,7 +428,6 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     const result = connections
       .map((conn) => {
         const isUser1 = conn.user1 && conn.user1._id.toString() === userId;
-
         const partner = isUser1 ? conn.user2 : conn.user1;
 
         if (!partner) return null;
@@ -439,7 +438,6 @@ app.get("/api/user/yesterday-history", async (req, res) => {
           gender: partner.gender,
           duration: conn.duration,
           status: conn.status,
-
           startedAt: new Date(conn.startedAt).toLocaleString("en-IN", {
             timeZone: "Asia/Kolkata",
           }),
