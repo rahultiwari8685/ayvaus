@@ -106,22 +106,33 @@ io.on("connection", async (socket) => {
   if (socket.mode === "serious") {
     if (!token) return socket.disconnect();
 
-    let decoded;
-
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const user = await User.findById(decoded.id);
+
+      if (!user || !user.is_serious_profile) {
+        return socket.disconnect();
+      }
+
+      socket.user = user;
+
+      seriousUsers.set(user._id.toString(), {
+        socketId: socket.id,
+        userId: user._id.toString(), // 🔥 important
+        name: user.name,
+        age: user.age,
+        gender: user.gender,
+      });
+
+      emitSeriousUsers();
+
+      console.log("🟢 User online:", user._id.toString());
+      console.log("❤️ Serious User:", user.name);
     } catch (err) {
       console.log("❌ Invalid token:", err.message);
       return socket.disconnect();
     }
-    const user = await User.findById(decoded.id);
-
-    if (!user || !user.is_serious_profile) {
-      return socket.disconnect();
-    }
-
-    socket.user = user;
-    console.log("❤️ Serious User:", user.name);
   }
 
   socket.on("get-online-count", () => {
@@ -212,18 +223,6 @@ io.on("connection", async (socket) => {
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (socket.mode === "serious") {
-      if (!seriousUsers.has(socket.id)) {
-        seriousUsers.set(socket.id, {
-          socketId: socket.id,
-          name: socket.user.name,
-          age: socket.user.age,
-          gender: socket.user.gender,
-        });
-
-        console.log("🔥 Serious users:", seriousUsers.size);
-
-        emitSeriousUsers();
-      }
     }
 
     if (!queue.includes(socket) && !socket.partner) {
@@ -324,10 +323,12 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    if (socket.mode === "serious") {
-      seriousUsers.delete(socket.id);
-      emitSeriousUsers();
-      emitOnlineCount();
+    if (socket.mode === "serious" && socket.user?._id) {
+      seriousUsers.delete(socket.user._id.toString());
+
+      emitSeriousUsers(); // ✅ AFTER delete
+
+      console.log("⚫ User offline:", socket.user._id.toString());
     } else {
       randomUsers.delete(socket.id);
     }
@@ -412,8 +413,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     const userId = req.query.userId;
 
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate());
-
+    yesterday.setDate(yesterday.getDate() - 1);
     const start = new Date(yesterday.setHours(0, 0, 0, 0));
     const end = new Date(yesterday.setHours(23, 59, 59, 999));
 
@@ -433,6 +433,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
         if (!partner) return null;
 
         return {
+          userId: partner._id.toString(),
           name: partner.name,
           age: partner.age,
           gender: partner.gender,
@@ -456,6 +457,18 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     console.log(err);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+app.post("/api/user/online-status", (req, res) => {
+  const { userIds } = req.body;
+
+  const result = {};
+
+  userIds.forEach((id) => {
+    result[id] = seriousUsers.has(id);
+  });
+
+  res.json(result);
 });
 
 server.listen(5000, () => {

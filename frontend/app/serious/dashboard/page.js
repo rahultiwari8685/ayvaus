@@ -7,6 +7,8 @@ export default function SeriousDashboard() {
   const router = useRouter();
   const [history, setHistory] = useState([]);
 
+  const [onlineMap, setOnlineMap] = useState({});
+
   const totalUsers = history.length;
 
   const totalTime = history.reduce((sum, item) => {
@@ -39,28 +41,28 @@ export default function SeriousDashboard() {
     router.push("/serious/match");
   };
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const userId = localStorage.getItem("userId");
+  // useEffect(() => {
+  //   const fetchHistory = async () => {
+  //     try {
+  //       const userId = localStorage.getItem("userId");
 
-        const res = await fetch(
-          `https://api.flirtaus.com/api/user/yesterday-history?userId=${userId}`,
-        );
+  //       const res = await fetch(
+  //         `https://api.flirtaus.com/api/user/yesterday-history?userId=${userId}`,
+  //       );
 
-        const data = await res.json();
-        setHistory(data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  //       const data = await res.json();
+  //       setHistory(data || []);
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
 
-    fetchHistory();
-  }, []);
+  //   fetchHistory();
+  // }, []);
 
-  function getOnlineStatus() {
-    return Math.random() > 0.5;
-  }
+  // function getOnlineStatus() {
+  //   return Math.random() > 0.5;
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-10">
@@ -102,8 +104,7 @@ export default function SeriousDashboard() {
           ) : (
             <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
               {history.slice(0, 6).map((item, index) => {
-                const isOnline = getOnlineStatus();
-
+                const isOnline = onlineMap[item.userId];
                 return (
                   <div
                     key={index}
@@ -111,14 +112,14 @@ export default function SeriousDashboard() {
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            isOnline ? "bg-green-400" : "bg-gray-500"
-                          }`}
-                        ></span>
-
                         <span className="font-medium">{item.name}</span>
                       </div>
+
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          isOnline ? "bg-green-400" : "bg-gray-500"
+                        }`}
+                      ></span>
 
                       <p className="text-xs text-gray-400">
                         {isOnline ? "Online" : "Offline"}
