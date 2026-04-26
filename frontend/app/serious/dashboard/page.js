@@ -95,7 +95,7 @@ export default function SeriousDashboard() {
         </div>
 
         <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-          <h3 className="text-lg font-semibold mb-4">📜 Yesterday History</h3>
+          <h3 className="text-lg font-semibold mb-4">📜 Connection History</h3>
 
           {history.length === 0 ? (
             <p className="text-gray-500 text-sm">No history found</p>

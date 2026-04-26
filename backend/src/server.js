@@ -415,7 +415,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     yesterday.setDate(yesterday.getDate());
 
     const start = new Date(yesterday.setHours(0, 0, 0, 0));
-    const end = new Date(yesterday.setHours(23, 59, 59, 999));
+    const end = new Date(yesterday.setHours(47, 59, 59, 999));
 
     const connections = await Connection.find({
       $or: [{ user1: userId }, { user2: userId }],
