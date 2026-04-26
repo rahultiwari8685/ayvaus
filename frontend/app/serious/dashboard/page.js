@@ -13,13 +13,11 @@ export default function SeriousDashboard() {
     return sum + (item.duration || 0);
   }, 0);
 
-  // format total time
   function formatTotalTime(seconds) {
     const mins = Math.floor(seconds / 60);
     return mins === 0 ? `${seconds}s` : `${mins} min`;
   }
 
-  // ✅ duration formatter
   function formatDuration(seconds) {
     if (!seconds) return "0s";
     const mins = Math.floor(seconds / 60);
@@ -38,11 +36,9 @@ export default function SeriousDashboard() {
   }
 
   const handleReconnect = (user) => {
-    // later you can pass userId for direct match
     router.push("/serious/match");
   };
 
-  // ✅ fetch history
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -63,12 +59,11 @@ export default function SeriousDashboard() {
   }, []);
 
   function getOnlineStatus() {
-    return Math.random() > 0.5; // temp random
+    return Math.random() > 0.5;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-10">
-      {/* HEADER */}
       <h1 className="text-3xl md:text-5xl font-bold text-center mb-6">
         Welcome to <span className="text-pink-500">Serious Mode ❤️</span>
       </h1>
@@ -88,7 +83,6 @@ export default function SeriousDashboard() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-        {/* LEFT → START MATCH */}
         <div
           onClick={() => router.push("/serious/match")}
           className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 hover:scale-105 transition cursor-pointer flex flex-col justify-center"
@@ -100,7 +94,6 @@ export default function SeriousDashboard() {
           </p>
         </div>
 
-        {/* RIGHT → HISTORY PANEL */}
         <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
           <h3 className="text-lg font-semibold mb-4">📜 Yesterday History</h3>
 
@@ -151,7 +144,7 @@ export default function SeriousDashboard() {
                         onClick={() => handleReconnect(item)}
                         className="block mt-1 text-xs px-2 py-1 rounded bg-pink-500 hover:bg-pink-600"
                       >
-                        Chat
+                        Reconnect
                       </button>
                     </div>
                   </div>
@@ -162,7 +155,6 @@ export default function SeriousDashboard() {
         </div>
       </div>
 
-      {/* BACK */}
       <div className="text-center mt-10">
         <button
           onClick={() => router.push("/")}

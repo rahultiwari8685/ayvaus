@@ -174,14 +174,12 @@ io.on("connection", async (socket) => {
           continue;
         }
 
-        // remove from queue
         queue.splice(j, 1);
         queue.splice(i, 1);
 
         s1.partner = s2;
         s2.partner = s1;
 
-        // ✅ CREATE CONNECTION HERE
         try {
           const connection = await Connection.create({
             user1: s1.user._id,
@@ -201,7 +199,6 @@ io.on("connection", async (socket) => {
           console.log("❌ Connection error:", err.message);
         }
 
-        // emit match
         s1.emit("matched", { role: "caller" });
         s2.emit("matched", { role: "callee" });
 
@@ -279,7 +276,6 @@ io.on("connection", async (socket) => {
 
     socket.lastNextTime = now;
 
-    // ✅ STEP 1: UPDATE CONNECTION AS SKIPPED
     if (socket.connectionId) {
       try {
         const conn = await Connection.findById(socket.connectionId);
@@ -290,8 +286,6 @@ io.on("connection", async (socket) => {
           conn.status = "skipped";
 
           await conn.save();
-
-          // ✅ CLEAR CONNECTION (IMPORTANT FIX)
           socket.connectionId = null;
 
           if (socket.partner) {
@@ -305,7 +299,6 @@ io.on("connection", async (socket) => {
       }
     }
 
-    // ✅ STEP 2: NORMAL NEXT LOGIC
     if (socket.partner) {
       const oldPartner = socket.partner;
 
@@ -370,7 +363,6 @@ io.on("connection", async (socket) => {
 
       partner.emit("partner-left");
 
-      // ✅ ALSO CLOSE PARTNER CONNECTION
       if (partner.connectionId) {
         try {
           const conn = await Connection.findById(partner.connectionId);
@@ -420,7 +412,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     const userId = req.query.userId;
 
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setDate(yesterday.getDate());
 
     const start = new Date(yesterday.setHours(0, 0, 0, 0));
     const end = new Date(yesterday.setHours(23, 59, 59, 999));
@@ -448,7 +440,6 @@ app.get("/api/user/yesterday-history", async (req, res) => {
           duration: conn.duration,
           status: conn.status,
 
-          // ✅ formatted time (ADD HERE)
           startedAt: new Date(conn.startedAt).toLocaleString("en-IN", {
             timeZone: "Asia/Kolkata",
           }),

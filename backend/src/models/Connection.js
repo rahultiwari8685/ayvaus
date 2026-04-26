@@ -18,7 +18,6 @@ const connectionSchema = new mongoose.Schema({
   },
 });
 
-// ✅ add index (IMPORTANT)
 connectionSchema.index({ user1: 1, startedAt: -1 });
 connectionSchema.index({ user2: 1, startedAt: -1 });
 
