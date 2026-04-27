@@ -400,66 +400,32 @@ io.on("connection", async (socket) => {
 
   socket.on("reconnect-user", async ({ token, partnerId }) => {
     try {
+      if (!token) throw new Error("No token");
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // const userId = decoded.id;
       const userId = decoded.id || decoded._id;
 
-      console.log("🔍 DECODED:", decoded);
-      console.log("🔍 USER ID:", userId);
-      console.log("📦 seriousUsers:", [...seriousUsers.keys()]);
+      const user = await User.findById(userId);
+      if (!user) throw new Error("User not found");
 
       if (!seriousUsers.has(partnerId)) {
-        return socket.emit("reconnect-failed", "User is offline");
+        throw new Error("User is offline");
       }
 
       const partnerData = seriousUsers.get(partnerId);
       const partnerSocket = io.sockets.sockets.get(partnerData.socketId);
 
       if (!partnerSocket) {
-        return socket.emit("reconnect-failed", "User not available");
+        throw new Error("User not available");
       }
 
-      // 🚨 STEP 1: CLEAN OLD CONNECTION (VERY IMPORTANT)
-      if (socket.partner) {
-        socket.partner.emit("partner-left");
-        socket.partner.partner = null;
-      }
-
-      if (partnerSocket.partner) {
-        partnerSocket.partner.emit("partner-left");
-        partnerSocket.partner.partner = null;
-      }
-
-      // 🚨 STEP 2: CLOSE OLD DB CONNECTION
-      if (socket.connectionId) {
-        const conn = await Connection.findById(socket.connectionId);
-        if (conn && conn.status === "active") {
-          conn.endedAt = new Date();
-          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-          conn.status = "ended";
-          await conn.save();
-        }
-        socket.connectionId = null;
-      }
-
-      if (partnerSocket.connectionId) {
-        const conn = await Connection.findById(partnerSocket.connectionId);
-        if (conn && conn.status === "active") {
-          conn.endedAt = new Date();
-          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-          conn.status = "ended";
-          await conn.save();
-        }
-        partnerSocket.connectionId = null;
-      }
-
-      // 🔗 STEP 3: CONNECT NEW
+      // 🔗 connect
       socket.partner = partnerSocket;
       partnerSocket.partner = socket;
 
-      // 📌 STEP 4: CREATE NEW CONNECTION RECORD
+      // 📌 DB entry
       const connection = await Connection.create({
-        user1: socket.user._id,
+        user1: user._id, // ✅ fixed
         user2: partnerSocket.user._id,
         socket1: socket.id,
         socket2: partnerSocket.id,
@@ -471,7 +437,6 @@ io.on("connection", async (socket) => {
       socket.connectionId = connection._id;
       partnerSocket.connectionId = connection._id;
 
-      // 🔥 STEP 5: EMIT MATCHED (IMPORTANT)
       socket.emit("matched", { role: "caller" });
       partnerSocket.emit("matched", { role: "callee" });
 
