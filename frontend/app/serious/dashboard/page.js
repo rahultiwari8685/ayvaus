@@ -41,6 +41,56 @@ export default function SeriousDashboard() {
     router.push("/serious/match");
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+
+        // 1️⃣ Fetch history
+        const res = await fetch(
+          `https://api.flirtaus.com/api/user/yesterday-history?userId=${userId}`,
+        );
+
+        const historyData = await res.json();
+        setHistory(historyData || []);
+
+        // 2️⃣ Extract userIds
+        const userIds = historyData.map((item) => item.userId);
+
+        // 3️⃣ Fetch online status
+        const onlineRes = await fetch(
+          "https://api.flirtaus.com/api/user/online-status",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userIds }),
+          },
+        );
+
+        const onlineData = await onlineRes.json();
+        setOnlineMap(onlineData);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  function timeAgo(date) {
+    const now = new Date();
+    const past = new Date(date);
+    const diff = Math.floor((now - past) / 1000);
+
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+
+    return "Yesterday";
+  }
+
   // useEffect(() => {
   //   const fetchHistory = async () => {
   //     try {
@@ -104,7 +154,7 @@ export default function SeriousDashboard() {
           ) : (
             <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
               {history.slice(0, 6).map((item, index) => {
-                const isOnline = onlineMap[item.userId];
+                const isOnline = onlineMap[item.userId] || false;
                 return (
                   <div
                     key={index}
@@ -112,26 +162,36 @@ export default function SeriousDashboard() {
                   >
                     <div>
                       <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            isOnline ? "bg-green-400" : "bg-gray-500"
+                          }`}
+                        ></span>
+
+                        <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center text-xs font-bold">
+                          {item.name?.charAt(0)}
+                        </div>
+
                         <span className="font-medium">{item.name}</span>
                       </div>
 
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          isOnline ? "bg-green-400" : "bg-gray-500"
-                        }`}
-                      ></span>
-
                       <p className="text-xs text-gray-400">
-                        {isOnline ? "Online" : "Offline"}
+                        {isOnline ? "Online" : "Offline"} • {item.age} •{" "}
+                        {item.gender}
                       </p>
 
                       <p className="text-xs text-gray-500">
-                        {formatDuration(item.duration)}
+                        ⏱ {formatDuration(item.duration)}
+                      </p>
+
+                      <p className="text-xs mt-1">{getBadge(item.duration)}</p>
+                      <p className="text-xs text-gray-500">
+                        {timeAgo(item.startedAt)}
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <span
+                      {/* <span
                         className={`text-xs ${
                           item.status === "skipped"
                             ? "text-yellow-400"
@@ -139,11 +199,23 @@ export default function SeriousDashboard() {
                         }`}
                       >
                         {item.status}
+                      </span> */}
+
+                      <span
+                        className={`text-xs ${
+                          item.status === "skipped"
+                            ? "text-yellow-400"
+                            : item.status === "ended"
+                              ? "text-green-400"
+                              : "text-gray-400"
+                        }`}
+                      >
+                        {item.status}
                       </span>
 
                       <button
                         onClick={() => handleReconnect(item)}
-                        className="block mt-1 text-xs px-2 py-1 rounded bg-pink-500 hover:bg-pink-600"
+                        className="mt-2 text-xs px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 hover:bg-pink-500 hover:text-white transition"
                       >
                         Reconnect
                       </button>
