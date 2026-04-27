@@ -38,13 +38,10 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
-  // const handleReconnect = (user) => {
-  //   router.push("/serious/match");
-  // };
-
   const socket = io("https://api.flirtaus.com"); // adjust if needed
 
   const handleReconnect = (user) => {
+    console.log(user);
     const token = localStorage.getItem("token");
 
     socket.emit("reconnect-user", {
@@ -195,16 +192,6 @@ export default function SeriousDashboard() {
                     </div>
 
                     <div className="text-right">
-                      {/* <span
-                        className={`text-xs ${
-                          item.status === "skipped"
-                            ? "text-yellow-400"
-                            : "text-green-400"
-                        }`}
-                      >
-                        {item.status}
-                      </span> */}
-
                       <span
                         className={`text-xs ${
                           item.status === "skipped"
