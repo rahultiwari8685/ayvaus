@@ -1,5 +1,10 @@
 "use client";
+
 import { io } from "socket.io-client";
+
+const socket = io("https://api.flirtaus.com", {
+  transports: ["websocket"],
+});
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,11 +43,10 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
-  const socket = io("https://api.flirtaus.com");
-
   const handleReconnect = (user) => {
-    console.log(user);
     const token = localStorage.getItem("token");
+
+    console.log("🔥 RECONNECT CLICKED:", user.userId);
 
     socket.emit("reconnect-user", {
       token,
@@ -89,11 +93,16 @@ export default function SeriousDashboard() {
   }, []);
 
   useEffect(() => {
-    socket.on("reconnect-success", ({ roomId }) => {
-      router.push(`/serious/video?room=${roomId}`);
+    socket.connect(); // 🔥 ensure connected
+
+    socket.on("matched", () => {
+      console.log("🔥 RECONNECTED (matched event)");
+
+      router.push("/serious/match"); // no room needed
     });
 
     socket.on("reconnect-failed", (msg) => {
+      console.log("❌ RECONNECT FAILED:", msg);
       alert(msg);
     });
 
