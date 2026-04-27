@@ -164,6 +164,12 @@ export default function MatchPage() {
     const token = localStorage.getItem("token");
 
     if (!token) {
+      alert("Login required");
+      window.location.href = "/serious/login";
+      return;
+    }
+
+    if (!token) {
       console.log("❌ No token → redirect");
       window.location.href = "/serious/login";
       return;
@@ -203,7 +209,6 @@ export default function MatchPage() {
     socketRef.current.on("online-users", (count) => {
       console.log("👥 Online received:", count);
 
-      // ❗ prevent invalid overwrite
       if (typeof count === "number" && count >= 0) {
         setOnlineCount(count);
       }

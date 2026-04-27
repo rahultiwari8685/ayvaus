@@ -401,7 +401,12 @@ io.on("connection", async (socket) => {
   socket.on("reconnect-user", async ({ token, partnerId }) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.id;
+      // const userId = decoded.id;
+      const userId = decoded.id || decoded._id;
+
+      console.log("🔍 DECODED:", decoded);
+      console.log("🔍 USER ID:", userId);
+      console.log("📦 seriousUsers:", [...seriousUsers.keys()]);
 
       if (!seriousUsers.has(partnerId)) {
         return socket.emit("reconnect-failed", "User is offline");
@@ -472,8 +477,8 @@ io.on("connection", async (socket) => {
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
-      console.log(err);
-      socket.emit("reconnect-failed", "Reconnect failed");
+      console.log("❌ RECONNECT ERROR:", err.message);
+      socket.emit("reconnect-failed", err.message);
     }
   });
 
@@ -544,7 +549,7 @@ app.post("/api/user/online-status", (req, res) => {
   const result = {};
 
   userIds.forEach((id) => {
-    result[id] = seriousUsers.has(id);
+    result[id] = seriousUsers.has(id.toString());
   });
 
   res.json(result);
