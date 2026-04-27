@@ -45,6 +45,7 @@ export default function SeriousDashboard() {
 
   const handleReconnect = (user) => {
     const token = localStorage.getItem("token");
+    console.log(token);
 
     console.log("🔥 RECONNECT CLICKED:", user.userId);
 
@@ -93,12 +94,12 @@ export default function SeriousDashboard() {
   }, []);
 
   useEffect(() => {
-    socket.connect(); // 🔥 ensure connected
+    socket.connect();
 
     socket.on("matched", () => {
       console.log("🔥 RECONNECTED (matched event)");
 
-      router.push("/serious/match"); // no room needed
+      router.push("/serious/match");
     });
 
     socket.on("reconnect-failed", (msg) => {
