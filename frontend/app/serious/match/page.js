@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { v4 as uuid } from "uuid";
+import { useSearchParams } from "next/navigation";
 
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
@@ -16,6 +17,9 @@ function getOrCreateUserId() {
 }
 
 export default function SeriousChat() {
+  const params = useSearchParams();
+  const roomId = params.get("room");
+
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -184,7 +188,19 @@ export default function SeriousChat() {
         await initCamera();
         await createPeer();
 
-        socketRef.current.emit("join");
+        if (!roomId) {
+          socketRef.current.emit("join"); // only for normal flow
+        }
+
+        // if (roomId) {
+        //   console.log("🔁 Reconnect room:", roomId);
+
+        //   socketRef.current.emit("join-room", { roomId });
+        // } else {
+        //   socketRef.current.emit("join"); // normal flow
+        // }
+
+        // socketRef.current.emit("join");
 
         socketRef.current.emit("get-online-count");
 
@@ -193,6 +209,21 @@ export default function SeriousChat() {
         console.log("❌ Init error:", err);
       }
     });
+
+    // socketRef.current.on("room-joined", async ({ role, partner }) => {
+    //   setPartner(partner);
+
+    //   if (!pcRef.current) {
+    //     await createPeer();
+    //   }
+
+    //   roleRef.current = role;
+    //   setStatus("Reconnected");
+
+    //   if (role === "callee") {
+    //     socketRef.current.emit("ready");
+    //   }
+    // });
 
     socketRef.current.on("online-users", (count) => {
       console.log("👥 Online received:", count);
@@ -207,9 +238,9 @@ export default function SeriousChat() {
       console.log("✅ Connected:", socketRef.current.id);
     });
 
-    socket.on("partner-left", () => {
-      setPartner(null);
-    });
+    // socket.on("partner-left", () => {
+    //   setPartner(null);
+    // });
 
     socket.on("matched", async ({ role, partner }) => {
       setPartner(partner);
@@ -333,7 +364,13 @@ export default function SeriousChat() {
 
       setTimeout(async () => {
         await createPeer();
-        socketRef.current.emit("join");
+
+        // 🔥 ONLY JOIN IF NORMAL MODE
+        if (!roomId) {
+          socketRef.current.emit("join");
+        } else {
+          setStatus("Reconnect ended");
+        }
       }, 500);
     });
 

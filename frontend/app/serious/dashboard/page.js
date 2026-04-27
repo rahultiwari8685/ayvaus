@@ -1,4 +1,5 @@
 "use client";
+import { io } from "socket.io-client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -37,8 +38,19 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
+  // const handleReconnect = (user) => {
+  //   router.push("/serious/match");
+  // };
+
+  const socket = io("https://api.flirtaus.com"); // adjust if needed
+
   const handleReconnect = (user) => {
-    router.push("/serious/match");
+    const token = localStorage.getItem("token");
+
+    socket.emit("reconnect-user", {
+      token,
+      partnerId: user.userId,
+    });
   };
 
   useEffect(() => {
@@ -79,6 +91,21 @@ export default function SeriousDashboard() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    socket.on("reconnect-success", ({ roomId }) => {
+      router.push(`/serious/video?room=${roomId}`);
+    });
+
+    socket.on("reconnect-failed", (msg) => {
+      alert(msg);
+    });
+
+    return () => {
+      socket.off("reconnect-success");
+      socket.off("reconnect-failed");
+    };
+  }, []);
+
   function timeAgo(date) {
     const now = new Date();
     const past = new Date(date);
@@ -90,29 +117,6 @@ export default function SeriousDashboard() {
 
     return "Yesterday";
   }
-
-  // useEffect(() => {
-  //   const fetchHistory = async () => {
-  //     try {
-  //       const userId = localStorage.getItem("userId");
-
-  //       const res = await fetch(
-  //         `https://api.flirtaus.com/api/user/yesterday-history?userId=${userId}`,
-  //       );
-
-  //       const data = await res.json();
-  //       setHistory(data || []);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-
-  //   fetchHistory();
-  // }, []);
-
-  // function getOnlineStatus() {
-  //   return Math.random() > 0.5;
-  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-10">

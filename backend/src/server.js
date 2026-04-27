@@ -398,6 +398,85 @@ io.on("connection", async (socket) => {
     );
   });
 
+  socket.on("reconnect-user", async ({ token, partnerId }) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.id;
+
+      if (!seriousUsers.has(partnerId)) {
+        return socket.emit("reconnect-failed", "User is offline");
+      }
+
+      const partnerData = seriousUsers.get(partnerId);
+      const partnerSocket = io.sockets.sockets.get(partnerData.socketId);
+
+      if (!partnerSocket) {
+        return socket.emit("reconnect-failed", "User not available");
+      }
+
+      // 🚨 STEP 1: CLEAN OLD CONNECTION (VERY IMPORTANT)
+      if (socket.partner) {
+        socket.partner.emit("partner-left");
+        socket.partner.partner = null;
+      }
+
+      if (partnerSocket.partner) {
+        partnerSocket.partner.emit("partner-left");
+        partnerSocket.partner.partner = null;
+      }
+
+      // 🚨 STEP 2: CLOSE OLD DB CONNECTION
+      if (socket.connectionId) {
+        const conn = await Connection.findById(socket.connectionId);
+        if (conn && conn.status === "active") {
+          conn.endedAt = new Date();
+          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+          conn.status = "ended";
+          await conn.save();
+        }
+        socket.connectionId = null;
+      }
+
+      if (partnerSocket.connectionId) {
+        const conn = await Connection.findById(partnerSocket.connectionId);
+        if (conn && conn.status === "active") {
+          conn.endedAt = new Date();
+          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+          conn.status = "ended";
+          await conn.save();
+        }
+        partnerSocket.connectionId = null;
+      }
+
+      // 🔗 STEP 3: CONNECT NEW
+      socket.partner = partnerSocket;
+      partnerSocket.partner = socket;
+
+      // 📌 STEP 4: CREATE NEW CONNECTION RECORD
+      const connection = await Connection.create({
+        user1: socket.user._id,
+        user2: partnerSocket.user._id,
+        socket1: socket.id,
+        socket2: partnerSocket.id,
+        startedAt: new Date(),
+        status: "active",
+        mode: "serious",
+      });
+
+      socket.connectionId = connection._id;
+      partnerSocket.connectionId = connection._id;
+
+      // 🔥 STEP 5: EMIT MATCHED (IMPORTANT)
+      socket.emit("matched", { role: "caller" });
+      partnerSocket.emit("matched", { role: "callee" });
+
+      console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
+    } catch (err) {
+      console.log(err);
+      socket.emit("reconnect-failed", "Reconnect failed");
+    }
+  });
+
   setTimeout(() => {
     socket.emit(
       "online-users",
