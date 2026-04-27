@@ -38,7 +38,7 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
-  const socket = io("https://api.flirtaus.com"); // adjust if needed
+  const socket = io("https://api.flirtaus.com");
 
   const handleReconnect = (user) => {
     console.log(user);

@@ -492,7 +492,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
     const userId = req.query.userId;
 
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setDate(yesterday.getDate());
     const start = new Date(yesterday.setHours(0, 0, 0, 0));
     const end = new Date(yesterday.setHours(23, 59, 59, 999));
 
