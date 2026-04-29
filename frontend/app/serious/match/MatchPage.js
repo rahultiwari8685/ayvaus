@@ -220,13 +220,26 @@ export default function MatchPage() {
         //   socketRef.current.emit("join");
         // }
 
-        if (roomId === "reconnect") {
-          setStatus("Reconnected");
+        // if (roomId === "reconnect") {
+        //   setStatus("Reconnected");
 
-          // ✅ restart WebRTC negotiation
-          setTimeout(() => {
-            socketRef.current.emit("ready");
-          }, 1000);
+        //   // ✅ restart WebRTC negotiation
+        //   setTimeout(() => {
+        //     socketRef.current.emit("ready");
+        //   }, 1000);
+        // } else {
+        //   socketRef.current.emit("join");
+        // }
+
+        if (roomId === "reconnect") {
+          setStatus("Reconnecting...");
+
+          const partnerId = localStorage.getItem("reconnect_partner_id");
+
+          socketRef.current.emit("reconnect-user", {
+            token,
+            partnerId,
+          });
         } else {
           socketRef.current.emit("join");
         }

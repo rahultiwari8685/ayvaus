@@ -54,16 +54,22 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
+  // const handleReconnect = (user) => {
+  //   const token = localStorage.getItem("token");
+  //   console.log(token);
+
+  //   console.log("🔥 RECONNECT CLICKED:", user.userId);
+
+  //   socket.emit("reconnect-user", {
+  //     token,
+  //     partnerId: user.userId,
+  //   });
+  // };
+
   const handleReconnect = (user) => {
-    const token = localStorage.getItem("token");
-    console.log(token);
+    localStorage.setItem("reconnect_partner_id", user.userId);
 
-    console.log("🔥 RECONNECT CLICKED:", user.userId);
-
-    socket.emit("reconnect-user", {
-      token,
-      partnerId: user.userId,
-    });
+    router.push("/serious/match?room=reconnect");
   };
 
   useEffect(() => {
@@ -107,11 +113,11 @@ export default function SeriousDashboard() {
   useEffect(() => {
     socket.connect();
 
-    socket.on("matched", () => {
-      console.log("🔥 RECONNECTED (matched event)");
+    // socket.on("matched", () => {
+    //   console.log("🔥 RECONNECTED (matched event)");
 
-      router.push(`/serious/match?room=reconnect`);
-    });
+    //   router.push(`/serious/match?room=reconnect`);
+    // });
 
     socket.on("reconnect-failed", (msg) => {
       console.log("❌ RECONNECT FAILED:", msg);
