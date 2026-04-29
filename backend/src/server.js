@@ -341,42 +341,49 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
+    // ✅ prevent disconnect cleanup during reconnect
+    if (socket.reconnecting) {
+      console.log("🔁 Skipping disconnect cleanup during reconnect");
+      return;
+    }
+
     if (socket.mode === "serious" && socket.user?._id) {
       seriousUsers.delete(socket.user._id.toString());
 
-      emitSeriousUsers(); // ✅ AFTER delete
+      emitSeriousUsers();
 
       console.log("⚫ User offline:", socket.user._id.toString());
     } else {
       randomUsers.delete(socket.id);
     }
 
+    // ✅ end own connection
     if (socket.connectionId) {
-      const conn = await Connection.findById(socket.connectionId);
+      try {
+        const conn = await Connection.findById(socket.connectionId);
 
-      if (conn && conn.status === "active") {
-        conn.endedAt = new Date();
-        conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-        conn.status = "ended";
+        if (conn && conn.status === "active") {
+          conn.endedAt = new Date();
+          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
 
-        await conn.save();
+          conn.status = "ended";
 
-        // ✅ IMPORTANT FIX
-        socket.connectionId = null;
+          await conn.save();
 
-        if (socket.partner) {
-          socket.partner.connectionId = null;
+          console.log("🔚 Connection ended:", conn._id);
         }
+      } catch (err) {
+        console.log("❌ Disconnect error:", err.message);
+      }
 
-        console.log("🔚 Connection ended:", conn._id);
+      socket.connectionId = null;
+
+      if (socket.partner) {
+        socket.partner.connectionId = null;
       }
     }
 
-    // if (socket.partner) {
-    //   socket.partner.emit("partner-left");
-    //   socket.partner.partner = null;
-    // }
-
+    // ✅ cleanup partner
     if (socket.partner) {
       const partner = socket.partner;
 
@@ -388,7 +395,9 @@ io.on("connection", async (socket) => {
 
           if (conn && conn.status === "active") {
             conn.endedAt = new Date();
+
             conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+
             conn.status = "ended";
 
             await conn.save();
@@ -404,9 +413,14 @@ io.on("connection", async (socket) => {
       partner.partner = null;
     }
 
+    // ✅ remove from queue
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
     const idx = queue.indexOf(socket);
-    if (idx !== -1) queue.splice(idx, 1);
+
+    if (idx !== -1) {
+      queue.splice(idx, 1);
+    }
 
     console.log(
       "🔴 Disconnected:",
@@ -415,6 +429,82 @@ io.on("connection", async (socket) => {
       socket.user ? socket.user.name : "Anonymous",
     );
   });
+
+  // socket.on("disconnect", async () => {
+  //   if (socket.mode === "serious" && socket.user?._id) {
+  //     seriousUsers.delete(socket.user._id.toString());
+
+  //     emitSeriousUsers(); // ✅ AFTER delete
+
+  //     console.log("⚫ User offline:", socket.user._id.toString());
+  //   } else {
+  //     randomUsers.delete(socket.id);
+  //   }
+
+  //   if (socket.connectionId) {
+  //     const conn = await Connection.findById(socket.connectionId);
+
+  //     if (conn && conn.status === "active") {
+  //       conn.endedAt = new Date();
+  //       conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+  //       conn.status = "ended";
+
+  //       await conn.save();
+
+  //       // ✅ IMPORTANT FIX
+  //       socket.connectionId = null;
+
+  //       if (socket.partner) {
+  //         socket.partner.connectionId = null;
+  //       }
+
+  //       console.log("🔚 Connection ended:", conn._id);
+  //     }
+  //   }
+
+  //   // if (socket.partner) {
+  //   //   socket.partner.emit("partner-left");
+  //   //   socket.partner.partner = null;
+  //   // }
+
+  //   if (socket.partner) {
+  //     const partner = socket.partner;
+
+  //     partner.emit("partner-left");
+
+  //     if (partner.connectionId) {
+  //       try {
+  //         const conn = await Connection.findById(partner.connectionId);
+
+  //         if (conn && conn.status === "active") {
+  //           conn.endedAt = new Date();
+  //           conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+  //           conn.status = "ended";
+
+  //           await conn.save();
+
+  //           console.log("🔚 Partner connection ended:", conn._id);
+  //         }
+  //       } catch (err) {
+  //         console.log("❌ Partner error:", err.message);
+  //       }
+  //     }
+
+  //     partner.connectionId = null;
+  //     partner.partner = null;
+  //   }
+
+  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+  //   const idx = queue.indexOf(socket);
+  //   if (idx !== -1) queue.splice(idx, 1);
+
+  //   console.log(
+  //     "🔴 Disconnected:",
+  //     socket.id,
+  //     "| User:",
+  //     socket.user ? socket.user.name : "Anonymous",
+  //   );
+  // });
 
   socket.on("reconnect-user", async ({ token, partnerId }) => {
     try {
@@ -446,6 +536,9 @@ io.on("connection", async (socket) => {
       if (!partnerSocket.user?._id) {
         throw new Error("Partner user invalid");
       }
+
+      socket.reconnecting = true;
+      partnerSocket.reconnecting = true;
 
       socket.partner = partnerSocket;
       partnerSocket.partner = socket;

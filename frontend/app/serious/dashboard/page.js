@@ -118,8 +118,13 @@ export default function SeriousDashboard() {
       alert(msg);
     });
 
+    // return () => {
+    //   socket.off("reconnect-success");
+    //   socket.off("reconnect-failed");
+    // };
+
     return () => {
-      socket.off("reconnect-success");
+      socket.off("matched");
       socket.off("reconnect-failed");
     };
   }, []);

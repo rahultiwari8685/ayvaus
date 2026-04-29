@@ -187,6 +187,25 @@ export default function MatchPage() {
 
     const socket = socketRef.current;
 
+    // socketRef.current.on("connect", async () => {
+    //   console.log("✅ Connected to server");
+
+    //   try {
+    //     await initCamera();
+    //     await createPeer();
+
+    //     if (!roomId) {
+    //       socketRef.current.emit("join");
+    //     }
+
+    //     socketRef.current.emit("get-online-count");
+
+    //     console.log("🚀 Joined queue");
+    //   } catch (err) {
+    //     console.log("❌ Init error:", err);
+    //   }
+    // });
+
     socketRef.current.on("connect", async () => {
       console.log("✅ Connected to server");
 
@@ -194,7 +213,10 @@ export default function MatchPage() {
         await initCamera();
         await createPeer();
 
-        if (!roomId) {
+        // ✅ reconnect mode
+        if (roomId === "reconnect") {
+          setStatus("Reconnected");
+        } else {
           socketRef.current.emit("join");
         }
 
