@@ -214,8 +214,19 @@ export default function MatchPage() {
         await createPeer();
 
         // ✅ reconnect mode
+        // if (roomId === "reconnect") {
+        //   setStatus("Reconnected");
+        // } else {
+        //   socketRef.current.emit("join");
+        // }
+
         if (roomId === "reconnect") {
           setStatus("Reconnected");
+
+          // ✅ restart WebRTC negotiation
+          setTimeout(() => {
+            socketRef.current.emit("ready");
+          }, 1000);
         } else {
           socketRef.current.emit("join");
         }
@@ -236,9 +247,9 @@ export default function MatchPage() {
       }
     });
 
-    socketRef.current.on("connect", async () => {
-      console.log("✅ Connected:", socketRef.current.id);
-    });
+    // socketRef.current.on("connect", async () => {
+    //   console.log("✅ Connected:", socketRef.current.id);
+    // });
 
     socket.on("matched", async ({ role, partner }) => {
       setPartner(partner);
