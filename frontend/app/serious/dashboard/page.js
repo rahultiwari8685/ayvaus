@@ -2,8 +2,19 @@
 
 import { io } from "socket.io-client";
 
+// const socket = io("https://api.flirtaus.com", {
+//   transports: ["websocket"],
+// });
+
+const token =
+  typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
 const socket = io("https://api.flirtaus.com", {
   transports: ["websocket"],
+  auth: {
+    token,
+    mode: "serious",
+  },
 });
 
 import { useRouter } from "next/navigation";
@@ -99,7 +110,7 @@ export default function SeriousDashboard() {
     socket.on("matched", () => {
       console.log("🔥 RECONNECTED (matched event)");
 
-      router.push("/serious/match");
+      router.push(`/serious/match?room=reconnect`);
     });
 
     socket.on("reconnect-failed", (msg) => {

@@ -406,26 +406,34 @@ io.on("connection", async (socket) => {
       const userId = decoded.id || decoded._id;
 
       const user = await User.findById(userId);
-      if (!user) throw new Error("User not found");
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      socket.user = user;
 
       if (!seriousUsers.has(partnerId)) {
         throw new Error("User is offline");
       }
 
       const partnerData = seriousUsers.get(partnerId);
+
       const partnerSocket = io.sockets.sockets.get(partnerData.socketId);
 
       if (!partnerSocket) {
         throw new Error("User not available");
       }
 
-      // 🔗 connect
+      if (!partnerSocket.user?._id) {
+        throw new Error("Partner user invalid");
+      }
+
       socket.partner = partnerSocket;
       partnerSocket.partner = socket;
 
-      // 📌 DB entry
       const connection = await Connection.create({
-        user1: user._id, // ✅ fixed
+        user1: user._id,
         user2: partnerSocket.user._id,
         socket1: socket.id,
         socket2: partnerSocket.id,
