@@ -210,8 +210,26 @@ io.on("connection", async (socket) => {
           console.log("❌ Connection error:", err.message);
         }
 
-        s1.emit("matched", { role: "caller" });
-        s2.emit("matched", { role: "callee" });
+        s1.emit("matched", {
+          role: "caller",
+          partner: {
+            name: s2.user.name,
+            age: s2.user.age,
+            gender: s2.user.gender,
+          },
+        });
+
+        s2.emit("matched", {
+          role: "callee",
+          partner: {
+            name: s1.user.name,
+            age: s1.user.age,
+            gender: s1.user.gender,
+          },
+        });
+
+        // s1.emit("matched", { role: "caller" });
+        // s2.emit("matched", { role: "callee" });
 
         return tryMatch(mode);
       }
@@ -445,8 +463,26 @@ io.on("connection", async (socket) => {
       socket.connectionId = connection._id;
       partnerSocket.connectionId = connection._id;
 
-      socket.emit("matched", { role: "caller" });
-      partnerSocket.emit("matched", { role: "callee" });
+      // socket.emit("matched", { role: "caller" });
+      // partnerSocket.emit("matched", { role: "callee" });
+
+      socket.emit("matched", {
+        role: "caller",
+        partner: {
+          name: partnerSocket.user.name,
+          age: partnerSocket.user.age,
+          gender: partnerSocket.user.gender,
+        },
+      });
+
+      partnerSocket.emit("matched", {
+        role: "callee",
+        partner: {
+          name: socket.user.name,
+          age: socket.user.age,
+          gender: socket.user.gender,
+        },
+      });
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
@@ -482,15 +518,21 @@ app.get("/api/user/yesterday-history", async (req, res) => {
       .populate("user2", "name age gender")
       .sort({ startedAt: -1 });
 
-    const result = connections
-      .map((conn) => {
-        const isUser1 = conn.user1 && conn.user1._id.toString() === userId;
-        const partner = isUser1 ? conn.user2 : conn.user1;
+    const uniqueUsers = new Map();
 
-        if (!partner) return null;
+    connections.forEach((conn) => {
+      const isUser1 = conn.user1 && conn.user1._id.toString() === userId;
 
-        return {
-          userId: partner._id.toString(),
+      const partner = isUser1 ? conn.user2 : conn.user1;
+
+      if (!partner) return;
+
+      const partnerId = partner._id.toString();
+
+      // ✅ keep latest connection only
+      if (!uniqueUsers.has(partnerId)) {
+        uniqueUsers.set(partnerId, {
+          userId: partnerId,
           name: partner.name,
           age: partner.age,
           gender: partner.gender,
@@ -505,9 +547,11 @@ app.get("/api/user/yesterday-history", async (req, res) => {
                 timeZone: "Asia/Kolkata",
               })
             : null,
-        };
-      })
-      .filter(Boolean);
+        });
+      }
+    });
+
+    const result = Array.from(uniqueUsers.values());
 
     res.json(result);
   } catch (err) {
