@@ -393,18 +393,18 @@ export default function MatchPage() {
       alert("Please wait before skipping again.");
     });
 
-    socketRef.current.on("incoming-reconnect-request", (data) => {
-      const accept = confirm(`❤️ ${data.requesterName} wants to reconnect`);
+    // socketRef.current.on("incoming-reconnect-request", (data) => {
+    //   const accept = confirm(`❤️ ${data.requesterName} wants to reconnect`);
 
-      if (accept) {
-        socketRef.current.emit("accept-reconnect", {
-          requesterId: data.requesterId,
-        });
-      }
-    });
+    //   if (accept) {
+    //     socketRef.current.emit("accept-reconnect", {
+    //       requesterId: data.requesterId,
+    //     });
+    //   }
+    // });
 
     return () => {
-      mounted = false;
+      // mounted = false;
 
       pcRef.current?.close();
 
@@ -422,7 +422,7 @@ export default function MatchPage() {
       socketRef.current.off("message-seen");
       socketRef.current.off("partner-left");
       socketRef.current.off("next-blocked");
-      socketRef.current.off("incoming-reconnect-request");
+      // socketRef.current.off("incoming-reconnect-request");
     };
 
     // return () => {

@@ -330,7 +330,11 @@ io.on("connection", async (socket) => {
 
       if (!queue.includes(oldPartner)) {
         setTimeout(() => {
-          queue.push(oldPartner);
+          // queue.push(oldPartner);
+
+          if (!queue.includes(oldPartner) && !oldPartner.partner) {
+            queue.push(oldPartner);
+          }
 
           // clear block after some time
           setTimeout(() => {
@@ -346,7 +350,9 @@ io.on("connection", async (socket) => {
     socket.partner = null;
 
     setTimeout(() => {
-      queue.push(socket);
+      if (!queue.includes(socket) && !socket.partner) {
+        queue.push(socket);
+      }
 
       setTimeout(() => {
         socket.lastPartnerId = null;
@@ -354,6 +360,16 @@ io.on("connection", async (socket) => {
 
       tryMatch(socket.mode);
     }, 300);
+
+    // setTimeout(() => {
+    //   queue.push(socket);
+
+    //   setTimeout(() => {
+    //     socket.lastPartnerId = null;
+    //   }, 10000);
+
+    //   tryMatch(socket.mode);
+    // }, 300);
   });
 
   socket.on("disconnect", async () => {
