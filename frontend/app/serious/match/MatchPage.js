@@ -367,6 +367,12 @@ export default function MatchPage() {
       setUnreadCount(0);
       setPartner(null);
 
+      roleRef.current = null;
+
+      if (remoteVideo.current) {
+        remoteVideo.current.srcObject = null;
+      }
+
       if (pcRef.current) {
         pcRef.current.close();
         pcRef.current = null;
@@ -442,7 +448,10 @@ export default function MatchPage() {
     setMessages([]);
     setUnreadCount(0);
     setPartner(null);
-
+    roleRef.current = null;
+    if (remoteVideo.current) {
+      remoteVideo.current.srcObject = null;
+    }
     if (pcRef.current) {
       pcRef.current.ontrack = null;
       pcRef.current.onicecandidate = null;
