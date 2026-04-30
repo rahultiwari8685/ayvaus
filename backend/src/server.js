@@ -319,13 +319,24 @@ io.on("connection", async (socket) => {
     if (socket.partner) {
       const oldPartner = socket.partner;
 
+      // ✅ prevent immediate rematch
+      socket.lastPartnerId = oldPartner.id;
+      oldPartner.lastPartnerId = socket.id;
+
       oldPartner.partner = null;
       socket.partner = null;
 
       oldPartner.emit("partner-left");
 
       if (!queue.includes(oldPartner)) {
-        setTimeout(() => queue.push(oldPartner), 300);
+        setTimeout(() => {
+          queue.push(oldPartner);
+
+          // clear block after some time
+          setTimeout(() => {
+            oldPartner.lastPartnerId = null;
+          }, 10000);
+        }, 300);
       }
     }
 
@@ -336,6 +347,11 @@ io.on("connection", async (socket) => {
 
     setTimeout(() => {
       queue.push(socket);
+
+      setTimeout(() => {
+        socket.lastPartnerId = null;
+      }, 10000);
+
       tryMatch(socket.mode);
     }, 300);
   });
