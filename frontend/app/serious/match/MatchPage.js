@@ -187,7 +187,7 @@ export default function MatchPage() {
     //   },
     // });
 
-    const socket = socketRef.current;
+    // const socket = socketRef.current;
 
     socketRef.current.on("connect", async () => {
       console.log("✅ Connected to server");
@@ -227,7 +227,7 @@ export default function MatchPage() {
       }
     });
 
-    socket.on("matched", async ({ role, partner }) => {
+    socketRef.current.on("matched", async ({ role, partner }) => {
       setPartner(partner);
 
       if (!pcRef.current) {
@@ -395,7 +395,7 @@ export default function MatchPage() {
     //   streamRef.current?.getTracks().forEach((t) => t.stop());
     //   // socketRef.current?.disconnect();
     // };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     if (showChat) {

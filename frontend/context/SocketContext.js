@@ -1,24 +1,15 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { io } from "socket.io-client";
-import { useRouter } from "next/navigation";
 
 const SocketContext = createContext();
 
 export function SocketProvider({ children }) {
-  const router = useRouter();
-
   const [socket, setSocket] = useState(null);
 
-  const [reconnectRequest, setReconnectRequest] =
-    useState(null);
+  const [reconnectRequest, setReconnectRequest] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -35,22 +26,14 @@ export function SocketProvider({ children }) {
 
     setSocket(s);
 
-    // ✅ incoming reconnect popup
-    s.on(
-      "incoming-reconnect-request",
-      (data) => {
-        setReconnectRequest(data);
-      },
-    );
+    s.on("incoming-reconnect-request", (data) => {
+      setReconnectRequest(data);
+    });
 
-    // ✅ reconnect accepted
     s.on("reconnect-accepted", (data) => {
-      localStorage.setItem(
-        "reconnect_partner_id",
-        data.partnerId,
-      );
+      localStorage.setItem("reconnect_partner_id", data.partnerId);
 
-      router.push("/serious/match");
+      window.location.href = "/serious/match";
     });
 
     return () => {
@@ -61,19 +44,15 @@ export function SocketProvider({ children }) {
   const acceptReconnect = () => {
     if (!socket || !reconnectRequest) return;
 
-    localStorage.setItem(
-      "reconnect_partner_id",
-      reconnectRequest.requesterId,
-    );
+    localStorage.setItem("reconnect_partner_id", reconnectRequest.requesterId);
 
     socket.emit("accept-reconnect", {
-      requesterId:
-        reconnectRequest.requesterId,
+      requesterId: reconnectRequest.requesterId,
     });
 
     setReconnectRequest(null);
 
-    router.push("/serious/match");
+    window.location.href = "/serious/match";
   };
 
   const rejectReconnect = () => {
@@ -84,7 +63,6 @@ export function SocketProvider({ children }) {
     <SocketContext.Provider value={{ socket }}>
       {children}
 
-      {/* ✅ GLOBAL POPUP */}
       {reconnectRequest && (
         <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center">
           <div className="bg-zinc-900 p-6 rounded-2xl border border-white/10 w-[90%] max-w-sm text-center">
@@ -94,9 +72,7 @@ export function SocketProvider({ children }) {
 
             <p className="text-gray-300 mb-6">
               <span className="text-pink-400 font-semibold">
-                {
-                  reconnectRequest.requesterName
-                }
+                {reconnectRequest.requesterName}
               </span>{" "}
               wants to reconnect
             </p>
