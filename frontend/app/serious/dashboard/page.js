@@ -125,6 +125,10 @@ export default function SeriousDashboard() {
     //   router.push(`/serious/match?room=reconnect`);
     // });
 
+    socket.on("matched", () => {
+      router.push("/serious/match");
+    });
+
     socket.on("reconnect-failed", (msg) => {
       console.log("❌ RECONNECT FAILED:", msg);
       alert(msg);
