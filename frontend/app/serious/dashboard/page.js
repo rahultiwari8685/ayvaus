@@ -71,6 +71,8 @@ export default function SeriousDashboard() {
 
     // router.push("/serious/match?room=reconnect");
 
+    localStorage.setItem("reconnect_partner_id", user.userId);
+
     socket.emit("send-reconnect-request", {
       partnerId: user.userId,
     });
@@ -125,7 +127,7 @@ export default function SeriousDashboard() {
     //   router.push(`/serious/match?room=reconnect`);
     // });
 
-    socket.on("matched", () => {
+    socket.on("reconnect-accepted", () => {
       router.push("/serious/match");
     });
 

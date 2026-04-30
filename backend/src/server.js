@@ -639,39 +639,47 @@ io.on("connection", async (socket) => {
       }
 
       // ✅ link sockets
-      socket.partner = requesterSocket;
-      requesterSocket.partner = socket;
+      // socket.partner = requesterSocket;
+      // requesterSocket.partner = socket;
 
-      const connection = await Connection.create({
-        user1: requesterSocket.user._id,
-        user2: socket.user._id,
-        socket1: requesterSocket.id,
-        socket2: socket.id,
-        startedAt: new Date(),
-        status: "active",
-        mode: "serious",
-      });
+      // const connection = await Connection.create({
+      //   user1: requesterSocket.user._id,
+      //   user2: socket.user._id,
+      //   socket1: requesterSocket.id,
+      //   socket2: socket.id,
+      //   startedAt: new Date(),
+      //   status: "active",
+      //   mode: "serious",
+      // });
 
-      socket.connectionId = connection._id;
-      requesterSocket.connectionId = connection._id;
+      // socket.connectionId = connection._id;
+      // requesterSocket.connectionId = connection._id;
 
       // ✅ send matched event
-      requesterSocket.emit("matched", {
-        role: "caller",
-        partner: {
-          name: socket.user.name,
-          age: socket.user.age,
-          gender: socket.user.gender,
-        },
+      // requesterSocket.emit("matched", {
+      //   role: "caller",
+      //   partner: {
+      //     name: socket.user.name,
+      //     age: socket.user.age,
+      //     gender: socket.user.gender,
+      //   },
+      // });
+
+      // socket.emit("matched", {
+      //   role: "callee",
+      //   partner: {
+      //     name: requesterSocket.user.name,
+      //     age: requesterSocket.user.age,
+      //     gender: requesterSocket.user.gender,
+      //   },
+      // });
+
+      requesterSocket.emit("reconnect-accepted", {
+        partnerId: socket.user._id,
       });
 
-      socket.emit("matched", {
-        role: "callee",
-        partner: {
-          name: requesterSocket.user.name,
-          age: requesterSocket.user.age,
-          gender: requesterSocket.user.gender,
-        },
+      socket.emit("reconnect-accepted", {
+        partnerId: requesterSocket.user._id,
       });
 
       console.log(`🔁 Accepted reconnect ${requesterId} ↔ ${socket.user._id}`);

@@ -187,25 +187,6 @@ export default function MatchPage() {
 
     const socket = socketRef.current;
 
-    // socketRef.current.on("connect", async () => {
-    //   console.log("✅ Connected to server");
-
-    //   try {
-    //     await initCamera();
-    //     await createPeer();
-
-    //     if (!roomId) {
-    //       socketRef.current.emit("join");
-    //     }
-
-    //     socketRef.current.emit("get-online-count");
-
-    //     console.log("🚀 Joined queue");
-    //   } catch (err) {
-    //     console.log("❌ Init error:", err);
-    //   }
-    // });
-
     socketRef.current.on("connect", async () => {
       console.log("✅ Connected to server");
 
@@ -213,38 +194,20 @@ export default function MatchPage() {
         await initCamera();
         await createPeer();
 
-        // ✅ reconnect mode
-        // if (roomId === "reconnect") {
-        //   setStatus("Reconnected");
-        // } else {
-        //   socketRef.current.emit("join");
-        // }
+        const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
 
-        // if (roomId === "reconnect") {
-        //   setStatus("Reconnected");
+        if (reconnectPartnerId) {
+          socketRef.current.emit("reconnect-user", {
+            token,
+            partnerId: reconnectPartnerId,
+          });
 
-        //   // ✅ restart WebRTC negotiation
-        //   setTimeout(() => {
-        //     socketRef.current.emit("ready");
-        //   }, 1000);
-        // } else {
-        //   socketRef.current.emit("join");
-        // }
+          localStorage.removeItem("reconnect_partner_id");
+        } else {
+          socketRef.current.emit("join");
+        }
 
-        socketRef.current.emit("join");
-
-        // if (roomId === "reconnect") {
-        //   setStatus("Reconnecting...");
-
-        //   const partnerId = localStorage.getItem("reconnect_partner_id");
-
-        //   socketRef.current.emit("reconnect-user", {
-        //     token,
-        //     partnerId,
-        //   });
-        // } else {
-        //   socketRef.current.emit("join");
-        // }
+        // socketRef.current.emit("join");
 
         socketRef.current.emit("get-online-count");
 
@@ -261,10 +224,6 @@ export default function MatchPage() {
         setOnlineCount(count);
       }
     });
-
-    // socketRef.current.on("connect", async () => {
-    //   console.log("✅ Connected:", socketRef.current.id);
-    // });
 
     socket.on("matched", async ({ role, partner }) => {
       setPartner(partner);
@@ -389,13 +348,6 @@ export default function MatchPage() {
       setTimeout(async () => {
         await createPeer();
         socketRef.current.emit("join");
-
-        // 🔥 ONLY JOIN IF NORMAL MODE
-        // if (!roomId) {
-        //   socketRef.current.emit("join");
-        // } else {
-        //   setStatus("Reconnect ended");
-        // }
       }, 500);
     });
 
