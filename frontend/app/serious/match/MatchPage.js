@@ -157,7 +157,7 @@ export default function MatchPage() {
 
   useEffect(() => {
     if (!socket) return;
-    let mounted = true;
+    // let mounted = true;
 
     const token = localStorage.getItem("token");
 
@@ -167,13 +167,11 @@ export default function MatchPage() {
       return;
     }
 
-    if (!token) {
-      console.log("❌ No token → redirect");
-      window.location.href = "/serious/login";
-      return;
-    }
-
-    if (!socket) return;
+    // if (!token) {
+    //   console.log("❌ No token → redirect");
+    //   window.location.href = "/serious/login";
+    //   return;
+    // }
 
     socketRef.current = socket;
 
@@ -218,35 +216,35 @@ export default function MatchPage() {
 
     // const socket = socketRef.current;
 
-    socketRef.current.on("connect", async () => {
-      console.log("✅ Connected to server");
+    // socketRef.current.on("connect", async () => {
+    //   console.log("✅ Connected to server");
 
-      try {
-        await initCamera();
-        await createPeer();
+    //   try {
+    //     await initCamera();
+    //     await createPeer();
 
-        const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
+    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
 
-        if (reconnectPartnerId) {
-          socketRef.current.emit("reconnect-user", {
-            token,
-            partnerId: reconnectPartnerId,
-          });
+    //     if (reconnectPartnerId) {
+    //       socketRef.current.emit("reconnect-user", {
+    //         token,
+    //         partnerId: reconnectPartnerId,
+    //       });
 
-          localStorage.removeItem("reconnect_partner_id");
-        } else {
-          socketRef.current.emit("join");
-        }
+    //       localStorage.removeItem("reconnect_partner_id");
+    //     } else {
+    //       socketRef.current.emit("join");
+    //     }
 
-        // socketRef.current.emit("join");
+    //     // socketRef.current.emit("join");
 
-        socketRef.current.emit("get-online-count");
+    //     socketRef.current.emit("get-online-count");
 
-        console.log("🚀 Joined queue");
-      } catch (err) {
-        console.log("❌ Init error:", err);
-      }
-    });
+    //     console.log("🚀 Joined queue");
+    //   } catch (err) {
+    //     console.log("❌ Init error:", err);
+    //   }
+    // });
 
     socketRef.current.on("online-users", (count) => {
       console.log("👥 Online received:", count);
@@ -364,7 +362,10 @@ export default function MatchPage() {
 
     socketRef.current.on("partner-left", () => {
       setStatus("Looking for someone...");
+
       setMessages([]);
+      setUnreadCount(0);
+      setPartner(null);
 
       if (pcRef.current) {
         pcRef.current.close();
@@ -403,7 +404,7 @@ export default function MatchPage() {
 
       streamRef.current?.getTracks().forEach((t) => t.stop());
 
-      socketRef.current.off("connect");
+      // socketRef.current.off("connect");
       socketRef.current.off("online-users");
       socketRef.current.off("matched");
       socketRef.current.off("ready");
@@ -437,8 +438,9 @@ export default function MatchPage() {
   }, [showChat]);
 
   async function nextChat() {
-    setStatus("Skipping...");
+    setStatus("Looking for someone...");
     setMessages([]);
+    setUnreadCount(0);
     setPartner(null);
 
     if (pcRef.current) {
