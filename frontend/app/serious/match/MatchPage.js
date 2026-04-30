@@ -156,6 +156,7 @@ export default function MatchPage() {
   }
 
   useEffect(() => {
+    if (!socket) return;
     let mounted = true;
 
     const token = localStorage.getItem("token");
@@ -172,12 +173,9 @@ export default function MatchPage() {
       return;
     }
 
-    socketRef.current = socket;
+    if (!socket) return;
 
-    if (!socketRef.current) {
-      console.log("❌ Global socket not ready");
-      return;
-    }
+    socketRef.current = socket;
 
     // socketRef.current?.disconnect();
 
