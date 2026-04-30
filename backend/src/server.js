@@ -584,6 +584,104 @@ io.on("connection", async (socket) => {
     }
   });
 
+  socket.on("send-reconnect-request", async ({ partnerId }) => {
+    try {
+      if (!socket.user) {
+        throw new Error("User not found");
+      }
+
+      if (!seriousUsers.has(partnerId)) {
+        socket.emit("reconnect-failed", "User is offline");
+        return;
+      }
+
+      const partnerData = seriousUsers.get(partnerId);
+
+      const partnerSocket = io.sockets.sockets.get(partnerData.socketId);
+
+      if (!partnerSocket) {
+        socket.emit("reconnect-failed", "User unavailable");
+        return;
+      }
+
+      // ✅ send popup to partner
+      partnerSocket.emit("incoming-reconnect-request", {
+        requesterId: socket.user._id,
+        requesterName: socket.user.name,
+        requesterAge: socket.user.age,
+        requesterGender: socket.user.gender,
+      });
+
+      socket.emit("reconnect-request-sent", "Reconnect request sent");
+    } catch (err) {
+      console.log("Reconnect request error:", err.message);
+
+      socket.emit("reconnect-failed", err.message);
+    }
+  });
+
+  socket.on("accept-reconnect", async ({ requesterId }) => {
+    try {
+      if (!seriousUsers.has(requesterId)) {
+        socket.emit("reconnect-failed", "Requester offline");
+
+        return;
+      }
+
+      const requesterData = seriousUsers.get(requesterId);
+
+      const requesterSocket = io.sockets.sockets.get(requesterData.socketId);
+
+      if (!requesterSocket) {
+        socket.emit("reconnect-failed", "Requester unavailable");
+
+        return;
+      }
+
+      // ✅ link sockets
+      socket.partner = requesterSocket;
+      requesterSocket.partner = socket;
+
+      const connection = await Connection.create({
+        user1: requesterSocket.user._id,
+        user2: socket.user._id,
+        socket1: requesterSocket.id,
+        socket2: socket.id,
+        startedAt: new Date(),
+        status: "active",
+        mode: "serious",
+      });
+
+      socket.connectionId = connection._id;
+      requesterSocket.connectionId = connection._id;
+
+      // ✅ send matched event
+      requesterSocket.emit("matched", {
+        role: "caller",
+        partner: {
+          name: socket.user.name,
+          age: socket.user.age,
+          gender: socket.user.gender,
+        },
+      });
+
+      socket.emit("matched", {
+        role: "callee",
+        partner: {
+          name: requesterSocket.user.name,
+          age: requesterSocket.user.age,
+          gender: requesterSocket.user.gender,
+        },
+      });
+
+      console.log(`🔁 Accepted reconnect ${requesterId} ↔ ${socket.user._id}`);
+    } catch (err) {
+      console.log("Accept reconnect error:", err.message);
+
+      socket.emit("reconnect-failed", err.message);
+    }
+  });
+
   setTimeout(() => {
     socket.emit(
       "online-users",

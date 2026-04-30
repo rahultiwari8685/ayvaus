@@ -67,9 +67,15 @@ export default function SeriousDashboard() {
   // };
 
   const handleReconnect = (user) => {
-    localStorage.setItem("reconnect_partner_id", user.userId);
+    // localStorage.setItem("reconnect_partner_id", user.userId);
 
-    router.push("/serious/match?room=reconnect");
+    // router.push("/serious/match?room=reconnect");
+
+    socket.emit("send-reconnect-request", {
+      partnerId: user.userId,
+    });
+
+    alert("Reconnect request sent");
   };
 
   useEffect(() => {

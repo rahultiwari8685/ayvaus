@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { v4 as uuid } from "uuid";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
@@ -17,8 +17,8 @@ function getOrCreateUserId() {
 }
 
 export default function MatchPage() {
-  const params = useSearchParams();
-  const roomId = params.get("room");
+  // const params = useSearchParams();
+  // const roomId = params.get("room");
 
   const socketRef = useRef(null);
   const localVideo = useRef(null);
@@ -231,18 +231,20 @@ export default function MatchPage() {
         //   socketRef.current.emit("join");
         // }
 
-        if (roomId === "reconnect") {
-          setStatus("Reconnecting...");
+        socketRef.current.emit("join");
 
-          const partnerId = localStorage.getItem("reconnect_partner_id");
+        // if (roomId === "reconnect") {
+        //   setStatus("Reconnecting...");
 
-          socketRef.current.emit("reconnect-user", {
-            token,
-            partnerId,
-          });
-        } else {
-          socketRef.current.emit("join");
-        }
+        //   const partnerId = localStorage.getItem("reconnect_partner_id");
+
+        //   socketRef.current.emit("reconnect-user", {
+        //     token,
+        //     partnerId,
+        //   });
+        // } else {
+        //   socketRef.current.emit("join");
+        // }
 
         socketRef.current.emit("get-online-count");
 
@@ -386,18 +388,29 @@ export default function MatchPage() {
 
       setTimeout(async () => {
         await createPeer();
+        socketRef.current.emit("join");
 
         // 🔥 ONLY JOIN IF NORMAL MODE
-        if (!roomId) {
-          socketRef.current.emit("join");
-        } else {
-          setStatus("Reconnect ended");
-        }
+        // if (!roomId) {
+        //   socketRef.current.emit("join");
+        // } else {
+        //   setStatus("Reconnect ended");
+        // }
       }, 500);
     });
 
     socketRef.current.on("next-blocked", () => {
       alert("Please wait before skipping again.");
+    });
+
+    socketRef.current.on("incoming-reconnect-request", (data) => {
+      const accept = confirm(`❤️ ${data.requesterName} wants to reconnect`);
+
+      if (accept) {
+        socketRef.current.emit("accept-reconnect", {
+          requesterId: data.requesterId,
+        });
+      }
     });
 
     return () => {
