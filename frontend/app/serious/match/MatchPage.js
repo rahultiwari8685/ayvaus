@@ -177,6 +177,35 @@ export default function MatchPage() {
 
     socketRef.current = socket;
 
+    (async () => {
+      console.log("✅ MatchPage initialized");
+
+      try {
+        await initCamera();
+
+        await createPeer();
+
+        const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
+
+        if (reconnectPartnerId) {
+          socketRef.current.emit("reconnect-user", {
+            token,
+            partnerId: reconnectPartnerId,
+          });
+
+          localStorage.removeItem("reconnect_partner_id");
+        } else {
+          socketRef.current.emit("join");
+        }
+
+        socketRef.current.emit("get-online-count");
+
+        console.log("🚀 Joined queue");
+      } catch (err) {
+        console.log("❌ Init error:", err);
+      }
+    })();
+
     // socketRef.current?.disconnect();
 
     // socketRef.current = io("https://api.flirtaus.com", {
