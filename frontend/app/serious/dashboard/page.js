@@ -1,26 +1,23 @@
 "use client";
 
-import { io } from "socket.io-client";
+import { useSocket } from "@/context/SocketContext";
+
+// const token =
+//   typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
 // const socket = io("https://api.flirtaus.com", {
 //   transports: ["websocket"],
+//   auth: {
+//     token,
+//     mode: "serious",
+//   },
 // });
-
-const token =
-  typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-const socket = io("https://api.flirtaus.com", {
-  transports: ["websocket"],
-  auth: {
-    token,
-    mode: "serious",
-  },
-});
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function SeriousDashboard() {
+  const { socket } = useSocket();
   const router = useRouter();
   const [history, setHistory] = useState([]);
 
@@ -54,23 +51,7 @@ export default function SeriousDashboard() {
     return "🟡 Normal";
   }
 
-  // const handleReconnect = (user) => {
-  //   const token = localStorage.getItem("token");
-  //   console.log(token);
-
-  //   console.log("🔥 RECONNECT CLICKED:", user.userId);
-
-  //   socket.emit("reconnect-user", {
-  //     token,
-  //     partnerId: user.userId,
-  //   });
-  // };
-
   const handleReconnect = (user) => {
-    // localStorage.setItem("reconnect_partner_id", user.userId);
-
-    // router.push("/serious/match?room=reconnect");
-
     localStorage.setItem("reconnect_partner_id", user.userId);
 
     socket.emit("send-reconnect-request", {
@@ -119,13 +100,8 @@ export default function SeriousDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!socket) return;
     socket.connect();
-
-    // socket.on("matched", () => {
-    //   console.log("🔥 RECONNECTED (matched event)");
-
-    //   router.push(`/serious/match?room=reconnect`);
-    // });
 
     socket.on("reconnect-accepted", () => {
       router.push("/serious/match");
@@ -136,16 +112,11 @@ export default function SeriousDashboard() {
       alert(msg);
     });
 
-    // return () => {
-    //   socket.off("reconnect-success");
-    //   socket.off("reconnect-failed");
-    // };
-
     return () => {
-      socket.off("matched");
+      socket.off("reconnect-accepted");
       socket.off("reconnect-failed");
     };
-  }, []);
+  }, [socket, router]);
 
   function timeAgo(date) {
     const now = new Date();

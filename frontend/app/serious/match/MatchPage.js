@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
 import { v4 as uuid } from "uuid";
-// import { useSearchParams } from "next/navigation";
+import { useSocket } from "@/context/SocketContext";
 
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
@@ -17,9 +16,7 @@ function getOrCreateUserId() {
 }
 
 export default function MatchPage() {
-  // const params = useSearchParams();
-  // const roomId = params.get("room");
-
+  const { socket } = useSocket();
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -175,15 +172,22 @@ export default function MatchPage() {
       return;
     }
 
-    socketRef.current?.disconnect();
+    socketRef.current = socket;
 
-    socketRef.current = io("https://api.flirtaus.com", {
-      transports: ["websocket"],
-      auth: {
-        token,
-        mode: "serious",
-      },
-    });
+    if (!socketRef.current) {
+      console.log("❌ Global socket not ready");
+      return;
+    }
+
+    // socketRef.current?.disconnect();
+
+    // socketRef.current = io("https://api.flirtaus.com", {
+    //   transports: ["websocket"],
+    //   auth: {
+    //     token,
+    //     mode: "serious",
+    //   },
+    // });
 
     const socket = socketRef.current;
 
@@ -367,10 +371,32 @@ export default function MatchPage() {
 
     return () => {
       mounted = false;
+
       pcRef.current?.close();
+
       streamRef.current?.getTracks().forEach((t) => t.stop());
-      socketRef.current?.disconnect();
+
+      socketRef.current.off("connect");
+      socketRef.current.off("online-users");
+      socketRef.current.off("matched");
+      socketRef.current.off("ready");
+      socketRef.current.off("signal");
+      socketRef.current.off("chat-message");
+      socketRef.current.off("edit-message");
+      socketRef.current.off("message-delivered");
+      socketRef.current.off("typing");
+      socketRef.current.off("message-seen");
+      socketRef.current.off("partner-left");
+      socketRef.current.off("next-blocked");
+      socketRef.current.off("incoming-reconnect-request");
     };
+
+    // return () => {
+    //   mounted = false;
+    //   pcRef.current?.close();
+    //   streamRef.current?.getTracks().forEach((t) => t.stop());
+    //   // socketRef.current?.disconnect();
+    // };
   }, []);
 
   useEffect(() => {
@@ -528,8 +554,11 @@ export default function MatchPage() {
 
   function exitChat() {
     pcRef.current?.close();
+
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    socketRef.current.disconnect();
+
+    socketRef.current.emit("next");
+
     window.location.href = "/";
   }
 

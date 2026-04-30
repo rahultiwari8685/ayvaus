@@ -430,82 +430,6 @@ io.on("connection", async (socket) => {
     );
   });
 
-  // socket.on("disconnect", async () => {
-  //   if (socket.mode === "serious" && socket.user?._id) {
-  //     seriousUsers.delete(socket.user._id.toString());
-
-  //     emitSeriousUsers(); // ✅ AFTER delete
-
-  //     console.log("⚫ User offline:", socket.user._id.toString());
-  //   } else {
-  //     randomUsers.delete(socket.id);
-  //   }
-
-  //   if (socket.connectionId) {
-  //     const conn = await Connection.findById(socket.connectionId);
-
-  //     if (conn && conn.status === "active") {
-  //       conn.endedAt = new Date();
-  //       conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-  //       conn.status = "ended";
-
-  //       await conn.save();
-
-  //       // ✅ IMPORTANT FIX
-  //       socket.connectionId = null;
-
-  //       if (socket.partner) {
-  //         socket.partner.connectionId = null;
-  //       }
-
-  //       console.log("🔚 Connection ended:", conn._id);
-  //     }
-  //   }
-
-  //   // if (socket.partner) {
-  //   //   socket.partner.emit("partner-left");
-  //   //   socket.partner.partner = null;
-  //   // }
-
-  //   if (socket.partner) {
-  //     const partner = socket.partner;
-
-  //     partner.emit("partner-left");
-
-  //     if (partner.connectionId) {
-  //       try {
-  //         const conn = await Connection.findById(partner.connectionId);
-
-  //         if (conn && conn.status === "active") {
-  //           conn.endedAt = new Date();
-  //           conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-  //           conn.status = "ended";
-
-  //           await conn.save();
-
-  //           console.log("🔚 Partner connection ended:", conn._id);
-  //         }
-  //       } catch (err) {
-  //         console.log("❌ Partner error:", err.message);
-  //       }
-  //     }
-
-  //     partner.connectionId = null;
-  //     partner.partner = null;
-  //   }
-
-  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
-  //   const idx = queue.indexOf(socket);
-  //   if (idx !== -1) queue.splice(idx, 1);
-
-  //   console.log(
-  //     "🔴 Disconnected:",
-  //     socket.id,
-  //     "| User:",
-  //     socket.user ? socket.user.name : "Anonymous",
-  //   );
-  // });
-
   socket.on("reconnect-user", async ({ token, partnerId }) => {
     try {
       if (!token) throw new Error("No token");
@@ -637,42 +561,6 @@ io.on("connection", async (socket) => {
 
         return;
       }
-
-      // ✅ link sockets
-      // socket.partner = requesterSocket;
-      // requesterSocket.partner = socket;
-
-      // const connection = await Connection.create({
-      //   user1: requesterSocket.user._id,
-      //   user2: socket.user._id,
-      //   socket1: requesterSocket.id,
-      //   socket2: socket.id,
-      //   startedAt: new Date(),
-      //   status: "active",
-      //   mode: "serious",
-      // });
-
-      // socket.connectionId = connection._id;
-      // requesterSocket.connectionId = connection._id;
-
-      // ✅ send matched event
-      // requesterSocket.emit("matched", {
-      //   role: "caller",
-      //   partner: {
-      //     name: socket.user.name,
-      //     age: socket.user.age,
-      //     gender: socket.user.gender,
-      //   },
-      // });
-
-      // socket.emit("matched", {
-      //   role: "callee",
-      //   partner: {
-      //     name: requesterSocket.user.name,
-      //     age: requesterSocket.user.age,
-      //     gender: requesterSocket.user.gender,
-      //   },
-      // });
 
       requesterSocket.emit("reconnect-accepted", {
         partnerId: socket.user._id,
