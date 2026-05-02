@@ -141,15 +141,15 @@ export default function SeriousDashboard() {
       </nav>
 
       {/* Hero */}
-      <section className="relative z-10 px-6 md:px-12 py-14 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-6">
+      <section className="relative z-10 px-3 md:px-12 py-4 max-w-7xl mx-auto">
+        <div className="text-center mb-2">
+          {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-6">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
 
-            {/* <span className="text-sm text-zinc-300">
+            <span className="text-sm text-zinc-300">
               Building meaningful connections
-            </span> */}
-          </div>
+            </span>
+          </div> */}
 
           <h1 className="text-4xl md:text-4xl font-black leading-tight tracking-tight">
             Your
