@@ -146,12 +146,12 @@ export default function SeriousDashboard() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-6">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
 
-            <span className="text-sm text-zinc-300">
+            {/* <span className="text-sm text-zinc-300">
               Building meaningful connections
-            </span>
+            </span> */}
           </div>
 
-          <h1 className="text-2xl md:text-2xl font-black leading-tight tracking-tight">
+          <h1 className="text-4xl md:text-4xl font-black leading-tight tracking-tight">
             Your
             <br />
             <span className="bg-gradient-to-r from-pink-500 via-rose-400 to-purple-400 bg-clip-text text-transparent">
@@ -166,7 +166,7 @@ export default function SeriousDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-5 mb-12">
+        {/* <div className="grid md:grid-cols-3 gap-5 mb-12">
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
             <p className="text-zinc-400 text-sm">Connections</p>
 
@@ -196,10 +196,10 @@ export default function SeriousDashboard() {
 
             <p className="text-zinc-500 text-sm mt-2">Great conversations</p>
           </div>
-        </div>
+        </div> */}
 
         {/* Main Layout */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-2">
           {/* Start Matching */}
           <div
             onClick={() => router.push("/serious/match")}
