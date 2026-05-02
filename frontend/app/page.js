@@ -23,7 +23,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 px-6 md:px-12 py-2 md:py-2 max-w-2xl mx-auto">
+      <section className="relative z-10 px-6 md:px-12 py-16 md:py-2 max-w-2xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left */}
           <div>
