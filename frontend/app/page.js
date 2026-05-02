@@ -92,7 +92,7 @@ export default function HomePage() {
               <div className="relative z-10 flex items-start justify-between">
                 <div>
                   {/* <div className="text-5xl mb-5">🎉</div> */}
-                  <div className="flex items-center justify-between gap-10 flex-wrap mb-5">
+                  <div className="flex items-center justify-between gap-16 flex-wrap mb-5">
                     <h3 className="text-3xl font-bold">🎉 Fun Mode</h3>
 
                     <a
@@ -120,10 +120,14 @@ export default function HomePage() {
                       <span>No signup needed</span>
                     </div> */}
 
-                    <div className="flex items-center gap-2">
+                    <div className="pt-2 text-pink-400 font-semibold">
+                      Join Fun Mode if you are looking for Just fun
+                    </div>
+
+                    {/* <div className="flex items-center gap-2">
                       <span>✅</span>
                       <span>Start chatting instantly</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
