@@ -71,7 +71,7 @@ export default function HomePage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mt-14 max-w-xl">
               <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5">
-                <h3 className="text-3xl font-bold text-pink-400">1M+</h3>
+                <h3 className="text-3xl font-bold text-pink-400">1k+</h3>
                 <p className="text-sm text-zinc-400 mt-1">Users</p>
               </div>
 
@@ -99,10 +99,27 @@ export default function HomePage() {
 
                   <h3 className="text-3xl font-bold">Fun Mode</h3>
 
-                  <p className="mt-3 text-zinc-300 leading-relaxed max-w-md">
-                    Jump into instant random conversations with people around
-                    the globe. No signup required.
-                  </p>
+                  <div className="mt-5 space-y-2 text-sm text-zinc-300">
+                    <div className="flex items-center gap-2">
+                      <span>✅</span>
+                      <span>No mobile number required</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>✅</span>
+                      <span>No email required</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>✅</span>
+                      <span>No signup needed</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>✅</span>
+                      <span>Start chatting instantly</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="text-yellow-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
@@ -121,10 +138,27 @@ export default function HomePage() {
 
                   <h3 className="text-3xl font-bold">Serious Mode</h3>
 
-                  <p className="mt-3 text-zinc-300 leading-relaxed max-w-md">
-                    Build deeper and meaningful connections with verified
-                    profiles and smart matching.
-                  </p>
+                  <div className="mt-5 space-y-2 text-sm text-zinc-300">
+                    <div className="flex items-center gap-2">
+                      <span>❤️</span>
+                      <span>Meaningful connections</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>🛡️</span>
+                      <span>Verified profiles only</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>🎯</span>
+                      <span>Smart matching system</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>🔄</span>
+                      <span>Reconnect anytime</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="text-pink-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
