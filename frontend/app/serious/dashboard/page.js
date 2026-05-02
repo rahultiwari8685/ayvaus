@@ -151,7 +151,7 @@ export default function SeriousDashboard() {
             </span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tight">
+          <h1 className="text-2xl md:text-2xl font-black leading-tight tracking-tight">
             Your
             <br />
             <span className="bg-gradient-to-r from-pink-500 via-rose-400 to-purple-400 bg-clip-text text-transparent">
