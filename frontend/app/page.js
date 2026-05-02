@@ -31,10 +31,10 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-4xl md:text-4xl font-black leading-[1.05] tracking-tight">
-              Video Chat
+              Random Video
               <br />
               <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                Reimagined.
+                Chat.
               </span>
             </h2>
 
@@ -92,7 +92,7 @@ export default function HomePage() {
               <div className="relative z-10 flex items-start justify-between">
                 <div>
                   {/* <div className="text-5xl mb-5">🎉</div> */}
-                  <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+                  <div className="flex items-center justify-between gap-6 flex-wrap mb-5">
                     <h3 className="text-3xl font-bold">🎉 Fun Mode</h3>
 
                     <a
@@ -141,7 +141,7 @@ export default function HomePage() {
                 <div>
                   {/* <div className="text-5xl mb-5"></div> */}
 
-                  <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+                  <div className="flex items-center justify-between gap-6 flex-wrap mb-5">
                     <h3 className="text-3xl font-bold">❤️ Serious Mode</h3>
 
                     <a
