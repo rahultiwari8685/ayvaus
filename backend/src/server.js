@@ -214,14 +214,42 @@ io.on("connection", async (socket) => {
           console.log("❌ Connection error:", err.message);
         }
 
-        s1.emit("matched", {
-          role: "caller",
-          partner: {
-            name: s2.user.name,
-            age: s2.user.age,
-            gender: s2.user.gender,
-          },
-        });
+        // s1.emit("matched", {
+        //   role: "caller",
+        //   partner: {
+        //     name: s2.user.name,
+        //     age: s2.user.age,
+        //     gender: s2.user.gender,
+        //   },
+        // });
+
+        if (mode === "serious") {
+          s1.emit("matched", {
+            role: "caller",
+            partner: {
+              name: s2.user.name,
+              age: s2.user.age,
+              gender: s2.user.gender,
+            },
+          });
+
+          s2.emit("matched", {
+            role: "callee",
+            partner: {
+              name: s1.user.name,
+              age: s1.user.age,
+              gender: s1.user.gender,
+            },
+          });
+        } else {
+          s1.emit("matched", {
+            role: "caller",
+          });
+
+          s2.emit("matched", {
+            role: "callee",
+          });
+        }
 
         s2.emit("matched", {
           role: "callee",
