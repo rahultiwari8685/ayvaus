@@ -92,15 +92,18 @@ export default function HomePage() {
               <div className="relative z-10 flex items-start justify-between">
                 <div>
                   {/* <div className="text-5xl mb-5">🎉</div> */}
-                  <h3 className="text-3xl font-bold">🎉Fun Mode</h3>{" "}
-                  <a
-                    href="/video"
-                    className="group relative overflow-hidden px-8 py-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      🎉 Start Fun Mode
-                    </span>
-                  </a>
+                  <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+                    <h3 className="text-3xl font-bold">🎉 Fun Mode</h3>
+
+                    <a
+                      href="/video"
+                      className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Start Fun Mode →
+                      </span>
+                    </a>
+                  </div>
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
                       <span>✅</span>
@@ -138,15 +141,18 @@ export default function HomePage() {
                 <div>
                   {/* <div className="text-5xl mb-5"></div> */}
 
-                  <h3 className="text-3xl font-bold">❤️Serious Mode</h3>
-                  <a
-                    href="/serious/dashboard"
-                    className="group relative overflow-hidden px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      ❤️ Serious Mode
-                    </span>
-                  </a>
+                  <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+                    <h3 className="text-3xl font-bold">❤️ Serious Mode</h3>
+
+                    <a
+                      href="/serious/dashboard"
+                      className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Enter Serious Mode →
+                      </span>
+                    </a>
+                  </div>
 
                   <div className="mt-5 space-y-3 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
