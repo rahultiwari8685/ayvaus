@@ -149,7 +149,7 @@ export default function HomePage() {
                     <h3 className="text-3xl font-bold">❤️ Serious Mode</h3>
 
                     <a
-                      href="/serious/dashboard"
+                      href="/serious/register"
                       className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
                     >
                       <span className="relative z-10 flex items-center gap-2">
