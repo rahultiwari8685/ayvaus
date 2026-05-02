@@ -195,24 +195,45 @@ io.on("connection", async (socket) => {
         s1.partner = s2;
         s2.partner = s1;
 
-        try {
-          const connection = await Connection.create({
-            user1: s1.user._id,
-            user2: s2.user._id,
-            socket1: s1.id,
-            socket2: s2.id,
-            startedAt: new Date(),
-            status: "active",
-            mode: "serious",
-          });
+        if (mode === "serious") {
+          try {
+            const connection = await Connection.create({
+              user1: s1.user._id,
+              user2: s2.user._id,
+              socket1: s1.id,
+              socket2: s2.id,
+              startedAt: new Date(),
+              status: "active",
+              mode: "serious",
+            });
 
-          s1.connectionId = connection._id;
-          s2.connectionId = connection._id;
+            s1.connectionId = connection._id;
+            s2.connectionId = connection._id;
 
-          console.log("📌 Connection created:", connection._id);
-        } catch (err) {
-          console.log("❌ Connection error:", err.message);
+            console.log("📌 Connection created:", connection._id);
+          } catch (err) {
+            console.log("❌ Connection error:", err.message);
+          }
         }
+
+        // try {
+        //   const connection = await Connection.create({
+        //     user1: s1.user._id,
+        //     user2: s2.user._id,
+        //     socket1: s1.id,
+        //     socket2: s2.id,
+        //     startedAt: new Date(),
+        //     status: "active",
+        //     mode: "serious",
+        //   });
+
+        //   s1.connectionId = connection._id;
+        //   s2.connectionId = connection._id;
+
+        //   console.log("📌 Connection created:", connection._id);
+        // } catch (err) {
+        //   console.log("❌ Connection error:", err.message);
+        // }
 
         // s1.emit("matched", {
         //   role: "caller",
@@ -251,14 +272,19 @@ io.on("connection", async (socket) => {
           });
         }
 
-        s2.emit("matched", {
-          role: "callee",
-          partner: {
-            name: s1.user.name,
-            age: s1.user.age,
-            gender: s1.user.gender,
-          },
-        });
+        setTimeout(() => {
+          s1.emit("ready");
+          s2.emit("ready");
+        }, 300);
+
+        // s2.emit("matched", {
+        //   role: "callee",
+        //   partner: {
+        //     name: s1.user.name,
+        //     age: s1.user.age,
+        //     gender: s1.user.gender,
+        //   },
+        // });
 
         // s1.emit("matched", { role: "caller" });
         // s2.emit("matched", { role: "callee" });

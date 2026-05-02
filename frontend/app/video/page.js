@@ -192,9 +192,9 @@ export default function VideoChat() {
       roleRef.current = role;
       setStatus("Connecting...");
 
-      if (role === "callee") {
-        socketRef.current.emit("ready");
-      }
+      // if (role === "callee") {
+      //   socketRef.current.emit("ready");
+      // }
     });
 
     socketRef.current.on("ready", async () => {
@@ -203,7 +203,10 @@ export default function VideoChat() {
 
       const offer = await pcRef.current.createOffer();
       await pcRef.current.setLocalDescription(offer);
-      socketRef.current.emit("signal", { offer });
+      // socketRef.current.emit("signal", { offer });
+      socketRef.current.emit("signal", {
+        sdp: pcRef.current.localDescription,
+      });
     });
 
     socketRef.current.on("signal", async (data) => {
@@ -211,9 +214,10 @@ export default function VideoChat() {
 
       try {
         // OFFER RECEIVED
-        if (data.offer) {
+
+        if (data.sdp?.type === "offer") {
           await pcRef.current.setRemoteDescription(
-            new RTCSessionDescription(data.offer),
+            new RTCSessionDescription(data.sdp),
           );
 
           // Flush queued ICE
@@ -224,13 +228,17 @@ export default function VideoChat() {
           const answer = await pcRef.current.createAnswer();
           await pcRef.current.setLocalDescription(answer);
 
-          socketRef.current.emit("signal", { answer });
+          // socketRef.current.emit("signal", { answer });
+          socketRef.current.emit("signal", {
+            sdp: pcRef.current.localDescription,
+          });
         }
 
         // ANSWER RECEIVED
-        if (data.answer) {
+        if (data.sdp?.type === "answer") {
           await pcRef.current.setRemoteDescription(
-            new RTCSessionDescription(data.answer),
+            // new RTCSessionDescription(data.answer),
+            new RTCSessionDescription(data.sdp),
           );
 
           // Flush queued ICE
@@ -338,7 +346,7 @@ export default function VideoChat() {
   }, [showChat]);
 
   async function nextChat() {
-    setStatus("Skipping...");
+    setStatus("Looking for someone...");
     setMessages([]);
 
     if (pcRef.current) {
