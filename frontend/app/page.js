@@ -87,13 +87,13 @@ export default function HomePage() {
           <div className="grid gap-6">
             {/* Fun Mode */}
             <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-yellow-500/15 to-orange-500/10 p-8 backdrop-blur-xl hover:scale-[1.02] transition-all duration-300">
-              <div className="absolute top-0 right-0 w-40 h-30 bg-yellow-400/20 blur-3xl rounded-full" />
+              <div className="absolute top-0 right-0 w-40 h-20 bg-yellow-400/20 blur-3xl rounded-full" />
 
               <div className="relative z-10 flex items-start justify-between">
                 <div>
-                  <div className="text-5xl mb-5">🎉</div>
+                  {/* <div className="text-5xl mb-5">🎉</div> */}
 
-                  <h3 className="text-3xl font-bold">Fun Mode</h3>
+                  <h3 className="text-3xl font-bold">🎉Fun Mode</h3>
 
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
@@ -130,24 +130,28 @@ export default function HomePage() {
 
               <div className="relative z-10 flex items-start justify-between">
                 <div>
-                  <div className="text-5xl mb-5">❤️</div>
+                  {/* <div className="text-5xl mb-5"></div> */}
 
-                  <h3 className="text-3xl font-bold">Serious Mode</h3>
+                  <h3 className="text-3xl font-bold">❤️Serious Mode</h3>
 
-                  <div className="mt-5 space-y-2 text-sm text-zinc-300">
+                  <div className="mt-5 space-y-3 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
                       <span>🔐</span>
-                      <span>Signup required for verified matching</span>
+                      <span>Signup required for safe & verified matching</span>
+                    </div>
+
+                    <div className="pt-2 text-pink-400 font-semibold">
+                      Join Serious Mode if you are looking for:
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span>IF You Looking For:</span>
-                      <span> serious relationships</span>
+                      <span>❤️</span>
+                      <span>Serious relationships</span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span>💘</span>
-                      <span>Perfect for real dating</span>
+                      <span>Real dating experiences</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -157,7 +161,7 @@ export default function HomePage() {
 
                     <div className="flex items-center gap-2">
                       <span>🤝</span>
-                      <span>Build genuine friendships</span>
+                      <span>Genuine friendships</span>
                     </div>
                   </div>
                 </div>
