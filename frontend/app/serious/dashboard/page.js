@@ -143,7 +143,7 @@ export default function SeriousDashboard() {
       <div className="max-w-3xl mx-auto mb-8 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
         <h2 className="text-lg font-semibold">
           You talked with <span className="text-pink-500">{totalUsers}</span>{" "}
-          users yesterday
+          users in the last 24 hours
         </h2>
         <p className="text-gray-400 text-sm">
           Total time: {formatTotalTime(totalTime)}
