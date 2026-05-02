@@ -624,14 +624,16 @@ app.get("/api/user/yesterday-history", async (req, res) => {
   try {
     const userId = req.query.userId;
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate());
-    const start = new Date(yesterday.setHours(0, 0, 0, 0));
-    const end = new Date(yesterday.setHours(23, 59, 59, 999));
+    const now = new Date();
+
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const connections = await Connection.find({
       $or: [{ user1: userId }, { user2: userId }],
-      startedAt: { $gte: start, $lte: end },
+      startedAt: {
+        $gte: last24Hours,
+        $lte: now,
+      },
     })
       .populate("user1", "name age gender")
       .populate("user2", "name age gender")
@@ -648,7 +650,6 @@ app.get("/api/user/yesterday-history", async (req, res) => {
 
       const partnerId = partner._id.toString();
 
-      // ✅ keep latest connection only
       if (!uniqueUsers.has(partnerId)) {
         uniqueUsers.set(partnerId, {
           userId: partnerId,
@@ -657,6 +658,7 @@ app.get("/api/user/yesterday-history", async (req, res) => {
           gender: partner.gender,
           duration: conn.duration,
           status: conn.status,
+
           startedAt: new Date(conn.startedAt).toLocaleString("en-IN", {
             timeZone: "Asia/Kolkata",
           }),
@@ -670,12 +672,12 @@ app.get("/api/user/yesterday-history", async (req, res) => {
       }
     });
 
-    const result = Array.from(uniqueUsers.values());
-
-    res.json(result);
+    res.json(Array.from(uniqueUsers.values()));
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({
+      error: "Server error",
+    });
   }
 });
 
