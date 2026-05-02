@@ -11,10 +11,6 @@ export default function HomePage() {
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-10 py-6 border-b border-white/10 backdrop-blur-md">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Flirta</h1>
-
-          <p className="text-xs text-pink-400 tracking-[0.25em] uppercase mt-1">
-            Formerly Ayvaus
-          </p>
         </div>
 
         <button className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 transition border border-white/10 text-sm">
@@ -23,7 +19,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-2 px-6 md:px-2 py-16 md:py-2 max-w-7xl mx-auto">
+      <section className="relative z-2 px-2 md:px-2 py-16 md:py-2 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-2 items-center">
           {/* Left */}
           <div>
@@ -141,27 +137,27 @@ export default function HomePage() {
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
                       <span>🔐</span>
-                      <span>Signup & Login required for safety</span>
+                      <span>Signup required for verified matching</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span>❤️</span>
-                      <span>Perfect for serious relationships</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span>🤝</span>
-                      <span>Find genuine friendships</span>
+                      <span>IF You Looking For:</span>
+                      <span> serious relationships</span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span>💘</span>
-                      <span>Made for real dating experiences</span>
+                      <span>Perfect for real dating</span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span>💍</span>
-                      <span>Best for marriage-focused connections</span>
+                      <span>Marriage-focused connections</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span>🤝</span>
+                      <span>Build genuine friendships</span>
                     </div>
                   </div>
                 </div>
