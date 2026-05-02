@@ -34,7 +34,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h2 className="text-3xl md:text-3xl font-black leading-[1.05] tracking-tight">
+            <h2 className="text-4xl md:text-4xl font-black leading-[1.05] tracking-tight">
               Video Chat
               <br />
               <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -91,7 +91,7 @@ export default function HomePage() {
           <div className="grid gap-6">
             {/* Fun Mode */}
             <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-yellow-500/15 to-orange-500/10 p-8 backdrop-blur-xl hover:scale-[1.02] transition-all duration-300">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-400/20 blur-3xl rounded-full" />
+              <div className="absolute top-0 right-0 w-40 h-30 bg-yellow-400/20 blur-3xl rounded-full" />
 
               <div className="relative z-10 flex items-start justify-between">
                 <div>
@@ -102,10 +102,10 @@ export default function HomePage() {
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
                       <span>✅</span>
-                      <span>No mobile number required</span>
+                      <span>No mobile number, email, No signup required</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <span>✅</span>
                       <span>No email required</span>
                     </div>
@@ -113,7 +113,7 @@ export default function HomePage() {
                     <div className="flex items-center gap-2">
                       <span>✅</span>
                       <span>No signup needed</span>
-                    </div>
+                    </div> */}
 
                     <div className="flex items-center gap-2">
                       <span>✅</span>
@@ -130,7 +130,7 @@ export default function HomePage() {
 
             {/* Serious Mode */}
             <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-pink-500/15 to-rose-500/10 p-8 backdrop-blur-xl hover:scale-[1.02] transition-all duration-300">
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-pink-500/20 blur-3xl rounded-full" />
+              <div className="absolute bottom-0 left-0 w-40 h-30 bg-pink-500/20 blur-3xl rounded-full" />
 
               <div className="relative z-10 flex items-start justify-between">
                 <div>
