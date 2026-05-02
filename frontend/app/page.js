@@ -23,7 +23,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 px-6 md:px-2 py-16 md:py-24 max-w-7xl mx-auto">
+      <section className="relative z-2 px-6 md:px-2 py-16 md:py-24 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-2 items-center">
           {/* Left */}
           <div>
@@ -34,7 +34,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h2 className="text-5xl md:text-7xl font-black leading-[1.05] tracking-tight">
+            <h2 className="text-3xl md:text-3xl font-black leading-[1.05] tracking-tight">
               Video Chat
               <br />
               <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
