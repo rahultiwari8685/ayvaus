@@ -140,23 +140,28 @@ export default function HomePage() {
 
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
+                      <span>🔐</span>
+                      <span>Signup & Login required for safety</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <span>❤️</span>
-                      <span>Meaningful connections</span>
+                      <span>Perfect for serious relationships</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span>🛡️</span>
-                      <span>Verified profiles only</span>
+                      <span>🤝</span>
+                      <span>Find genuine friendships</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span>🎯</span>
-                      <span>Smart matching system</span>
+                      <span>💘</span>
+                      <span>Made for real dating experiences</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span>🔄</span>
-                      <span>Reconnect anytime</span>
+                      <span>💍</span>
+                      <span>Best for marriage-focused connections</span>
                     </div>
                   </div>
                 </div>
