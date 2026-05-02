@@ -142,8 +142,12 @@ io.on("connection", async (socket) => {
     );
   });
 
-  if (mode === "random") {
+  if (socket.mode === "random") {
+    randomUsers.add(socket.id);
+
     console.log("🎉 Random User:", socket.id);
+
+    emitOnlineCount();
   }
 
   console.log(
