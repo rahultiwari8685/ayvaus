@@ -24,7 +24,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative z-10 px-2 md:px-12 py-6 md:py-24 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-6 items-center">
           {/* Left */}
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-md">
