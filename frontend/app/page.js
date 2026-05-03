@@ -199,13 +199,15 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="text-pink-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
+                <div className="mt-8">
                   <a
                     href="/serious/register"
-                    className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                    className="group inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-[0_10px_40px_rgba(236,72,153,0.35)] hover:scale-105 transition-all duration-300"
                   >
-                    <span className="relative z-10 flex items-center gap-2">
-                      Enter Serious Mode →
+                    <span>❤️ Enter Serious Mode</span>
+
+                    <span className="text-xl group-hover:translate-x-1 transition">
+                      →
                     </span>
                   </a>
                 </div>
