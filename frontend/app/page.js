@@ -131,13 +131,15 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="text-yellow-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
+                <div className="mt-8">
                   <a
                     href="/video"
-                    className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                    className="group inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-[0_10px_40px_rgba(234,179,8,0.35)] hover:scale-105 transition-all duration-300"
                   >
-                    <span className="relative z-10 flex items-center gap-2">
-                      Start Fun Mode →
+                    <span>🎉 Start Fun Mode</span>
+
+                    <span className="text-xl group-hover:translate-x-1 transition">
+                      →
                     </span>
                   </a>
                 </div>
