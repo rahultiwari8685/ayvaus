@@ -66,7 +66,7 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-[32px] min-h-[700px] border border-white/10">
             {/* Background Image */}
             <img
-              src="/hero.jpg"
+              src="/hero.png"
               alt="Flirta"
               className="absolute inset-0 w-full h-full object-cover"
             />
