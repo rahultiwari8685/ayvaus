@@ -95,14 +95,14 @@ export default function HomePage() {
                   <div className="flex items-center justify-between gap-16 flex-wrap mb-5">
                     <h3 className="text-3xl font-bold">🎉 Fun Mode</h3>
 
-                    <a
+                    {/* <a
                       href="/video"
                       className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
                     >
                       <span className="relative z-10 flex items-center gap-2">
                         Start Fun Mode →
                       </span>
-                    </a>
+                    </a> */}
                   </div>
                   <div className="mt-5 space-y-2 text-sm text-zinc-300">
                     <div className="flex items-center gap-2">
@@ -132,7 +132,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="text-yellow-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
-                  ↗
+                  <a
+                    href="/video"
+                    className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      Start Fun Mode →
+                    </span>
+                  </a>
                 </div>
               </div>
             </div>
@@ -148,14 +155,14 @@ export default function HomePage() {
                   <div className="flex items-center justify-between gap-8 flex-wrap mb-5">
                     <h3 className="text-3xl font-bold">❤️ Serious Mode</h3>
 
-                    <a
+                    {/* <a
                       href="/serious/register"
                       className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
                     >
                       <span className="relative z-10 flex items-center gap-2">
                         Enter Serious Mode →
                       </span>
-                    </a>
+                    </a> */}
                   </div>
 
                   <div className="mt-5 space-y-3 text-sm text-zinc-300">
@@ -191,7 +198,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="text-pink-300 text-4xl opacity-60 group-hover:translate-x-1 transition">
-                  ↗
+                  <a
+                    href="/serious/register"
+                    className="group relative overflow-hidden px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      Enter Serious Mode →
+                    </span>
+                  </a>
                 </div>
               </div>
             </div>
