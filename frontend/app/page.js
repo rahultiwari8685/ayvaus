@@ -101,7 +101,7 @@ export default function HomePage() {
               </p>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-10 max-w-2xl">
+              <div className="grid grid-cols-3 gap-4 mt-20 max-w-2xl">
                 <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5">
                   <h3 className="text-3xl font-bold text-pink-400">1k+</h3>
 
