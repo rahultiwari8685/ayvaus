@@ -132,16 +132,46 @@ export default function SeriousDashboard() {
           </p>
         </div>
 
-        <button
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/")}
+            className="group relative overflow-hidden px-5 py-2.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          >
+            <span className="relative z-10 flex items-center gap-2 text-sm font-medium">
+              🏠 Home
+            </span>
+
+            <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition" />
+          </button>
+
+          <button
+            onClick={() => router.push("/video")}
+            className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            <span className="relative z-10 flex items-center gap-2 text-sm">
+              🎉 Fun Mode
+            </span>
+
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
+          </button>
+        </div>
+
+        {/* <button
           onClick={() => router.push("/")}
           className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition"
         >
           Home
         </button>
+        <button
+          onClick={() => router.push("/video")}
+          className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition"
+        >
+          Switch to Fun Mode
+        </button> */}
       </nav>
 
       {/* Hero */}
-      <section className="relative z-10 px-3 md:px-12 py-4 max-w-7xl mx-auto">
+      <section className="relative z-10 px-3 md:px-4 py-4 max-w-7xl mx-auto">
         <div className="text-center mb-2">
           {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-6">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
