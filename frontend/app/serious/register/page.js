@@ -54,11 +54,12 @@ export default function Profile() {
       });
 
       const data = await res.json();
-      router.push("/serious/match");
-      if (res.ok) {
+      // router.push("/serious/match");
+      if (data.success === true) {
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
         console.log("Registered user:", data);
+        window.location.href = "/serious/match";
       } else {
         setError(data.message || "Registration failed");
       }
