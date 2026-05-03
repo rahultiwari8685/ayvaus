@@ -78,7 +78,7 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-transparent to-cyan-500/10" />
 
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col justify-end p-8 md:p-12">
+            <div className="relative z-7 h-full flex flex-col justify-end p-8 md:p-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl mb-6 w-fit">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
 
@@ -91,7 +91,7 @@ export default function HomePage() {
                 Random Video
                 <br />
                 <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                  Chat.
+                  Chat
                 </span>
               </h2>
 
@@ -101,7 +101,7 @@ export default function HomePage() {
               </p> */}
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-40 max-w-2xl">
+              <div className="grid grid-cols-3 gap-4 mt-45 max-w-2xl">
                 <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5">
                   <h3 className="text-3xl font-bold text-pink-400">1k+</h3>
 
