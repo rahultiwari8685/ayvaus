@@ -63,7 +63,7 @@ export default function HomePage() {
             </div>
           </div> */}
 
-          <div className="relative overflow-hidden rounded-[32px] min-h-[700px] border border-white/10">
+          <div className="relative overflow-hidden rounded-[32px] min-h-[600px] border border-white/10">
             {/* Background Image */}
             <img
               src="/hero.png"
