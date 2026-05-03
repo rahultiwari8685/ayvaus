@@ -35,12 +35,13 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (data.success === true) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user._id);
 
         if (data.profileComplete) {
-          router.push("/serious/match");
+          window.location.href = "/serious/match";
+          // router.push("/serious/match");
         } else {
           router.push("/serious/profile");
         }
