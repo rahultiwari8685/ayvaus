@@ -22,7 +22,7 @@ export default function HomePage() {
       <section className="relative z-2 px-2 md:px-2 py-16 md:py-2 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-2 items-center">
           {/* Left */}
-          <div>
+          {/* <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-sm text-zinc-300">
@@ -43,28 +43,8 @@ export default function HomePage() {
               exciting new people through immersive real-time video chat.
             </p>
 
-            {/* Buttons */}
-            <div className="mt-10 flex flex-wrap gap-4">
-              {/* <a
-                href="/video"
-                className="group relative overflow-hidden px-8 py-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  🎉 Start Fun Mode
-                </span>
-              </a> */}
 
-              {/* <a
-                href="/serious/dashboard"
-                className="group relative overflow-hidden px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  ❤️ Serious Mode
-                </span>
-              </a> */}
-            </div>
-
-            {/* Stats */}
+           
             <div className="grid grid-cols-3 gap-4 mt-14 max-w-xl">
               <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5">
                 <h3 className="text-3xl font-bold text-pink-400">1k+</h3>
@@ -79,6 +59,66 @@ export default function HomePage() {
               <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5">
                 <h3 className="text-3xl font-bold text-green-400">150+</h3>
                 <p className="text-sm text-zinc-400 mt-1">Countries</p>
+              </div>
+            </div>
+          </div> */}
+
+          <div className="relative overflow-hidden rounded-[32px] min-h-[700px] border border-white/10">
+            {/* Background Image */}
+            <img
+              src="/hero.jpg"
+              alt="Flirta"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            {/* Dark Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/80" />
+
+            {/* Glow Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-transparent to-cyan-500/10" />
+
+            {/* Content */}
+            <div className="relative z-10 h-full flex flex-col justify-end p-8 md:p-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl mb-6 w-fit">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+
+                <span className="text-sm text-zinc-200">
+                  Meet people instantly worldwide
+                </span>
+              </div>
+
+              <h2 className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight">
+                Random Video
+                <br />
+                <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                  Chat.
+                </span>
+              </h2>
+
+              <p className="mt-6 text-lg text-zinc-300 max-w-xl leading-relaxed">
+                Discover random fun conversations, meaningful relationships, and
+                exciting new people through immersive real-time video chat.
+              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 mt-10 max-w-2xl">
+                <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5">
+                  <h3 className="text-3xl font-bold text-pink-400">1k+</h3>
+
+                  <p className="text-sm text-zinc-300 mt-1">Users</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5">
+                  <h3 className="text-3xl font-bold text-cyan-400">24/7</h3>
+
+                  <p className="text-sm text-zinc-300 mt-1">Live Chats</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-5">
+                  <h3 className="text-3xl font-bold text-green-400">150+</h3>
+
+                  <p className="text-sm text-zinc-300 mt-1">Countries</p>
+                </div>
               </div>
             </div>
           </div>
