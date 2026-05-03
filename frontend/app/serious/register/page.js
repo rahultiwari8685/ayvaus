@@ -155,6 +155,16 @@ export default function Profile() {
         >
           {loading ? "Creating..." : "Register"}
         </button>
+        <div className="mt-5 text-center">
+          <p className="text-sm text-zinc-400">Already registered?</p>
+
+          <button
+            onClick={() => router.push("/serious/login")}
+            className="mt-3 w-full py-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition text-white font-medium"
+          >
+            Login Instead
+          </button>
+        </div>
       </div>
     </div>
   );
