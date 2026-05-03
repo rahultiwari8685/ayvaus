@@ -40,7 +40,7 @@ export default function Login() {
         localStorage.setItem("userId", data.user._id);
 
         if (data.profileComplete) {
-          window.location.href = "/serious/match";
+          window.location.href = "/serious/dashboard";
           // router.push("/serious/match");
         } else {
           router.push("/serious/profile");

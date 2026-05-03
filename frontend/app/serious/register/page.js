@@ -59,7 +59,7 @@ export default function Profile() {
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
         console.log("Registered user:", data);
-        window.location.href = "/serious/match";
+        window.location.href = "/serious/dashboard";
       } else {
         setError(data.message || "Registration failed");
       }
