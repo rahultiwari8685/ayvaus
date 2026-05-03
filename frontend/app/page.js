@@ -63,7 +63,7 @@ export default function HomePage() {
             </div>
           </div> */}
 
-          <div className="relative overflow-hidden rounded-[32px] min-h-[600px] border border-white/10">
+          <div className="relative overflow-hidden rounded-[32px] min-h-[500px] border border-white/10">
             {/* Background Image */}
             <img
               src="/hero.png"
@@ -87,7 +87,7 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <h2 className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight">
+              <h2 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight">
                 Random Video
                 <br />
                 <span className="bg-gradient-to-r from-pink-500 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
