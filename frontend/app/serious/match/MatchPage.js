@@ -597,7 +597,7 @@ export default function MatchPage() {
 
     socketRef.current.emit("next");
 
-    window.location.href = "/";
+    window.location.href = "/serious/dashboard";
   }
 
   function handleImage(e) {
