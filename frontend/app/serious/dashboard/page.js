@@ -235,7 +235,7 @@ export default function SeriousDashboard() {
             onClick={() => router.push("/serious/match")}
             className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-pink-500/20 to-rose-500/10 p-8 cursor-pointer hover:scale-[1.02] transition-all duration-300 backdrop-blur-xl"
           >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/20 blur-3xl rounded-full" />
+            <div className="absolute top-0 right-0 w-40 h-20 bg-pink-500/20 blur-3xl rounded-full" />
 
             <div className="relative z-10">
               <div className="text-6xl mb-6">💖</div>
