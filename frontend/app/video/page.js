@@ -604,12 +604,22 @@ export default function VideoChat() {
               : {}
           }
         />
-
         {voiceSubtitle && (
+          <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
+            <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
+                <span className="text-pink-400 font-bold mr-2">Stranger:</span>
+                {voiceSubtitle}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* {voiceSubtitle && (
           <div className="absolute bottom-28 left-1/2 -translate-x-1/2 px-5 py-2 bg-black/70 backdrop-blur-md rounded-xl text-white text-sm max-w-[80%] text-center shadow-lg">
             🎤 {voiceSubtitle}
           </div>
-        )}
+        )} */}
 
         <div
           className={`absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
@@ -641,7 +651,6 @@ export default function VideoChat() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
               {messages.map((m, i) => (
                 <div
@@ -928,10 +937,20 @@ export default function VideoChat() {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-gray-800 text-white text-xs px-2 py-1 rounded"
+              className="bg-gray-900 text-white text-xs px-2 py-1 rounded border border-white/10"
             >
-              <option value="en-US">EN</option>
-              <option value="hi-IN">HI</option>
+              <option value="en-US">English</option>
+              <option value="hi-IN">Hindi</option>
+              <option value="bn-IN">Bengali</option>
+              <option value="ta-IN">Tamil</option>
+              <option value="te-IN">Telugu</option>
+              <option value="mr-IN">Marathi</option>
+              <option value="gu-IN">Gujarati</option>
+              <option value="kn-IN">Kannada</option>
+              <option value="ml-IN">Malayalam</option>
+              <option value="pa-IN">Punjabi</option>
+              <option value="ur-IN">Urdu</option>
+              <option value="or-IN">Odia</option>
             </select>
             <span className="mt-1 text-gray-300">Lang</span>
           </div>
