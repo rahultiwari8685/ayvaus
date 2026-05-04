@@ -952,7 +952,7 @@ export default function VideoChat() {
               <option value="ur-IN">Urdu</option>
               <option value="or-IN">Odia</option>
             </select>
-            <span className="mt-1 text-gray-300">Lang</span>
+            {/* <span className="mt-1 text-gray-300">Lang</span> */}
           </div>
 
           <div className="flex flex-col items-center text-xs text-white">
