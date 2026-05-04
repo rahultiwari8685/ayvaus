@@ -64,14 +64,12 @@ export default function Login() {
           Continue your serious journey
         </p>
 
-        {/* ERROR */}
         {error && (
           <div className="bg-red-500/20 text-red-400 p-2 rounded mb-4 text-sm text-center">
             {error}
           </div>
         )}
 
-        {/* EMAIL */}
         <input
           type="email"
           placeholder="Email"
@@ -80,7 +78,6 @@ export default function Login() {
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
 
-        {/* PASSWORD */}
         <input
           type="password"
           placeholder="Password"

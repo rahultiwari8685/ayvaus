@@ -20,7 +20,7 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const userId = localStorage.getItem("userId"); // or from token
+        const userId = localStorage.getItem("userId");
 
         const res = await fetch(
           `https://api.flirtaus.com/api/user/yesterday-history?userId=${userId}`,

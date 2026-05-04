@@ -115,14 +115,12 @@ export default function SeriousDashboard() {
 
   return (
     <div className="min-h-screen overflow-hidden bg-black text-white relative">
-      {/* Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[-120px] left-[-100px] w-[420px] h-[420px] bg-pink-500/20 blur-3xl rounded-full animate-pulse" />
 
         <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-purple-500/20 blur-3xl rounded-full animate-pulse" />
       </div>
 
-      {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-10 py-6 border-b border-white/10 backdrop-blur-xl">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Flirta</h1>
@@ -155,32 +153,10 @@ export default function SeriousDashboard() {
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
           </button>
         </div>
-
-        {/* <button
-          onClick={() => router.push("/")}
-          className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition"
-        >
-          Home
-        </button>
-        <button
-          onClick={() => router.push("/video")}
-          className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition"
-        >
-          Switch to Fun Mode
-        </button> */}
       </nav>
 
-      {/* Hero */}
       <section className="relative z-10 px-3 md:px-4 py-4 max-w-7xl mx-auto">
         <div className="text-center mb-2">
-          {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-6">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-
-            <span className="text-sm text-zinc-300">
-              Building meaningful connections
-            </span>
-          </div> */}
-
           <h1 className="text-4xl md:text-4xl font-black leading-tight tracking-tight">
             Your
             <br />
@@ -195,42 +171,7 @@ export default function SeriousDashboard() {
           </p>
         </div>
 
-        {/* Stats */}
-        {/* <div className="grid md:grid-cols-3 gap-5 mb-12">
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <p className="text-zinc-400 text-sm">Connections</p>
-
-            <h2 className="text-4xl font-bold text-pink-400 mt-2">
-              {totalUsers}
-            </h2>
-
-            <p className="text-zinc-500 text-sm mt-2">Last 24 hours</p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <p className="text-zinc-400 text-sm">Conversation Time</p>
-
-            <h2 className="text-4xl font-bold text-cyan-400 mt-2">
-              {formatTotalTime(totalTime)}
-            </h2>
-
-            <p className="text-zinc-500 text-sm mt-2">Total engagement</p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <p className="text-zinc-400 text-sm">Meaningful Matches</p>
-
-            <h2 className="text-4xl font-bold text-green-400 mt-2">
-              {history.filter((h) => h.duration >= 60).length}
-            </h2>
-
-            <p className="text-zinc-500 text-sm mt-2">Great conversations</p>
-          </div>
-        </div> */}
-
-        {/* Main Layout */}
         <div className="grid lg:grid-cols-3 gap-2">
-          {/* Start Matching */}
           <div
             onClick={() => router.push("/serious/match")}
             className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-pink-500/20 to-rose-500/10 p-8 cursor-pointer hover:scale-[1.02] transition-all duration-300 backdrop-blur-xl"
@@ -256,7 +197,6 @@ export default function SeriousDashboard() {
             </div>
           </div>
 
-          {/* History */}
           <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <div>

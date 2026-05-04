@@ -27,10 +27,6 @@ export function SocketProvider({ children }) {
 
     setSocket(s);
 
-    // s.on("incoming-reconnect-request", (data) => {
-    //   setReconnectRequest(data);
-    // });
-
     s.on("incoming-reconnect-request", (data) => {
       setReconnectRequest(data);
 
@@ -71,10 +67,6 @@ export function SocketProvider({ children }) {
     window.location.href = "/serious/match";
   };
 
-  // const rejectReconnect = () => {
-  //   setReconnectRequest(null);
-  // };
-
   const rejectReconnect = () => {
     ringtoneRef.current?.pause();
     ringtoneRef.current.currentTime = 0;
@@ -85,39 +77,6 @@ export function SocketProvider({ children }) {
   return (
     <SocketContext.Provider value={{ socket }}>
       {children}
-
-      {/* {reconnectRequest && (
-        <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center">
-          <div className="bg-zinc-900 p-6 rounded-2xl border border-white/10 w-[90%] max-w-sm text-center">
-            <h2 className="text-xl font-bold text-white mb-2">
-              ❤️ Reconnect Request
-            </h2>
-
-            <p className="text-gray-300 mb-6">
-              <span className="text-pink-400 font-semibold">
-                {reconnectRequest.requesterName}
-              </span>{" "}
-              wants to reconnect
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={rejectReconnect}
-                className="flex-1 py-2 rounded-xl bg-gray-700 text-white"
-              >
-                Reject
-              </button>
-
-              <button
-                onClick={acceptReconnect}
-                className="flex-1 py-2 rounded-xl bg-pink-500 text-white"
-              >
-                Accept
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {reconnectRequest && (
         <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center text-white">

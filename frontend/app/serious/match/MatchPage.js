@@ -393,24 +393,9 @@ export default function MatchPage() {
       alert("Please wait before skipping again.");
     });
 
-    // socketRef.current.on("incoming-reconnect-request", (data) => {
-    //   const accept = confirm(`❤️ ${data.requesterName} wants to reconnect`);
-
-    //   if (accept) {
-    //     socketRef.current.emit("accept-reconnect", {
-    //       requesterId: data.requesterId,
-    //     });
-    //   }
-    // });
-
     return () => {
-      // mounted = false;
-
       pcRef.current?.close();
-
       streamRef.current?.getTracks().forEach((t) => t.stop());
-
-      // socketRef.current.off("connect");
       socketRef.current.off("online-users");
       socketRef.current.off("matched");
       socketRef.current.off("ready");
@@ -422,15 +407,7 @@ export default function MatchPage() {
       socketRef.current.off("message-seen");
       socketRef.current.off("partner-left");
       socketRef.current.off("next-blocked");
-      // socketRef.current.off("incoming-reconnect-request");
     };
-
-    // return () => {
-    //   mounted = false;
-    //   pcRef.current?.close();
-    //   streamRef.current?.getTracks().forEach((t) => t.stop());
-    //   // socketRef.current?.disconnect();
-    // };
   }, [socket]);
 
   useEffect(() => {

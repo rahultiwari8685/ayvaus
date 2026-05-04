@@ -119,7 +119,7 @@ io.on("connection", async (socket) => {
 
       seriousUsers.set(user._id.toString(), {
         socketId: socket.id,
-        userId: user._id.toString(), // 🔥 important
+        userId: user._id.toString(),
         name: user.name,
         age: user.age,
         gender: user.gender,
@@ -216,34 +216,6 @@ io.on("connection", async (socket) => {
           }
         }
 
-        // try {
-        //   const connection = await Connection.create({
-        //     user1: s1.user._id,
-        //     user2: s2.user._id,
-        //     socket1: s1.id,
-        //     socket2: s2.id,
-        //     startedAt: new Date(),
-        //     status: "active",
-        //     mode: "serious",
-        //   });
-
-        //   s1.connectionId = connection._id;
-        //   s2.connectionId = connection._id;
-
-        //   console.log("📌 Connection created:", connection._id);
-        // } catch (err) {
-        //   console.log("❌ Connection error:", err.message);
-        // }
-
-        // s1.emit("matched", {
-        //   role: "caller",
-        //   partner: {
-        //     name: s2.user.name,
-        //     age: s2.user.age,
-        //     gender: s2.user.gender,
-        //   },
-        // });
-
         if (mode === "serious") {
           s1.emit("matched", {
             role: "caller",
@@ -276,18 +248,6 @@ io.on("connection", async (socket) => {
           s1.emit("ready");
           s2.emit("ready");
         }, 300);
-
-        // s2.emit("matched", {
-        //   role: "callee",
-        //   partner: {
-        //     name: s1.user.name,
-        //     age: s1.user.age,
-        //     gender: s1.user.gender,
-        //   },
-        // });
-
-        // s1.emit("matched", { role: "caller" });
-        // s2.emit("matched", { role: "callee" });
 
         return tryMatch(mode);
       }
@@ -377,7 +337,6 @@ io.on("connection", async (socket) => {
     if (socket.partner) {
       const oldPartner = socket.partner;
 
-      // ✅ prevent immediate rematch
       socket.lastPartnerId = oldPartner.id;
       oldPartner.lastPartnerId = socket.id;
 
@@ -388,13 +347,10 @@ io.on("connection", async (socket) => {
 
       if (!queue.includes(oldPartner)) {
         setTimeout(() => {
-          // queue.push(oldPartner);
-
           if (!queue.includes(oldPartner) && !oldPartner.partner) {
             queue.push(oldPartner);
           }
 
-          // clear block after some time
           setTimeout(() => {
             oldPartner.lastPartnerId = null;
           }, 10000);
@@ -418,20 +374,9 @@ io.on("connection", async (socket) => {
 
       tryMatch(socket.mode);
     }, 300);
-
-    // setTimeout(() => {
-    //   queue.push(socket);
-
-    //   setTimeout(() => {
-    //     socket.lastPartnerId = null;
-    //   }, 10000);
-
-    //   tryMatch(socket.mode);
-    // }, 300);
   });
 
   socket.on("disconnect", async () => {
-    // ✅ prevent disconnect cleanup during reconnect
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
@@ -447,7 +392,6 @@ io.on("connection", async (socket) => {
       randomUsers.delete(socket.id);
     }
 
-    // ✅ end own connection
     if (socket.connectionId) {
       try {
         const conn = await Connection.findById(socket.connectionId);
@@ -473,7 +417,6 @@ io.on("connection", async (socket) => {
       }
     }
 
-    // ✅ cleanup partner
     if (socket.partner) {
       const partner = socket.partner;
 
@@ -503,7 +446,6 @@ io.on("connection", async (socket) => {
       partner.partner = null;
     }
 
-    // ✅ remove from queue
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     const idx = queue.indexOf(socket);
@@ -570,9 +512,6 @@ io.on("connection", async (socket) => {
       socket.connectionId = connection._id;
       partnerSocket.connectionId = connection._id;
 
-      // socket.emit("matched", { role: "caller" });
-      // partnerSocket.emit("matched", { role: "callee" });
-
       socket.emit("matched", {
         role: "caller",
         partner: {
@@ -618,7 +557,6 @@ io.on("connection", async (socket) => {
         return;
       }
 
-      // ✅ send popup to partner
       partnerSocket.emit("incoming-reconnect-request", {
         requesterId: socket.user._id,
         requesterName: socket.user.name,
@@ -665,6 +603,12 @@ io.on("connection", async (socket) => {
       console.log("Accept reconnect error:", err.message);
 
       socket.emit("reconnect-failed", err.message);
+    }
+  });
+
+  socket.on("voice-subtitle", (text) => {
+    if (socket.partner) {
+      socket.partner.emit("voice-subtitle", text);
     }
   });
 

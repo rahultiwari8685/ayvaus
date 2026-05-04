@@ -48,6 +48,37 @@ export default function VideoChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
 
+  const [voiceSubtitle, setVoiceSubtitle] = useState("");
+  const [language, setLanguage] = useState("en-US");
+  const recognitionRef = useRef(null);
+
+  function startSpeechRecognition() {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = language;
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      // SEND to partner (not showing own)
+      socketRef.current.emit("voice-subtitle", transcript);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -138,8 +169,14 @@ export default function VideoChat() {
         setStatus("Connecting...");
       }
 
+      // if (pc.iceConnectionState === "connected") {
+      //   setStatus("Connected");
+      // }
+
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
+
+        startSpeechRecognition(); // ✅ START HERE
       }
 
       if (
@@ -191,10 +228,6 @@ export default function VideoChat() {
       }
       roleRef.current = role;
       setStatus("Connecting...");
-
-      // if (role === "callee") {
-      //   socketRef.current.emit("ready");
-      // }
     });
 
     socketRef.current.on("ready", async () => {
@@ -203,7 +236,6 @@ export default function VideoChat() {
 
       const offer = await pcRef.current.createOffer();
       await pcRef.current.setLocalDescription(offer);
-      // socketRef.current.emit("signal", { offer });
       socketRef.current.emit("signal", {
         sdp: pcRef.current.localDescription,
       });
@@ -213,14 +245,11 @@ export default function VideoChat() {
       if (!pcRef.current) return;
 
       try {
-        // OFFER RECEIVED
-
         if (data.sdp?.type === "offer") {
           await pcRef.current.setRemoteDescription(
             new RTCSessionDescription(data.sdp),
           );
 
-          // Flush queued ICE
           while (iceQueueRef.current.length > 0) {
             await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
           }
@@ -228,26 +257,21 @@ export default function VideoChat() {
           const answer = await pcRef.current.createAnswer();
           await pcRef.current.setLocalDescription(answer);
 
-          // socketRef.current.emit("signal", { answer });
           socketRef.current.emit("signal", {
             sdp: pcRef.current.localDescription,
           });
         }
 
-        // ANSWER RECEIVED
         if (data.sdp?.type === "answer") {
           await pcRef.current.setRemoteDescription(
-            // new RTCSessionDescription(data.answer),
             new RTCSessionDescription(data.sdp),
           );
 
-          // Flush queued ICE
           while (iceQueueRef.current.length > 0) {
             await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
           }
         }
 
-        // ICE CANDIDATE RECEIVED
         if (data.candidate) {
           const candidate = new RTCIceCandidate(data.candidate);
 
@@ -267,7 +291,6 @@ export default function VideoChat() {
 
       socketRef.current.emit("message-delivered", msg.id);
 
-      // Increase unread if chat is closed
       if (!showChat) {
         setUnreadCount((prev) => prev + 1);
       }
@@ -317,6 +340,9 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
+      recognitionRef.current?.stop();
+      setVoiceSubtitle("");
+
       setTimeout(async () => {
         await createPeer();
         socketRef.current.emit("join");
@@ -325,6 +351,14 @@ export default function VideoChat() {
 
     socketRef.current.on("next-blocked", () => {
       alert("Please wait before skipping again.");
+    });
+
+    socketRef.current.on("voice-subtitle", (text) => {
+      setVoiceSubtitle(text);
+
+      setTimeout(() => {
+        setVoiceSubtitle("");
+      }, 2000);
     });
 
     return () => {
@@ -344,6 +378,14 @@ export default function VideoChat() {
       });
     }
   }, [showChat]);
+
+  // ✅ RESTART SPEECH WHEN LANGUAGE CHANGES
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      startSpeechRecognition();
+    }
+  }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");
@@ -455,14 +497,12 @@ export default function VideoChat() {
     const newFacingMode = facingMode === "user" ? "environment" : "user";
 
     try {
-      // Stop current video track
       const videoTrack = streamRef.current
         .getTracks()
         .find((track) => track.kind === "video");
 
       if (videoTrack) videoTrack.stop();
 
-      // Get new camera stream
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: newFacingMode },
         audio: false,
@@ -470,7 +510,6 @@ export default function VideoChat() {
 
       const newVideoTrack = newStream.getVideoTracks()[0];
 
-      // Replace track in peer connection
       const sender = pcRef.current
         ?.getSenders()
         .find((s) => s.track?.kind === "video");
@@ -479,7 +518,6 @@ export default function VideoChat() {
         await sender.replaceTrack(newVideoTrack);
       }
 
-      // Replace local stream track
       streamRef.current.removeTrack(streamRef.current.getVideoTracks()[0]);
       streamRef.current.addTrack(newVideoTrack);
 
@@ -525,7 +563,8 @@ export default function VideoChat() {
       {!(isMobile && showChat) && (
         <div className="absolute top-4 text-center">
           <h1 className="text-2xl font-bold tracking-wide">
-            Flirta <span className="text-pink-500">(Formerly Ayvaus)</span>
+            Flirta
+            {/* <span className="text-pink-500">(Formerly Ayvaus)</span> */}
           </h1>
 
           <p className="text-sm text-green-400">
@@ -565,6 +604,12 @@ export default function VideoChat() {
               : {}
           }
         />
+
+        {voiceSubtitle && (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 px-5 py-2 bg-black/70 backdrop-blur-md rounded-xl text-white text-sm max-w-[80%] text-center shadow-lg">
+            🎤 {voiceSubtitle}
+          </div>
+        )}
 
         <div
           className={`absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
@@ -877,6 +922,18 @@ export default function VideoChat() {
             </div>
 
             <span className="mt-1 text-gray-300">Chat</span>
+          </div>
+
+          <div className="flex flex-col items-center text-xs text-white">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-gray-800 text-white text-xs px-2 py-1 rounded"
+            >
+              <option value="en-US">EN</option>
+              <option value="hi-IN">HI</option>
+            </select>
+            <span className="mt-1 text-gray-300">Lang</span>
           </div>
 
           <div className="flex flex-col items-center text-xs text-white">
