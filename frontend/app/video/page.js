@@ -53,6 +53,8 @@ export default function VideoChat() {
   const recognitionRef = useRef(null);
 
   function startSpeechRecognition() {
+    if (recognitionRef.current) return; // prevent duplicate
+
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -61,22 +63,24 @@ export default function VideoChat() {
     const recognition = new SpeechRecognition();
 
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = language;
 
     recognition.onresult = (event) => {
-      let transcript = "";
+      const result = event.results[event.results.length - 1];
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
+      if (!result.isFinal) return;
 
-      // SEND to partner (not showing own)
-      // socketRef.current.emit("voice-subtitle", transcript);
+      const transcript = result[0].transcript;
+
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
         fromLang: language,
       });
+    };
+
+    recognition.onend = () => {
+      recognitionRef.current = null;
     };
 
     recognitionRef.current = recognition;
@@ -351,7 +355,9 @@ export default function VideoChat() {
 
       setTimeout(async () => {
         await createPeer();
-        socketRef.current.emit("join");
+        socketRef.current.emit("join", {
+          language: language,
+        });
       }, 500);
     });
 
@@ -362,7 +368,8 @@ export default function VideoChat() {
     socketRef.current.on("voice-subtitle", (text) => {
       setVoiceSubtitle(text);
 
-      setTimeout(() => {
+      clearTimeout(window.subtitleTimer);
+      window.subtitleTimer = setTimeout(() => {
         setVoiceSubtitle("");
       }, 2000);
     });
@@ -385,17 +392,22 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  // ✅ RESTART SPEECH WHEN LANGUAGE CHANGES
   useEffect(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      startSpeechRecognition();
-    }
+    if (!recognitionRef.current) return;
+
+    recognitionRef.current.onend = () => {
+      startSpeechRecognition(); // restart safely
+    };
+
+    recognitionRef.current.stop();
   }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");
     setMessages([]);
+
+    recognitionRef.current?.stop();
+    setVoiceSubtitle("");
 
     if (pcRef.current) {
       pcRef.current.ontrack = null;

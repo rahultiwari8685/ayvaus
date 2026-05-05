@@ -58,6 +58,8 @@ connectDB();
 
 const server = http.createServer(app);
 
+const translationCache = new Map();
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -655,22 +657,50 @@ io.on("connection", async (socket) => {
   // });
 
   socket.on("voice-subtitle", async ({ text, fromLang }) => {
+    if (!text || text.trim().length < 2) return;
+
+    if (socket.lastText === text) return;
+    socket.lastText = text;
+
+    if (!socket.lastSubtitleTime) socket.lastSubtitleTime = 0;
+
+    const now = Date.now();
+    if (now - socket.lastSubtitleTime < 1000) return;
+
+    socket.lastSubtitleTime = now;
+
     const partner = socket.partner;
     if (!partner) return;
 
-    const targetLang = partner.language || "en";
+    const targetLang = (partner.language || "en").split("-")[0];
+    const sourceLang = (fromLang || "en").split("-")[0];
 
     let translatedText = text;
 
     try {
-      if (fromLang !== targetLang) {
-        translatedText = await translateText(text, targetLang);
+      if (sourceLang !== targetLang) {
+        const cacheKey = `${text}_${targetLang}`;
+
+        if (translationCache.has(cacheKey)) {
+          translatedText = translationCache.get(cacheKey);
+        } else {
+          translatedText = await translateText(text, targetLang);
+          translationCache.set(cacheKey, translatedText);
+
+          if (translationCache.size > 1000) {
+            translationCache.clear();
+          }
+        }
       }
     } catch (err) {
       console.log("Translation error:", err.message);
     }
 
-    partner.emit("voice-subtitle", translatedText);
+    clearTimeout(socket.subtitleTimer);
+
+    socket.subtitleTimer = setTimeout(() => {
+      partner.emit("voice-subtitle", translatedText);
+    }, 300);
   });
 
   setTimeout(() => {
