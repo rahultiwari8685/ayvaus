@@ -70,6 +70,7 @@ export default function VideoChat() {
 
     // ✅ RESULT HANDLER
     recognition.onresult = (event) => {
+      console.log("🎤 SPOKEN:", transcript);
       const result = event.results[event.results.length - 1];
 
       if (!result.isFinal) return;
@@ -92,11 +93,6 @@ export default function VideoChat() {
 
     recognition.onend = () => {
       recognitionRef.current = null;
-
-      // restart if still connected
-      if (socketRef.current?.connected) {
-        startSpeechRecognition();
-      }
     };
 
     recognitionRef.current = recognition;
@@ -410,13 +406,8 @@ export default function VideoChat() {
   }, [showChat]);
 
   useEffect(() => {
-    if (!recognitionRef.current) return;
-
-    const current = recognitionRef.current;
-
-    current.onend = () => {};
-
-    current.stop();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
 
     setTimeout(() => {
       startSpeechRecognition();
