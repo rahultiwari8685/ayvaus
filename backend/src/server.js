@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-
+import fetch from "node-fetch";
 import http from "http";
 import cors from "cors";
 import { Server } from "socket.io";
@@ -90,7 +90,32 @@ function emitSeriousUsers() {
   io.emit("online-users-list", users);
 }
 
+async function translateText(text, targetLang) {
+  try {
+    const res = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        q: text,
+        source: "auto",
+        target: targetLang.split("-")[0], // en-US → en
+        format: "text",
+      }),
+    });
+
+    const data = await res.json();
+    return data.translatedText || text;
+  } catch (err) {
+    console.log("Translate API error:", err.message);
+    return text;
+  }
+}
+
 io.on("connection", async (socket) => {
+  socket.language = "en";
+
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
@@ -254,23 +279,40 @@ io.on("connection", async (socket) => {
     }
   }
 
-  socket.on("join", () => {
-    console.log("JOIN MODE:", socket.mode);
-    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+  socket.on("join", ({ language } = {}) => {
+    socket.language = language || "en";
 
-    if (socket.mode === "serious") {
-    }
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (!queue.includes(socket) && !socket.partner) {
       queue.push(socket);
     }
 
     emitOnlineCount();
-
-    console.log("🚀 JOIN EVENT:", socket.id);
-
     tryMatch(socket.mode);
   });
+
+  socket.on("update-language", (lang) => {
+    socket.language = lang;
+  });
+
+  // socket.on("join", () => {
+  //   console.log("JOIN MODE:", socket.mode);
+  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+
+  //   if (socket.mode === "serious") {
+  //   }
+
+  //   if (!queue.includes(socket) && !socket.partner) {
+  //     queue.push(socket);
+  //   }
+
+  //   emitOnlineCount();
+
+  //   console.log("🚀 JOIN EVENT:", socket.id);
+
+  //   tryMatch(socket.mode);
+  // });
 
   socket.on("ready", () => {
     socket.partner?.emit("ready");
@@ -606,10 +648,29 @@ io.on("connection", async (socket) => {
     }
   });
 
-  socket.on("voice-subtitle", (text) => {
-    if (socket.partner) {
-      socket.partner.emit("voice-subtitle", text);
+  // socket.on("voice-subtitle", (text) => {
+  //   if (socket.partner) {
+  //     socket.partner.emit("voice-subtitle", text);
+  //   }
+  // });
+
+  socket.on("voice-subtitle", async ({ text, fromLang }) => {
+    const partner = socket.partner;
+    if (!partner) return;
+
+    const targetLang = partner.language || "en";
+
+    let translatedText = text;
+
+    try {
+      if (fromLang !== targetLang) {
+        translatedText = await translateText(text, targetLang);
+      }
+    } catch (err) {
+      console.log("Translation error:", err.message);
     }
+
+    partner.emit("voice-subtitle", translatedText);
   });
 
   setTimeout(() => {

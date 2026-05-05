@@ -72,7 +72,11 @@ export default function VideoChat() {
       }
 
       // SEND to partner (not showing own)
-      socketRef.current.emit("voice-subtitle", transcript);
+      // socketRef.current.emit("voice-subtitle", transcript);
+      socketRef.current.emit("voice-subtitle", {
+        text: transcript,
+        fromLang: language,
+      });
     };
 
     recognitionRef.current = recognition;
@@ -213,7 +217,9 @@ export default function VideoChat() {
       if (!mounted) return;
 
       await createPeer();
-      socketRef.current.emit("join");
+      socketRef.current.emit("join", {
+        language: language,
+      });
     }
 
     socketRef.current.on("online-users", (count) => {
@@ -864,7 +870,14 @@ export default function VideoChat() {
           <div className="flex justify-center">
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              // onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setLanguage(newLang);
+
+                // ✅ send to backend
+                socketRef.current.emit("update-language", newLang);
+              }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               <option value="en-US">English</option>
