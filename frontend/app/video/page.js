@@ -74,7 +74,7 @@ export default function VideoChat() {
     // recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
-      const result = event.results[0];
+      const result = event.results[event.results.length - 1];
       if (!result?.isFinal) return;
 
       const transcript = result[0].transcript;
@@ -415,14 +415,14 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  // useEffect(() => {
-  //   recognitionRef.current?.stop();
-  //   recognitionRef.current = null;
+  useEffect(() => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
 
-  //   setTimeout(() => {
-  //     startSpeechRecognition();
-  //   }, 300);
-  // }, [language]);
+    setTimeout(() => {
+      startSpeechRecognition();
+    }, 300);
+  }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");

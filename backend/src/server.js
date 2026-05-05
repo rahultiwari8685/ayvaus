@@ -679,18 +679,20 @@ io.on("connection", async (socket) => {
     let translatedText = text;
 
     try {
-      if (true) {
-        const cacheKey = `${text}_${targetLang}`;
+      const cacheKey = `${text}_${targetLang}`;
 
-        if (translationCache.has(cacheKey)) {
-          translatedText = translationCache.get(cacheKey);
-        } else {
-          translatedText = await translateText(text, targetLang);
-          translationCache.set(cacheKey, translatedText);
+      if (translationCache.has(cacheKey)) {
+        translatedText = translationCache.get(cacheKey);
+      } else {
+        // 🔥 FIX: normalize Hinglish first
+        let normalizedText = await translateText(text, "hi");
 
-          if (translationCache.size > 1000) {
-            translationCache.clear();
-          }
+        translatedText = await translateText(normalizedText, targetLang);
+
+        translationCache.set(cacheKey, translatedText);
+
+        if (translationCache.size > 1000) {
+          translationCache.clear();
         }
       }
     } catch (err) {
