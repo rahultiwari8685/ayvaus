@@ -64,10 +64,14 @@ export default function VideoChat() {
 
     const recognition = new SpeechRecognition();
 
-    recognition.continuous = false; // 🔥 IMPORTANT
-    recognition.interimResults = false;
-    // recognition.lang = language;
-    recognition.lang = "en-US";
+    // recognition.continuous = false; // 🔥 IMPORTANT
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    // recognition.interimResults = false;
+    recognition.lang = language;
+    // recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
       const result = event.results[0];

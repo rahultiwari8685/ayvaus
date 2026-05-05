@@ -281,8 +281,7 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("join", ({ language } = {}) => {
-    socket.language = language || "en";
-
+    socket.language = language || "en-US";
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (!queue.includes(socket) && !socket.partner) {
