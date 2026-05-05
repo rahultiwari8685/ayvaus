@@ -856,6 +856,28 @@ export default function VideoChat() {
         </div>
       )}
 
+      <div className="flex flex-col items-center text-xs text-white">
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="bg-gray-900 text-white text-xs px-2 py-1 rounded border border-white/10"
+        >
+          <option value="en-US">English</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="ta-IN">Tamil</option>
+          <option value="te-IN">Telugu</option>
+          <option value="mr-IN">Marathi</option>
+          <option value="gu-IN">Gujarati</option>
+          <option value="kn-IN">Kannada</option>
+          <option value="ml-IN">Malayalam</option>
+          <option value="pa-IN">Punjabi</option>
+          <option value="ur-IN">Urdu</option>
+          <option value="or-IN">Odia</option>
+        </select>
+        {/* <span className="mt-1 text-gray-300">Lang</span> */}
+      </div>
+
       {!(isMobile && showChat) && (
         <div
           className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
@@ -931,28 +953,6 @@ export default function VideoChat() {
             </div>
 
             <span className="mt-1 text-gray-300">Chat</span>
-          </div>
-
-          <div className="flex flex-col items-center text-xs text-white">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="bg-gray-900 text-white text-xs px-2 py-1 rounded border border-white/10"
-            >
-              <option value="en-US">English</option>
-              <option value="hi-IN">Hindi</option>
-              <option value="bn-IN">Bengali</option>
-              <option value="ta-IN">Tamil</option>
-              <option value="te-IN">Telugu</option>
-              <option value="mr-IN">Marathi</option>
-              <option value="gu-IN">Gujarati</option>
-              <option value="kn-IN">Kannada</option>
-              <option value="ml-IN">Malayalam</option>
-              <option value="pa-IN">Punjabi</option>
-              <option value="ur-IN">Urdu</option>
-              <option value="or-IN">Odia</option>
-            </select>
-            {/* <span className="mt-1 text-gray-300">Lang</span> */}
           </div>
 
           <div className="flex flex-col items-center text-xs text-white">
