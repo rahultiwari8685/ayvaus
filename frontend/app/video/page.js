@@ -66,7 +66,8 @@ export default function VideoChat() {
 
     recognition.continuous = false; // 🔥 IMPORTANT
     recognition.interimResults = false;
-    recognition.lang = language;
+    // recognition.lang = language;
+    recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
       const result = event.results[0];

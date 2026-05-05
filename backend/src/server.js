@@ -116,8 +116,7 @@ async function translateText(text, targetLang) {
 }
 
 io.on("connection", async (socket) => {
-  socket.language = "en";
-
+  socket.language = "en-US";
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
@@ -673,13 +672,15 @@ io.on("connection", async (socket) => {
     const partner = socket.partner;
     if (!partner) return;
 
-    const targetLang = (partner.language || "en").split("-")[0];
+    const targetLang = (partner.language || "en-US").split("-")[0];
+
+    // const targetLang = (partner.language || "en").split("-")[0];
     const sourceLang = (fromLang || "en").split("-")[0];
 
     let translatedText = text;
 
     try {
-      if (sourceLang !== targetLang) {
+      if (true) {
         const cacheKey = `${text}_${targetLang}`;
 
         if (translationCache.has(cacheKey)) {
