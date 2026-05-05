@@ -856,27 +856,32 @@ export default function VideoChat() {
         </div>
       )}
 
-      <div className="flex flex-col items-center text-xs text-white">
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="bg-gray-900 text-white text-xs px-2 py-1 rounded border border-white/10"
-        >
-          <option value="en-US">English</option>
-          <option value="hi-IN">Hindi</option>
-          <option value="bn-IN">Bengali</option>
-          <option value="ta-IN">Tamil</option>
-          <option value="te-IN">Telugu</option>
-          <option value="mr-IN">Marathi</option>
-          <option value="gu-IN">Gujarati</option>
-          <option value="kn-IN">Kannada</option>
-          <option value="ml-IN">Malayalam</option>
-          <option value="pa-IN">Punjabi</option>
-          <option value="ur-IN">Urdu</option>
-          <option value="or-IN">Odia</option>
-        </select>
-        {/* <span className="mt-1 text-gray-300">Lang</span> */}
-      </div>
+      {!(isMobile && showChat) && (
+        <div className="fixed bottom-[110px] left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
+          <span className="text-[10px] text-gray-400 mb-1">
+            Subtitle Language
+          </span>
+
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="bg-black/80 backdrop-blur-xl text-white text-sm px-4 py-2 rounded-xl border border-white/10 shadow-xl focus:outline-none"
+          >
+            <option value="en-US">English</option>
+            <option value="hi-IN">Hindi</option>
+            <option value="bn-IN">Bengali</option>
+            <option value="ta-IN">Tamil</option>
+            <option value="te-IN">Telugu</option>
+            <option value="mr-IN">Marathi</option>
+            <option value="gu-IN">Gujarati</option>
+            <option value="kn-IN">Kannada</option>
+            <option value="ml-IN">Malayalam</option>
+            <option value="pa-IN">Punjabi</option>
+            <option value="ur-IN">Urdu</option>
+            <option value="or-IN">Odia</option>
+          </select>
+        </div>
+      )}
 
       {!(isMobile && showChat) && (
         <div
