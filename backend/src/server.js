@@ -658,7 +658,7 @@ io.on("connection", async (socket) => {
 
   socket.on("voice-subtitle", async ({ text, fromLang }) => {
     console.log("📩 RECEIVED:", text);
-    if (!text || text.trim().length < 2) return;
+    if (!text || text.trim().length === 0) return;
 
     if (socket.lastText === text) return;
     socket.lastText = text;

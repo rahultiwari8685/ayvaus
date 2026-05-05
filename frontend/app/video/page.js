@@ -97,7 +97,7 @@ export default function VideoChat() {
         if (socketRef.current?.connected) {
           startSpeechRecognition();
         }
-      }, 2000); // 🔥 IMPORTANT DELAY
+      }, 4000); // 🔥 IMPORTANT DELAY
     };
 
     recognitionRef.current = recognition;
