@@ -68,14 +68,14 @@ export default function VideoChat() {
     recognition.interimResults = false;
     recognition.lang = language;
 
-    // ✅ RESULT HANDLER
     recognition.onresult = (event) => {
-      console.log("🎤 SPOKEN:", transcript);
       const result = event.results[event.results.length - 1];
 
       if (!result.isFinal) return;
 
       const transcript = result[0].transcript;
+
+      console.log("🎤 SPOKEN:", transcript);
 
       if (!socketRef.current || !socketRef.current.connected) return;
       if (!transcript || transcript.trim().length < 2) return;
@@ -86,17 +86,22 @@ export default function VideoChat() {
       });
     };
 
-    // ✅ ERROR HANDLER (FIXED POSITION)
     recognition.onerror = (e) => {
       console.log("Speech error:", e.error);
     };
 
     recognition.onend = () => {
       recognitionRef.current = null;
+
+      setTimeout(() => {
+        if (socketRef.current?.connected) {
+          startSpeechRecognition();
+        }
+      }, 500);
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+    recognition.start(); // ✅ ONLY HERE
   }
 
   useEffect(() => {
@@ -405,14 +410,14 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  useEffect(() => {
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
+  // useEffect(() => {
+  //   recognitionRef.current?.stop();
+  //   recognitionRef.current = null;
 
-    setTimeout(() => {
-      startSpeechRecognition();
-    }, 300);
-  }, [language]);
+  //   setTimeout(() => {
+  //     startSpeechRecognition();
+  //   }, 300);
+  // }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");
@@ -900,8 +905,9 @@ export default function VideoChat() {
                 const newLang = e.target.value;
                 setLanguage(newLang);
 
-                // ✅ send to backend
                 socketRef.current.emit("update-language", newLang);
+
+                // ❌ DON'T STOP recognition
               }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
