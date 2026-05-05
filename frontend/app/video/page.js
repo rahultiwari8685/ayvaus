@@ -605,7 +605,7 @@ export default function VideoChat() {
           }
         />
         {voiceSubtitle && (
-          <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
+          <div className="pointer-events-none absolute bottom-40 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
             <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
               <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
                 <span className="text-pink-400 font-bold mr-2">Stranger:</span>
@@ -857,15 +857,11 @@ export default function VideoChat() {
       )}
 
       {!(isMobile && showChat) && (
-        <div className="fixed bottom-[110px] left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
-          <span className="text-[10px] text-gray-400 mb-1">
-            Subtitle Language
-          </span>
-
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="bg-black/80 backdrop-blur-xl text-white text-sm px-4 py-2 rounded-xl border border-white/10 shadow-xl focus:outline-none"
+            className="bg-black/80 backdrop-blur-xl text-white text-sm px-4 py-2 rounded-xl border border-white/10 shadow-xl"
           >
             <option value="en-US">English</option>
             <option value="hi-IN">Hindi</option>
