@@ -91,13 +91,10 @@ export default function VideoChat() {
     };
 
     recognition.onend = () => {
-      recognitionRef.current = null;
+      console.log("Speech ended");
 
-      setTimeout(() => {
-        if (socketRef.current?.connected) {
-          startSpeechRecognition();
-        }
-      }, 500);
+      // ❌ DO NOTHING
+      recognitionRef.current = null;
     };
 
     recognitionRef.current = recognition;
