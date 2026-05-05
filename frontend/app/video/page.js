@@ -93,8 +93,23 @@ export default function VideoChat() {
     recognition.onend = () => {
       console.log("Speech ended");
 
-      // ❌ DO NOTHING
       recognitionRef.current = null;
+
+      // ✅ SAFE restart (only if still connected)
+      setTimeout(() => {
+        if (socketRef.current?.connected && !recognitionRef.current) {
+          startSpeechRecognition();
+        }
+      }, 800);
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error === "no-speech") {
+        console.log("No speech detected");
+        return;
+      }
+
+      console.log("Speech error:", e.error);
     };
 
     recognitionRef.current = recognition;
