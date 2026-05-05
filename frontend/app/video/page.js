@@ -53,7 +53,8 @@ export default function VideoChat() {
   const recognitionRef = useRef(null);
 
   function startSpeechRecognition() {
-    if (recognitionRef.current) return; // prevent duplicate
+    if (typeof window === "undefined") return;
+    if (recognitionRef.current) return;
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,6 +67,7 @@ export default function VideoChat() {
     recognition.interimResults = false;
     recognition.lang = language;
 
+    // ✅ RESULT HANDLER
     recognition.onresult = (event) => {
       const result = event.results[event.results.length - 1];
 
@@ -73,10 +75,17 @@ export default function VideoChat() {
 
       const transcript = result[0].transcript;
 
+      if (!socketRef.current || !socketRef.current.connected) return;
+
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
         fromLang: language,
       });
+    };
+
+    // ✅ ERROR HANDLER (FIXED POSITION)
+    recognition.onerror = (e) => {
+      console.log("Speech error:", e.error);
     };
 
     recognition.onend = () => {
@@ -395,11 +404,15 @@ export default function VideoChat() {
   useEffect(() => {
     if (!recognitionRef.current) return;
 
-    recognitionRef.current.onend = () => {
-      startSpeechRecognition(); // restart safely
-    };
+    const current = recognitionRef.current;
 
-    recognitionRef.current.stop();
+    current.onend = null; // reset previous handler
+
+    current.stop();
+
+    setTimeout(() => {
+      startSpeechRecognition();
+    }, 300);
   }, [language]);
 
   async function nextChat() {
@@ -407,6 +420,7 @@ export default function VideoChat() {
     setMessages([]);
 
     recognitionRef.current?.stop();
+    recognitionRef.current = null;
     setVoiceSubtitle("");
 
     if (pcRef.current) {
@@ -623,7 +637,7 @@ export default function VideoChat() {
           }
         />
         {voiceSubtitle && (
-          <div className="pointer-events-none absolute bottom-38 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
+          <div className="pointer-events-none absolute bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
             <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
               <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
                 <span className="text-pink-400 font-bold mr-2">Stranger:</span>
