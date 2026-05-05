@@ -55,7 +55,6 @@ export default function VideoChat() {
   const recognitionRef = useRef(null);
 
   function startSpeechRecognition() {
-    if (typeof window === "undefined") return;
     if (recognitionRef.current) return;
 
     const SpeechRecognition =
@@ -65,21 +64,19 @@ export default function VideoChat() {
 
     const recognition = new SpeechRecognition();
 
-    recognition.continuous = true;
+    recognition.continuous = false; // 🔥 IMPORTANT
     recognition.interimResults = false;
     recognition.lang = language;
 
     recognition.onresult = (event) => {
-      const result = event.results[event.results.length - 1];
-
-      if (!result.isFinal) return;
+      const result = event.results[0];
+      if (!result?.isFinal) return;
 
       const transcript = result[0].transcript;
 
       console.log("🎤 SPOKEN:", transcript);
 
-      if (!socketRef.current || !socketRef.current.connected) return;
-      if (!transcript || transcript.trim().length < 2) return;
+      if (!socketRef.current?.connected) return;
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
@@ -87,38 +84,24 @@ export default function VideoChat() {
       });
     };
 
-    recognition.onend = () => {
-      console.log("Speech ended");
-
-      recognitionRef.current = null;
-
-      const now = Date.now();
-
-      // ❌ Prevent rapid restart loop
-      if (now - lastSpeechEndRef.current < 1500) return;
-
-      lastSpeechEndRef.current = now;
-
-      setTimeout(() => {
-        if (socketRef.current?.connected && !recognitionRef.current) {
-          startSpeechRecognition();
-        }
-      }, 1500); // ✅ increased delay
-    };
-
     recognition.onerror = (e) => {
-      if (e.error === "aborted") return; // ✅ ignore
-
-      if (e.error === "no-speech") {
-        console.log("No speech detected");
-        return;
-      }
-
+      if (e.error === "aborted" || e.error === "no-speech") return;
       console.log("Speech error:", e.error);
     };
 
+    recognition.onend = () => {
+      recognitionRef.current = null;
+
+      // 🔥 restart AFTER stable delay
+      setTimeout(() => {
+        if (socketRef.current?.connected) {
+          startSpeechRecognition();
+        }
+      }, 2000); // 🔥 IMPORTANT DELAY
+    };
+
     recognitionRef.current = recognition;
-    recognition.start(); // ✅ ONLY HERE
+    recognition.start();
   }
 
   useEffect(() => {
