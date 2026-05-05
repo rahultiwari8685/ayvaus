@@ -26,6 +26,7 @@ export default function VideoChat() {
 
   const iceQueueRef = useRef([]);
   const subtitleTimerRef = useRef(null);
+  const lastSpeechEndRef = useRef(0);
 
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
@@ -86,24 +87,28 @@ export default function VideoChat() {
       });
     };
 
-    recognition.onerror = (e) => {
-      console.log("Speech error:", e.error);
-    };
-
     recognition.onend = () => {
       console.log("Speech ended");
 
       recognitionRef.current = null;
 
-      // ✅ SAFE restart (only if still connected)
+      const now = Date.now();
+
+      // ❌ Prevent rapid restart loop
+      if (now - lastSpeechEndRef.current < 1500) return;
+
+      lastSpeechEndRef.current = now;
+
       setTimeout(() => {
         if (socketRef.current?.connected && !recognitionRef.current) {
           startSpeechRecognition();
         }
-      }, 800);
+      }, 1500); // ✅ increased delay
     };
 
     recognition.onerror = (e) => {
+      if (e.error === "aborted") return; // ✅ ignore
+
       if (e.error === "no-speech") {
         console.log("No speech detected");
         return;
