@@ -25,6 +25,7 @@ export default function VideoChat() {
   const roleRef = useRef(null);
 
   const iceQueueRef = useRef([]);
+  const subtitleTimerRef = useRef(null);
 
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
@@ -76,6 +77,7 @@ export default function VideoChat() {
       const transcript = result[0].transcript;
 
       if (!socketRef.current || !socketRef.current.connected) return;
+      if (!transcript || transcript.trim().length < 2) return;
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
@@ -90,6 +92,11 @@ export default function VideoChat() {
 
     recognition.onend = () => {
       recognitionRef.current = null;
+
+      // restart if still connected
+      if (socketRef.current?.connected) {
+        startSpeechRecognition();
+      }
     };
 
     recognitionRef.current = recognition;
@@ -377,8 +384,9 @@ export default function VideoChat() {
     socketRef.current.on("voice-subtitle", (text) => {
       setVoiceSubtitle(text);
 
-      clearTimeout(window.subtitleTimer);
-      window.subtitleTimer = setTimeout(() => {
+      clearTimeout(subtitleTimerRef.current);
+
+      subtitleTimerRef.current = setTimeout(() => {
         setVoiceSubtitle("");
       }, 2000);
     });
@@ -406,7 +414,7 @@ export default function VideoChat() {
 
     const current = recognitionRef.current;
 
-    current.onend = null; // reset previous handler
+    current.onend = () => {};
 
     current.stop();
 
