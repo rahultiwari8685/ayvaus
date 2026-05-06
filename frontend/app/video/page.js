@@ -26,6 +26,7 @@ export default function VideoChat() {
 
   const iceQueueRef = useRef([]);
   const subtitleTimerRef = useRef(null);
+  const languageRestartTimerRef = useRef(null);
   const lastSpeechEndRef = useRef(0);
 
   const recognitionStartingRef = useRef(false);
@@ -294,13 +295,13 @@ export default function VideoChat() {
       });
     }
 
-    socketRef.current.on("online-users", (count) => {
+    socket.on("online-users", (count) => {
       setOnlineCount(count);
     });
 
     start();
 
-    socketRef.current.on("matched", async ({ role }) => {
+    socket.on("matched", async ({ role }) => {
       if (!pcRef.current) {
         await createPeer();
       }
@@ -308,7 +309,7 @@ export default function VideoChat() {
       setStatus("Connecting...");
     });
 
-    socketRef.current.on("ready", async () => {
+    socket.on("ready", async () => {
       if (roleRef.current !== "caller") return;
       if (!pcRef.current) return;
 
@@ -319,7 +320,7 @@ export default function VideoChat() {
       });
     });
 
-    socketRef.current.on("signal", async (data) => {
+    socket.on("signal", async (data) => {
       if (!pcRef.current) return;
 
       try {
@@ -364,7 +365,7 @@ export default function VideoChat() {
       }
     });
 
-    socketRef.current.on("chat-message", (msg) => {
+    socket.on("chat-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
 
       socketRef.current.emit("message-delivered", msg.id);
@@ -374,7 +375,7 @@ export default function VideoChat() {
       }
     });
 
-    socketRef.current.on("edit-message", ({ id, newText }) => {
+    socket.on("edit-message", ({ id, newText }) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === id ? { ...m, text: newText, edited: true } : m,
@@ -382,7 +383,7 @@ export default function VideoChat() {
       );
     });
 
-    socketRef.current.on("message-delivered", (messageId) => {
+    socket.on("message-delivered", (messageId) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId ? { ...m, status: "delivered" } : m,
@@ -390,7 +391,7 @@ export default function VideoChat() {
       );
     });
 
-    socketRef.current.on("typing", () => {
+    socket.on("typing", () => {
       setTyping(true);
 
       setTimeout(() => {
@@ -398,13 +399,13 @@ export default function VideoChat() {
       }, 2000);
     });
 
-    socketRef.current.on("message-seen", (messageId) => {
+    socket.on("message-seen", (messageId) => {
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? { ...m, status: "seen" } : m)),
       );
     });
 
-    socketRef.current.on("partner-left", () => {
+    socket.on("partner-left", () => {
       setStatus("Looking for someone...");
       setMessages([]);
 
@@ -434,27 +435,70 @@ export default function VideoChat() {
       }, 500);
     });
 
-    socketRef.current.on("next-blocked", () => {
+    socket.on("next-blocked", () => {
       alert("Please wait before skipping again.");
     });
 
-    socketRef.current.on("voice-subtitle", (text) => {
+    socket.on("voice-subtitle", (text) => {
       console.log("📥 SUBTITLE RECEIVED:", text);
-
+      console.log("🔥 SETTING SUBTITLE STATE");
       setVoiceSubtitle(text);
 
       clearTimeout(subtitleTimerRef.current);
+      if (subtitleTimerRef.current) {
+        clearTimeout(subtitleTimerRef.current);
+      }
 
       subtitleTimerRef.current = setTimeout(() => {
         setVoiceSubtitle("");
-      }, 3000);
+      }, 5000);
     });
+
+    // return () => {
+    //   mounted = false;
+    //   pcRef.current?.close();
+    //   streamRef.current?.getTracks().forEach((t) => t.stop());
+    //   socketRef.current?.disconnect();
+    // };
 
     return () => {
       mounted = false;
-      pcRef.current?.close();
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      socketRef.current?.disconnect();
+
+      if (recognitionRef.current) {
+        shouldRestartRecognitionRef.current = false;
+
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+
+      clearTimeout(subtitleTimerRef.current);
+
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+
+      if (socket) {
+        socket.off("online-users");
+        socket.off("matched");
+        socket.off("ready");
+        socket.off("signal");
+        socket.off("chat-message");
+        socket.off("edit-message");
+        socket.off("typing");
+        socket.off("message-delivered");
+        socket.off("message-seen");
+        socket.off("partner-left");
+        socket.off("next-blocked");
+        socket.off("voice-subtitle");
+
+        socket.disconnect();
+      }
     };
   }, []);
 
@@ -692,7 +736,7 @@ export default function VideoChat() {
               : {}
           }
         />
-        {voiceSubtitle && (
+        {/* {voiceSubtitle && (
           <div className="pointer-events-none absolute bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
             <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
               <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
@@ -701,7 +745,21 @@ export default function VideoChat() {
               </p>
             </div>
           </div>
-        )}
+        )} */}
+        <div
+          key={voiceSubtitle}
+          className={`pointer-events-none absolute bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl transition-all duration-300 ${
+            voiceSubtitle ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+            <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
+              <span className="text-pink-400 font-bold mr-2">Stranger:</span>
+
+              {voiceSubtitle || "..."}
+            </p>
+          </div>
+        </div>
 
         {/* {voiceSubtitle && (
           <div className="absolute bottom-28 left-1/2 -translate-x-1/2 px-5 py-2 bg-black/70 backdrop-blur-md rounded-xl text-white text-sm max-w-[80%] text-center shadow-lg">
@@ -966,8 +1024,11 @@ export default function VideoChat() {
                   recognitionRef.current = null;
                 }
 
-                setTimeout(() => {
+                clearTimeout(languageRestartTimerRef.current);
+
+                languageRestartTimerRef.current = setTimeout(() => {
                   shouldRestartRecognitionRef.current = true;
+
                   startSpeechRecognition();
                 }, 1500);
 
