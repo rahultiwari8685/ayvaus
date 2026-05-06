@@ -668,7 +668,12 @@ io.on("connection", async (socket) => {
 
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    console.log("🤝 PARTNER:", !!partner);
+    console.log("🤝 PARTNER EXISTS:", !!partner);
+
+    if (partner) {
+      console.log("👥 PARTNER SOCKET:", partner.id);
+      console.log("🌍 PARTNER LANG:", partner.language);
+    }
 
     if (!partner) return;
 
@@ -697,6 +702,7 @@ io.on("connection", async (socket) => {
     console.log("📤 EMITTING:", translatedText);
 
     partner.emit("voice-subtitle", translatedText);
+    console.log("✅ SUBTITLE EMITTED SUCCESSFULLY");
   });
 
   setTimeout(() => {
