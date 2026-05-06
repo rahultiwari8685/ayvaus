@@ -82,7 +82,8 @@ export default function VideoChat() {
 
     recognition.continuous = true;
     recognition.interimResults = false;
-    recognition.lang = language;
+    // recognition.lang = language;
+    recognition.lang = "en-US";
 
     recognition.onstart = () => {
       console.log("✅ Speech recognition STARTED");
@@ -1005,27 +1006,35 @@ export default function VideoChat() {
               // onChange={(e) => setLanguage(e.target.value)}
               onChange={(e) => {
                 const newLang = e.target.value;
+
                 setLanguage(newLang);
 
+                // only subtitle language
                 socketRef.current.emit("update-language", newLang);
-
-                if (recognitionRef.current) {
-                  shouldRestartRecognitionRef.current = false;
-
-                  recognitionRef.current.stop();
-                  recognitionRef.current = null;
-                }
-
-                clearTimeout(languageRestartTimerRef.current);
-
-                languageRestartTimerRef.current = setTimeout(() => {
-                  shouldRestartRecognitionRef.current = true;
-
-                  startSpeechRecognition();
-                }, 1500);
-
-                // ❌ DON'T STOP recognition
               }}
+              // onChange={(e) => {
+              //   const newLang = e.target.value;
+              //   setLanguage(newLang);
+
+              //   socketRef.current.emit("update-language", newLang);
+
+              //   if (recognitionRef.current) {
+              //     shouldRestartRecognitionRef.current = false;
+
+              //     recognitionRef.current.stop();
+              //     recognitionRef.current = null;
+              //   }
+
+              //   clearTimeout(languageRestartTimerRef.current);
+
+              //   languageRestartTimerRef.current = setTimeout(() => {
+              //     shouldRestartRecognitionRef.current = true;
+
+              //     startSpeechRecognition();
+              //   }, 1500);
+
+              //   // ❌ DON'T STOP recognition
+              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               <option value="en-US">English</option>
