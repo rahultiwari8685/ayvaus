@@ -12,7 +12,7 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
-
+import translate from "@vitalets/google-translate-api";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -94,26 +94,40 @@ function emitSeriousUsers() {
 
 async function translateText(text, targetLang) {
   try {
-    const res = await fetch("https://translate.argosopentech.com/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        q: text,
-        source: "auto",
-        target: targetLang,
-        format: "text",
-      }),
+    const res = await translate(text, {
+      to: targetLang,
     });
 
-    const data = await res.json();
-    return data.translatedText || text;
+    return res.text || text;
   } catch (err) {
     console.log("Translate API error:", err.message);
+
     return text;
   }
 }
+
+// async function translateText(text, targetLang) {
+//   try {
+//     const res = await fetch("https://translate.argosopentech.com/translate", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         q: text,
+//         source: "auto",
+//         target: targetLang,
+//         format: "text",
+//       }),
+//     });
+
+//     const data = await res.json();
+//     return data.translatedText || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+//     return text;
+//   }
+// }
 
 io.on("connection", async (socket) => {
   socket.language = "en-US";
