@@ -756,7 +756,7 @@ export default function VideoChat() {
             <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
               <span className="text-pink-400 font-bold mr-2">Stranger:</span>
 
-              {voiceSubtitle || "..."}
+              {voiceSubtitle || "TEST SUBTITLE"}
             </p>
           </div>
         </div>
