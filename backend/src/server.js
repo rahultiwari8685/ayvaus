@@ -668,41 +668,41 @@ io.on("connection", async (socket) => {
 
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    console.log("🤝 PARTNER EXISTS:", !!partner);
-
-    if (partner) {
-      console.log("👥 PARTNER SOCKET:", partner.id);
-      console.log("🌍 PARTNER LANG:", partner.language);
-    }
-
     if (!partner) return;
 
+    // partner preferred language
     const targetLang = (partner.language || "en-US").split("-")[0];
 
-    let translatedText = text;
+    // speaker own language
+    const selfLang = (socket.language || "en-US").split("-")[0];
+
+    let translatedForPartner = text;
+    let translatedForSelf = text;
 
     try {
-      const cacheKey = `${text}_${targetLang}`;
+      translatedForPartner = await translateText(text, targetLang);
 
-      if (translationCache.has(cacheKey)) {
-        translatedText = translationCache.get(cacheKey);
-      } else {
-        translatedText = await translateText(text, targetLang);
-
-        translationCache.set(cacheKey, translatedText);
-
-        if (translationCache.size > 1000) {
-          translationCache.clear();
-        }
-      }
+      translatedForSelf = await translateText(text, selfLang);
     } catch (err) {
       console.log("Translation error:", err.message);
     }
 
-    console.log("📤 EMITTING:", translatedText);
+    // send translated subtitle to partner
+    partner.emit("voice-subtitle", {
+      text: translatedForPartner,
+      speaker: "Stranger",
+    });
 
-    partner.emit("voice-subtitle", translatedText);
-    console.log("✅ SUBTITLE EMITTED SUCCESSFULLY");
+    // send own subtitle to speaker
+    socket.emit("voice-subtitle", {
+      text: translatedForSelf,
+      speaker: "You",
+    });
+
+    // console.log("📤 EMITTING:", translatedText);
+
+    // partner.emit("voice-subtitle", translatedText);
+    // console.log("✅ SUBTITLE EMITTED SUCCESSFULLY");
   });
 
   setTimeout(() => {

@@ -53,7 +53,7 @@ export default function VideoChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
 
-  const [voiceSubtitle, setVoiceSubtitle] = useState("");
+  const [voiceSubtitle, setVoiceSubtitle] = useState(null);
   const [language, setLanguage] = useState("en-US");
   const recognitionRef = useRef(null);
   const shouldRestartRecognitionRef = useRef(true);
@@ -439,18 +439,17 @@ export default function VideoChat() {
       alert("Please wait before skipping again.");
     });
 
-    socket.on("voice-subtitle", (text) => {
-      console.log("📥 SUBTITLE RECEIVED:", text);
-      console.log("🔥 SETTING SUBTITLE STATE");
-      setVoiceSubtitle(text);
+    socket.on("voice-subtitle", (data) => {
+      console.log("📥 SUBTITLE RECEIVED:", data);
 
-      clearTimeout(subtitleTimerRef.current);
+      setVoiceSubtitle(data);
+
       if (subtitleTimerRef.current) {
         clearTimeout(subtitleTimerRef.current);
       }
 
       subtitleTimerRef.current = setTimeout(() => {
-        setVoiceSubtitle("");
+        setVoiceSubtitle(null);
       }, 5000);
     });
 
@@ -758,9 +757,19 @@ export default function VideoChat() {
       >
         <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
           <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
-            <span className="text-pink-400 font-bold mr-2">Stranger:</span>
+            <>
+              <span
+                className={`font-bold mr-2 ${
+                  voiceSubtitle?.speaker === "You"
+                    ? "text-green-400"
+                    : "text-pink-400"
+                }`}
+              >
+                {voiceSubtitle?.speaker}:
+              </span>
 
-            {voiceSubtitle}
+              {voiceSubtitle?.text}
+            </>
           </p>
         </div>
       </div>
