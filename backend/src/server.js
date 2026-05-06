@@ -94,7 +94,7 @@ function emitSeriousUsers() {
 
 async function translateText(text, targetLang) {
   try {
-    const res = await fetch("https://libretranslate.de/translate", {
+    const res = await fetch("https://translate.argosopentech.com/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -658,8 +658,15 @@ io.on("connection", async (socket) => {
     console.log("📩 RECEIVED:", text);
     if (!text || text.trim().length === 0) return;
 
-    if (socket.lastText === text) return;
+    if (
+      socket.lastText === text &&
+      Date.now() - (socket.lastTextTime || 0) < 3000
+    ) {
+      return;
+    }
+
     socket.lastText = text;
+    socket.lastTextTime = Date.now();
 
     if (!socket.lastSubtitleTime) socket.lastSubtitleTime = 0;
 
@@ -684,10 +691,7 @@ io.on("connection", async (socket) => {
       if (translationCache.has(cacheKey)) {
         translatedText = translationCache.get(cacheKey);
       } else {
-        // 🔥 FIX: normalize Hinglish first
-        let normalizedText = await translateText(text, "hi");
-
-        translatedText = await translateText(normalizedText, targetLang);
+        translatedText = await translateText(text, targetLang);
 
         translationCache.set(cacheKey, translatedText);
 

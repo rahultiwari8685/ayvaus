@@ -64,20 +64,18 @@ export default function VideoChat() {
 
     const recognition = new SpeechRecognition();
 
-    // recognition.continuous = false; // 🔥 IMPORTANT
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    // recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.interimResults = false;
     recognition.lang = language;
-    // recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
-      const result = event.results[event.results.length - 1];
+      const result = event.results[0];
+
       if (!result?.isFinal) return;
 
       const transcript = result[0].transcript;
+
+      if (!transcript || transcript.trim().length < 2) return;
 
       console.log("🎤 SPOKEN:", transcript);
 
@@ -90,19 +88,21 @@ export default function VideoChat() {
     };
 
     recognition.onerror = (e) => {
-      if (e.error === "aborted" || e.error === "no-speech") return;
+      if (e.error === "aborted" || e.error === "no-speech") {
+        return;
+      }
+
       console.log("Speech error:", e.error);
     };
 
     recognition.onend = () => {
       recognitionRef.current = null;
 
-      // 🔥 restart AFTER stable delay
       setTimeout(() => {
-        if (socketRef.current?.connected) {
+        if (socketRef.current?.connected && !recognitionRef.current) {
           startSpeechRecognition();
         }
-      }, 4000); // 🔥 IMPORTANT DELAY
+      }, 1500);
     };
 
     recognitionRef.current = recognition;
@@ -416,12 +416,18 @@ export default function VideoChat() {
   }, [showChat]);
 
   useEffect(() => {
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
 
-    setTimeout(() => {
-      startSpeechRecognition();
-    }, 300);
+    const timer = setTimeout(() => {
+      if (socketRef.current?.connected) {
+        startSpeechRecognition();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [language]);
 
   async function nextChat() {
