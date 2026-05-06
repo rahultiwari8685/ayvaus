@@ -736,36 +736,6 @@ export default function VideoChat() {
               : {}
           }
         />
-        {/* {voiceSubtitle && (
-          <div className="pointer-events-none absolute bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl">
-            <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-              <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
-                <span className="text-pink-400 font-bold mr-2">Stranger:</span>
-                {voiceSubtitle}
-              </p>
-            </div>
-          </div>
-        )} */}
-        <div
-          key={voiceSubtitle}
-          className={`pointer-events-none absolute z-[9999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl transition-all duration-300 ${
-            voiceSubtitle ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
-        >
-          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-            <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
-              <span className="text-pink-400 font-bold mr-2">Stranger:</span>
-
-              {voiceSubtitle || "TEST SUBTITLE"}
-            </p>
-          </div>
-        </div>
-
-        {/* {voiceSubtitle && (
-          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 px-5 py-2 bg-black/70 backdrop-blur-md rounded-xl text-white text-sm max-w-[80%] text-center shadow-lg">
-            🎤 {voiceSubtitle}
-          </div>
-        )} */}
 
         <div
           className={`absolute bottom-28 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
@@ -779,6 +749,19 @@ export default function VideoChat() {
             playsInline
             className="w-full h-full object-cover scale-x-[-1]"
           />
+        </div>
+      </div>
+
+      <div
+        key={voiceSubtitle}
+        className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl opacity-100 scale-100"
+      >
+        <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
+            <span className="text-pink-400 font-bold mr-2">Stranger:</span>
+
+            {voiceSubtitle}
+          </p>
         </div>
       </div>
 
