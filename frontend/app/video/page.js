@@ -55,31 +55,45 @@ export default function VideoChat() {
   const recognitionRef = useRef(null);
 
   function startSpeechRecognition() {
-    if (recognitionRef.current) return;
+    console.log("🎤 STARTING SPEECH");
+
+    if (recognitionRef.current) {
+      console.log("⚠ Already running");
+      return;
+    }
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      console.log("❌ SpeechRecognition NOT SUPPORTED");
+      return;
+    }
 
     const recognition = new SpeechRecognition();
 
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = language;
 
+    recognition.onstart = () => {
+      console.log("✅ Speech recognition STARTED");
+    };
+
     recognition.onresult = (event) => {
-      const result = event.results[0];
+      console.log("🎯 RESULT EVENT");
 
-      if (!result?.isFinal) return;
+      let transcript = "";
 
-      const transcript = result[0].transcript;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
 
-      if (!transcript || transcript.trim().length < 2) return;
+      transcript = transcript.trim();
 
       console.log("🎤 SPOKEN:", transcript);
 
-      if (!socketRef.current?.connected) return;
+      if (!transcript) return;
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
@@ -88,25 +102,26 @@ export default function VideoChat() {
     };
 
     recognition.onerror = (e) => {
-      if (e.error === "aborted" || e.error === "no-speech") {
-        return;
-      }
-
-      console.log("Speech error:", e.error);
+      console.log("❌ Speech error:", e.error);
     };
 
     recognition.onend = () => {
+      console.log("🛑 Speech ended");
+
       recognitionRef.current = null;
 
       setTimeout(() => {
-        if (socketRef.current?.connected && !recognitionRef.current) {
-          startSpeechRecognition();
-        }
-      }, 1500);
+        startSpeechRecognition();
+      }, 1000);
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+
+    try {
+      recognition.start();
+    } catch (err) {
+      console.log("❌ START ERROR:", err);
+    }
   }
 
   useEffect(() => {
