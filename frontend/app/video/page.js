@@ -184,6 +184,11 @@ export default function VideoChat() {
       }
 
       remoteVideo.current.srcObject.addTrack(event.track);
+
+      // ✅ start subtitles AFTER remote stream ready
+      setTimeout(() => {
+        startSpeechRecognition();
+      }, 2000);
     };
 
     pc.onicecandidate = (e) => {
@@ -199,14 +204,8 @@ export default function VideoChat() {
         setStatus("Connecting...");
       }
 
-      // if (pc.iceConnectionState === "connected") {
-      //   setStatus("Connected");
-      // }
-
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
-
-        startSpeechRecognition(); // ✅ START HERE
       }
 
       if (
@@ -415,20 +414,20 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  useEffect(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
+  // useEffect(() => {
+  //   if (recognitionRef.current) {
+  //     recognitionRef.current.stop();
+  //     recognitionRef.current = null;
+  //   }
 
-    const timer = setTimeout(() => {
-      if (socketRef.current?.connected) {
-        startSpeechRecognition();
-      }
-    }, 1000);
+  //   const timer = setTimeout(() => {
+  //     if (socketRef.current?.connected) {
+  //       startSpeechRecognition();
+  //     }
+  //   }, 1000);
 
-    return () => clearTimeout(timer);
-  }, [language]);
+  //   return () => clearTimeout(timer);
+  // }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");
@@ -917,6 +916,15 @@ export default function VideoChat() {
                 setLanguage(newLang);
 
                 socketRef.current.emit("update-language", newLang);
+
+                if (recognitionRef.current) {
+                  recognitionRef.current.stop();
+                  recognitionRef.current = null;
+                }
+
+                setTimeout(() => {
+                  startSpeechRecognition();
+                }, 1500);
 
                 // ❌ DON'T STOP recognition
               }}

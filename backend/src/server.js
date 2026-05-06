@@ -702,12 +702,13 @@ io.on("connection", async (socket) => {
     } catch (err) {
       console.log("Translation error:", err.message);
     }
+    partner.emit("voice-subtitle", translatedText);
 
-    clearTimeout(socket.subtitleTimer);
+    // clearTimeout(socket.subtitleTimer);
 
-    socket.subtitleTimer = setTimeout(() => {
-      partner.emit("voice-subtitle", translatedText);
-    }, 300);
+    // socket.subtitleTimer = setTimeout(() => {
+    //   partner.emit("voice-subtitle", translatedText);
+    // }, 300);
   });
 
   setTimeout(() => {
