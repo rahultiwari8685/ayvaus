@@ -73,32 +73,34 @@ export default function VideoChat() {
     const recognition = new SpeechRecognition();
 
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = language;
 
     recognition.onstart = () => {
       console.log("✅ Speech recognition STARTED");
     };
-
     recognition.onresult = (event) => {
-      console.log("🎯 RESULT EVENT");
+      const lastResult = event.results[event.results.length - 1];
 
-      let transcript = "";
+      if (!lastResult.isFinal) return;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-
-      transcript = transcript.trim();
-
-      console.log("🎤 SPOKEN:", transcript);
+      const transcript = lastResult[0].transcript.trim();
 
       if (!transcript) return;
+
+      console.log("🎤 FINAL:", transcript);
+
+      if (!socketRef.current?.connected) {
+        console.log("❌ Socket disconnected");
+        return;
+      }
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
         fromLang: language,
       });
+
+      console.log("📤 SENT:", transcript);
     };
 
     recognition.onerror = (e) => {
@@ -136,7 +138,12 @@ export default function VideoChat() {
 
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
-      audio: true,
+      // audio: true,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
     });
 
     streamRef.current = stream;
@@ -199,11 +206,6 @@ export default function VideoChat() {
       }
 
       remoteVideo.current.srcObject.addTrack(event.track);
-
-      // ✅ start subtitles AFTER remote stream ready
-      setTimeout(() => {
-        startSpeechRecognition();
-      }, 2000);
     };
 
     pc.onicecandidate = (e) => {
@@ -221,6 +223,12 @@ export default function VideoChat() {
 
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
+
+        if (!recognitionRef.current) {
+          setTimeout(() => {
+            startSpeechRecognition();
+          }, 1000);
+        }
       }
 
       if (
@@ -402,13 +410,15 @@ export default function VideoChat() {
     });
 
     socketRef.current.on("voice-subtitle", (text) => {
+      console.log("📥 SUBTITLE RECEIVED:", text);
+
       setVoiceSubtitle(text);
 
       clearTimeout(subtitleTimerRef.current);
 
       subtitleTimerRef.current = setTimeout(() => {
         setVoiceSubtitle("");
-      }, 2000);
+      }, 3000);
     });
 
     return () => {
@@ -428,21 +438,6 @@ export default function VideoChat() {
       });
     }
   }, [showChat]);
-
-  // useEffect(() => {
-  //   if (recognitionRef.current) {
-  //     recognitionRef.current.stop();
-  //     recognitionRef.current = null;
-  //   }
-
-  //   const timer = setTimeout(() => {
-  //     if (socketRef.current?.connected) {
-  //       startSpeechRecognition();
-  //     }
-  //   }, 1000);
-
-  //   return () => clearTimeout(timer);
-  // }, [language]);
 
   async function nextChat() {
     setStatus("Looking for someone...");
@@ -638,6 +633,7 @@ export default function VideoChat() {
 
       <div className="relative w-full h-screen flex items-center justify-center">
         <video
+          controls={false}
           ref={remoteVideo}
           autoPlay
           playsInline

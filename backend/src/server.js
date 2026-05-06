@@ -648,19 +648,15 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // socket.on("voice-subtitle", (text) => {
-  //   if (socket.partner) {
-  //     socket.partner.emit("voice-subtitle", text);
-  //   }
-  // });
-
   socket.on("voice-subtitle", async ({ text, fromLang }) => {
     console.log("📩 RECEIVED:", text);
+
     if (!text || text.trim().length === 0) return;
 
+    // prevent rapid duplicate spam
     if (
       socket.lastText === text &&
-      Date.now() - (socket.lastTextTime || 0) < 3000
+      Date.now() - (socket.lastTextTime || 0) < 2000
     ) {
       return;
     }
@@ -668,20 +664,13 @@ io.on("connection", async (socket) => {
     socket.lastText = text;
     socket.lastTextTime = Date.now();
 
-    if (!socket.lastSubtitleTime) socket.lastSubtitleTime = 0;
-
-    const now = Date.now();
-    if (now - socket.lastSubtitleTime < 1000) return;
-
-    socket.lastSubtitleTime = now;
-
     const partner = socket.partner;
+
+    console.log("🤝 PARTNER:", !!partner);
+
     if (!partner) return;
 
     const targetLang = (partner.language || "en-US").split("-")[0];
-
-    // const targetLang = (partner.language || "en").split("-")[0];
-    const sourceLang = (fromLang || "en").split("-")[0];
 
     let translatedText = text;
 
@@ -702,13 +691,10 @@ io.on("connection", async (socket) => {
     } catch (err) {
       console.log("Translation error:", err.message);
     }
+
+    console.log("📤 EMITTING:", translatedText);
+
     partner.emit("voice-subtitle", translatedText);
-
-    // clearTimeout(socket.subtitleTimer);
-
-    // socket.subtitleTimer = setTimeout(() => {
-    //   partner.emit("voice-subtitle", translatedText);
-    // }, 300);
   });
 
   setTimeout(() => {
