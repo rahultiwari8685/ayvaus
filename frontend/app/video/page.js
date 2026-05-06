@@ -28,6 +28,8 @@ export default function VideoChat() {
   const subtitleTimerRef = useRef(null);
   const lastSpeechEndRef = useRef(0);
 
+  const recognitionStartingRef = useRef(false);
+
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -53,20 +55,23 @@ export default function VideoChat() {
   const [voiceSubtitle, setVoiceSubtitle] = useState("");
   const [language, setLanguage] = useState("en-US");
   const recognitionRef = useRef(null);
+  const shouldRestartRecognitionRef = useRef(true);
 
   function startSpeechRecognition() {
-    console.log("🎤 STARTING SPEECH");
-
-    if (recognitionRef.current) {
-      console.log("⚠ Already running");
+    if (recognitionRef.current || recognitionStartingRef.current) {
       return;
     }
+
+    recognitionStartingRef.current = true;
+
+    console.log("🎤 STARTING SPEECH");
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      console.log("❌ SpeechRecognition NOT SUPPORTED");
+      console.log("❌ SpeechRecognition unsupported");
+      recognitionStartingRef.current = false;
       return;
     }
 
@@ -78,7 +83,10 @@ export default function VideoChat() {
 
     recognition.onstart = () => {
       console.log("✅ Speech recognition STARTED");
+
+      recognitionStartingRef.current = false;
     };
+
     recognition.onresult = (event) => {
       const lastResult = event.results[event.results.length - 1];
 
@@ -90,10 +98,7 @@ export default function VideoChat() {
 
       console.log("🎤 FINAL:", transcript);
 
-      if (!socketRef.current?.connected) {
-        console.log("❌ Socket disconnected");
-        return;
-      }
+      if (!socketRef.current?.connected) return;
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
@@ -105,16 +110,29 @@ export default function VideoChat() {
 
     recognition.onerror = (e) => {
       console.log("❌ Speech error:", e.error);
+
+      // ignore abort spam
+      if (e.error === "aborted") return;
     };
 
     recognition.onend = () => {
       console.log("🛑 Speech ended");
 
       recognitionRef.current = null;
+      recognitionStartingRef.current = false;
+
+      // ✅ only restart if allowed
+      if (!shouldRestartRecognitionRef.current) {
+        console.log("⛔ Restart blocked");
+        return;
+      }
 
       setTimeout(() => {
-        startSpeechRecognition();
-      }, 1000);
+        if (socketRef.current?.connected && !recognitionRef.current) {
+          shouldRestartRecognitionRef.current = true;
+          startSpeechRecognition();
+        }
+      }, 2000);
     };
 
     recognitionRef.current = recognition;
@@ -122,7 +140,8 @@ export default function VideoChat() {
     try {
       recognition.start();
     } catch (err) {
-      console.log("❌ START ERROR:", err);
+      console.log("❌ Start failed:", err);
+      recognitionStartingRef.current = false;
     }
   }
 
@@ -226,6 +245,7 @@ export default function VideoChat() {
 
         if (!recognitionRef.current) {
           setTimeout(() => {
+            shouldRestartRecognitionRef.current = true;
             startSpeechRecognition();
           }, 1000);
         }
@@ -394,6 +414,8 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
+      shouldRestartRecognitionRef.current = false;
+
       recognitionRef.current?.stop();
       setVoiceSubtitle("");
 
@@ -442,6 +464,8 @@ export default function VideoChat() {
   async function nextChat() {
     setStatus("Looking for someone...");
     setMessages([]);
+
+    shouldRestartRecognitionRef.current = false;
 
     recognitionRef.current?.stop();
     recognitionRef.current = null;
@@ -929,11 +953,14 @@ export default function VideoChat() {
                 socketRef.current.emit("update-language", newLang);
 
                 if (recognitionRef.current) {
+                  shouldRestartRecognitionRef.current = false;
+
                   recognitionRef.current.stop();
                   recognitionRef.current = null;
                 }
 
                 setTimeout(() => {
+                  shouldRestartRecognitionRef.current = true;
                   startSpeechRecognition();
                 }, 1500);
 
