@@ -196,7 +196,7 @@ io.on("connection", async (socket) => {
     }, 100);
   }
 
-  socket.partner = null;
+  socket.partnerId = null;
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
@@ -209,7 +209,7 @@ io.on("connection", async (socket) => {
         const s2 = queue[j];
 
         if (!s1 || !s2) continue;
-        if (s1.partner || s2.partner) continue;
+        if (s1.partnerId || s2.partnerId) continue;
 
         if (s1.lastPartnerId === s2.id || s2.lastPartnerId === s1.id) {
           continue;
@@ -218,8 +218,8 @@ io.on("connection", async (socket) => {
         queue.splice(j, 1);
         queue.splice(i, 1);
 
-        s1.partner = s2;
-        s2.partner = s1;
+        s1.partnerId = s2.id;
+        s2.partnerId = s1.id;
 
         if (mode === "serious") {
           try {
@@ -284,7 +284,7 @@ io.on("connection", async (socket) => {
     socket.language = language || "en-US";
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
-    if (!queue.includes(socket) && !socket.partner) {
+    if (!queue.includes(socket) && !socket.partnerId) {
       queue.push(socket);
     }
 
@@ -296,50 +296,46 @@ io.on("connection", async (socket) => {
     socket.language = lang;
   });
 
-  // socket.on("join", () => {
-  //   console.log("JOIN MODE:", socket.mode);
-  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
-
-  //   if (socket.mode === "serious") {
-  //   }
-
-  //   if (!queue.includes(socket) && !socket.partner) {
-  //     queue.push(socket);
-  //   }
-
-  //   emitOnlineCount();
-
-  //   console.log("🚀 JOIN EVENT:", socket.id);
-
-  //   tryMatch(socket.mode);
-  // });
-
   socket.on("ready", () => {
-    socket.partner?.emit("ready");
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("ready");
   });
 
   socket.on("signal", (data) => {
-    socket.partner?.emit("signal", data);
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("signal", data);
   });
 
   socket.on("edit-message", (data) => {
-    socket.partner?.emit("edit-message", data);
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("edit-message", data);
   });
 
   socket.on("typing", () => {
-    socket.partner?.emit("typing");
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("typing");
   });
 
   socket.on("chat-message", (msg) => {
-    socket.partner?.emit("chat-message", msg);
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("chat-message", msg);
   });
 
   socket.on("message-delivered", (messageId) => {
-    socket.partner?.emit("message-delivered", messageId);
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("message-delivered", messageId);
   });
 
   socket.on("message-seen", (messageId) => {
-    socket.partner?.emit("message-seen", messageId);
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("message-seen", messageId);
   });
 
   socket.on("next", async () => {
@@ -365,8 +361,10 @@ io.on("connection", async (socket) => {
           await conn.save();
           socket.connectionId = null;
 
-          if (socket.partner) {
-            socket.partner.connectionId = null;
+          const partner = io.sockets.sockets.get(socket.partnerId);
+
+          if (partner) {
+            partner.connectionId = null;
           }
 
           console.log("⏭️ Connection skipped:", conn._id);
@@ -376,37 +374,39 @@ io.on("connection", async (socket) => {
       }
     }
 
-    if (socket.partner) {
-      const oldPartner = socket.partner;
+    if (socket.partnerId) {
+      const oldPartner = io.sockets.sockets.get(socket.partnerId);
 
-      socket.lastPartnerId = oldPartner.id;
-      oldPartner.lastPartnerId = socket.id;
+      if (oldPartner) {
+        socket.lastPartnerId = oldPartner.id;
+        oldPartner.lastPartnerId = socket.id;
 
-      oldPartner.partner = null;
-      socket.partner = null;
+        oldPartner.partnerId = null;
+        socket.partnerId = null;
 
-      oldPartner.emit("partner-left");
+        oldPartner.emit("partner-left");
 
-      if (!queue.includes(oldPartner)) {
-        setTimeout(() => {
-          if (!queue.includes(oldPartner) && !oldPartner.partner) {
-            queue.push(oldPartner);
-          }
-
+        if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
           setTimeout(() => {
-            oldPartner.lastPartnerId = null;
-          }, 10000);
-        }, 300);
+            queue.push(oldPartner);
+
+            setTimeout(() => {
+              oldPartner.lastPartnerId = null;
+            }, 10000);
+          }, 300);
+        }
       }
+
+      socket.partnerId = null;
     }
 
     const index = queue.indexOf(socket);
     if (index !== -1) queue.splice(index, 1);
 
-    socket.partner = null;
+    socket.partnerId = null;
 
     setTimeout(() => {
-      if (!queue.includes(socket) && !socket.partner) {
+      if (!queue.includes(socket) && !socket.partnerId) {
         queue.push(socket);
       }
 
@@ -454,14 +454,16 @@ io.on("connection", async (socket) => {
 
       socket.connectionId = null;
 
-      if (socket.partner) {
-        socket.partner.connectionId = null;
+      const partner = io.sockets.sockets.get(socket.partnerId);
+
+      if (partner) {
+        partner.connectionId = null;
       }
     }
 
-    if (socket.partner) {
-      const partner = socket.partner;
+    const partner = io.sockets.sockets.get(socket.partnerId);
 
+    if (partner) {
       partner.emit("partner-left");
 
       if (partner.connectionId) {
@@ -485,7 +487,7 @@ io.on("connection", async (socket) => {
       }
 
       partner.connectionId = null;
-      partner.partner = null;
+      partner.partnerId = null;
     }
 
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
@@ -538,8 +540,8 @@ io.on("connection", async (socket) => {
       socket.reconnecting = true;
       partnerSocket.reconnecting = true;
 
-      socket.partner = partnerSocket;
-      partnerSocket.partner = socket;
+      socket.partnerId = partnerSocket.id;
+      partnerSocket.partnerId = socket.id;
 
       const connection = await Connection.create({
         user1: user._id,
@@ -664,7 +666,7 @@ io.on("connection", async (socket) => {
     socket.lastText = text;
     socket.lastTextTime = Date.now();
 
-    const partner = socket.partner;
+    const partner = io.sockets.sockets.get(socket.partnerId);
 
     console.log("🤝 PARTNER:", !!partner);
 
