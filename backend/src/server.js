@@ -12,7 +12,7 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
-import translate from "@vitalets/google-translate-api";
+import { translate } from "@vitalets/google-translate-api";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
