@@ -102,7 +102,7 @@ async function translateText(text, targetLang) {
       body: JSON.stringify({
         q: text,
         source: "auto",
-        target: targetLang.split("-")[0], // en-US → en
+        target: targetLang,
         format: "text",
       }),
     });
@@ -672,6 +672,9 @@ io.on("connection", async (socket) => {
 
     // partner preferred language
     const targetLang = (partner.language || "en-US").split("-")[0];
+    console.log("🌍 PARTNER LANGUAGE:", partner.language);
+    console.log("🎯 TARGET LANG:", targetLang);
+    console.log("📝 ORIGINAL TEXT:", text);
 
     // speaker own language
     const selfLang = (socket.language || "en-US").split("-")[0];
@@ -683,6 +686,7 @@ io.on("connection", async (socket) => {
       translatedForPartner = await translateText(text, targetLang);
 
       translatedForSelf = await translateText(text, selfLang);
+      console.log("✅ TRANSLATED:", translatedForPartner);
     } catch (err) {
       console.log("Translation error:", err.message);
     }
