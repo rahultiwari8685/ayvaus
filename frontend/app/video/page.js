@@ -57,6 +57,8 @@ export default function VideoChat() {
   const recognitionRef = useRef(null);
   const shouldRestartRecognitionRef = useRef(true);
 
+  const recognitionStartedOnceRef = useRef(false);
+
   function startSpeechRecognition() {
     if (recognitionRef.current || recognitionStartingRef.current) {
       return;
@@ -243,7 +245,9 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        if (!recognitionRef.current) {
+        if (!recognitionRef.current && !recognitionStartedOnceRef.current) {
+          recognitionStartedOnceRef.current = true;
+
           setTimeout(() => {
             shouldRestartRecognitionRef.current = true;
             startSpeechRecognition();
@@ -419,7 +423,10 @@ export default function VideoChat() {
       recognitionRef.current?.stop();
       setVoiceSubtitle("");
 
+      recognitionStartedOnceRef.current = false;
+
       setTimeout(async () => {
+        recognitionStartedOnceRef.current = false;
         await createPeer();
         socketRef.current.emit("join", {
           language: language,
