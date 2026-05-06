@@ -706,7 +706,7 @@ export default function VideoChat() {
         </div>
       )}
 
-      <div className="relative w-full h-screen flex items-center justify-center">
+      <div className="relative isolate w-full h-screen flex items-center justify-center">
         <video
           controls={false}
           ref={remoteVideo}
@@ -748,8 +748,8 @@ export default function VideoChat() {
         )} */}
         <div
           key={voiceSubtitle}
-          className={`pointer-events-none absolute bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl transition-all duration-300 ${
-            voiceSubtitle ? "opacity-100" : "opacity-0"
+          className={`pointer-events-none absolute z-[9999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl transition-all duration-300 ${
+            voiceSubtitle ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
           <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
