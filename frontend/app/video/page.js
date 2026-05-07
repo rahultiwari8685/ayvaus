@@ -55,6 +55,15 @@ export default function VideoChat() {
 
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
   const [language, setLanguage] = useState("en-US");
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem("subtitle_language");
+
+    if (savedLang) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
   const recognitionRef = useRef(null);
   const shouldRestartRecognitionRef = useRef(true);
 
@@ -306,7 +315,14 @@ export default function VideoChat() {
       if (!pcRef.current) {
         await createPeer();
       }
+
       roleRef.current = role;
+
+      // 🔥 resend language after match
+      socketRef.current.emit("update-language", language);
+
+      console.log("🌍 RESENT LANGUAGE:", language);
+
       setStatus("Connecting...");
     });
 
@@ -1008,6 +1024,8 @@ export default function VideoChat() {
                 const newLang = e.target.value;
 
                 setLanguage(newLang);
+
+                localStorage.setItem("subtitle_language", newLang);
 
                 // only subtitle language
                 socketRef.current.emit("update-language", newLang);
