@@ -12,7 +12,7 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
-import { translate } from "@vitalets/google-translate-api";
+// import { translate } from "@vitalets/google-translate-api";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -92,13 +92,38 @@ function emitSeriousUsers() {
   io.emit("online-users-list", users);
 }
 
+// async function translateText(text, targetLang) {
+//   try {
+//     const res = await translate(text, {
+//       to: targetLang,
+//     });
+
+//     return res.text || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+
+//     return text;
+//   }
+// }
+
 async function translateText(text, targetLang) {
   try {
-    const res = await translate(text, {
-      to: targetLang,
+    const res = await fetch("https://translate.argosopentech.com/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        q: text,
+        source: "auto",
+        target: targetLang,
+        format: "text",
+      }),
     });
 
-    return res.text || text;
+    const data = await res.json();
+
+    return data.translatedText || text;
   } catch (err) {
     console.log("Translate API error:", err.message);
 
@@ -690,16 +715,11 @@ io.on("connection", async (socket) => {
     console.log("🎯 TARGET LANG:", targetLang);
     console.log("📝 ORIGINAL TEXT:", text);
 
-    // speaker own language
-    const selfLang = (socket.language || "en-US").split("-")[0];
-
     let translatedForPartner = text;
-    let translatedForSelf = text;
 
     try {
       translatedForPartner = await translateText(text, targetLang);
 
-      translatedForSelf = await translateText(text, selfLang);
       console.log("✅ TRANSLATED:", translatedForPartner);
     } catch (err) {
       console.log("Translation error:", err.message);
@@ -711,9 +731,8 @@ io.on("connection", async (socket) => {
       speaker: "Stranger",
     });
 
-    // send own subtitle to speaker
     socket.emit("voice-subtitle", {
-      text: translatedForSelf,
+      text,
       speaker: "You",
     });
 
