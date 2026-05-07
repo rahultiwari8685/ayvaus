@@ -720,6 +720,14 @@ io.on("connection", async (socket) => {
     try {
       translatedForPartner = await translateText(text, targetLang);
 
+      if (
+        translatedForPartner.trim().toLowerCase() ===
+          text.trim().toLowerCase() &&
+        targetLang !== "en"
+      ) {
+        console.log("⚠ Translation may have failed");
+      }
+
       console.log("✅ TRANSLATED:", translatedForPartner);
     } catch (err) {
       console.log("Translation error:", err.message);
