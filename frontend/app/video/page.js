@@ -786,7 +786,7 @@ export default function VideoChat() {
         <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
           <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
             <>
-              <span
+              {/* <span
                 className={`font-bold mr-2 ${
                   voiceSubtitle?.speaker === "You"
                     ? "text-green-400"
@@ -794,7 +794,7 @@ export default function VideoChat() {
                 }`}
               >
                 {voiceSubtitle?.speaker}:
-              </span>
+              </span> */}
 
               {voiceSubtitle?.text}
             </>
