@@ -371,7 +371,10 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("join", ({ language } = {}) => {
-    socket.language = language || "en-US";
+    socket.language = language || socket.language || "en-US";
+
+    console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
+
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
     if (!queue.includes(socket) && !socket.partnerId) {
@@ -384,6 +387,8 @@ io.on("connection", async (socket) => {
 
   socket.on("update-language", (lang) => {
     socket.language = lang;
+
+    console.log("🌍 LANGUAGE UPDATED:", socket.id, lang);
   });
 
   socket.on("ready", () => {
@@ -757,6 +762,11 @@ io.on("connection", async (socket) => {
     socket.lastTextTime = Date.now();
 
     const partner = io.sockets.sockets.get(socket.partnerId);
+
+    console.log("👤 SPEAKER:", socket.id);
+    console.log("👥 PARTNER:", partner?.id);
+    console.log("🌍 SPEAKER LANG:", socket.language);
+    console.log("🌍 PARTNER LANG:", partner?.language);
 
     if (!partner) return;
 

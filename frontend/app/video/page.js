@@ -56,6 +56,12 @@ export default function VideoChat() {
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
   const [language, setLanguage] = useState("en-US");
 
+  const languageRef = useRef(language);
+
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
+
   useEffect(() => {
     const savedLang = localStorage.getItem("subtitle_language");
 
@@ -301,8 +307,10 @@ export default function VideoChat() {
 
       await createPeer();
       socketRef.current.emit("join", {
-        language: language,
+        language: languageRef.current,
       });
+
+      console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
 
     socket.on("online-users", (count) => {
@@ -319,8 +327,9 @@ export default function VideoChat() {
       roleRef.current = role;
 
       // 🔥 resend language after match
-      socketRef.current.emit("update-language", language);
+      socketRef.current.emit("update-language", languageRef.current);
 
+      console.log("🌍 RESENT LANGUAGE:", languageRef.current);
       console.log("🌍 RESENT LANGUAGE:", language);
 
       setStatus("Connecting...");
@@ -447,8 +456,10 @@ export default function VideoChat() {
         recognitionStartedOnceRef.current = false;
         await createPeer();
         socketRef.current.emit("join", {
-          language: language,
+          language: languageRef.current,
         });
+
+        console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
       }, 500);
     });
 
