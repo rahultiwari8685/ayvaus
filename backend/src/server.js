@@ -735,7 +735,7 @@ io.on("connection", async (socket) => {
 
     // send translated subtitle to partner
     partner.emit("voice-subtitle", {
-      text: translatedForPartner,
+      text: translatedForPartner || text,
       speaker: "Stranger",
     });
 
