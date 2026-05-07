@@ -92,23 +92,9 @@ function emitSeriousUsers() {
   io.emit("online-users-list", users);
 }
 
-// async function translateText(text, targetLang) {
-//   try {
-//     const res = await translate(text, {
-//       to: targetLang,
-//     });
-
-//     return res.text || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-
-//     return text;
-//   }
-// }
-
 async function translateText(text, targetLang) {
   try {
-    const res = await fetch("https://translate.argosopentech.com/translate", {
+    const res = await fetch("https://libretranslate.de/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,6 +116,45 @@ async function translateText(text, targetLang) {
     return text;
   }
 }
+
+// async function translateText(text, targetLang) {
+//   try {
+//     const res = await translate(text, {
+//       to: targetLang,
+//     });
+
+//     return res.text || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+
+//     return text;
+//   }
+// }
+
+// async function translateText(text, targetLang) {
+//   try {
+//     const res = await fetch("https://translate.argosopentech.com/translate", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         q: text,
+//         source: "auto",
+//         target: targetLang,
+//         format: "text",
+//       }),
+//     });
+
+//     const data = await res.json();
+
+//     return data.translatedText || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+
+//     return text;
+//   }
+// }
 
 // async function translateText(text, targetLang) {
 //   try {
