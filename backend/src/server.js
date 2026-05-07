@@ -94,7 +94,7 @@ function emitSeriousUsers() {
 
 async function translateText(text, targetLang) {
   try {
-    const res = await fetch("https://libretranslate.de/translate", {
+    const res = await fetch("https://translate.astian.org/translate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -106,6 +106,10 @@ async function translateText(text, targetLang) {
         format: "text",
       }),
     });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
 
     const data = await res.json();
 
