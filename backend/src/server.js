@@ -94,32 +94,54 @@ function emitSeriousUsers() {
 
 async function translateText(text, targetLang) {
   try {
-    const res = await fetch("https://translate.astian.org/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        q: text,
-        source: "auto",
-        target: targetLang,
-        format: "text",
-      }),
-    });
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    const res = await fetch(url);
 
     const data = await res.json();
 
-    return data.translatedText || text;
+    if (!Array.isArray(data)) {
+      return text;
+    }
+
+    const translated = data[0]?.map((item) => item[0])?.join("");
+
+    return translated || text;
   } catch (err) {
     console.log("Translate API error:", err.message);
 
     return text;
   }
 }
+
+// async function translateText(text, targetLang) {
+//   try {
+//     const res = await fetch("https://translate.astian.org/translate", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         q: text,
+//         source: "auto",
+//         target: targetLang,
+//         format: "text",
+//       }),
+//     });
+
+//     if (!res.ok) {
+//       throw new Error(`HTTP ${res.status}`);
+//     }
+
+//     const data = await res.json();
+
+//     return data.translatedText || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+
+//     return text;
+//   }
+// }
 
 // async function translateText(text, targetLang) {
 //   try {
