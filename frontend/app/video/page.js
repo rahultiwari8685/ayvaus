@@ -779,14 +779,14 @@ export default function VideoChat() {
         </div>
       </div>
 
-      <div
+      {/* <div
         key={voiceSubtitle}
         className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl opacity-100 scale-100"
       >
         <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
           <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
             <>
-              {/* <span
+              <span
                 className={`font-bold mr-2 ${
                   voiceSubtitle?.speaker === "You"
                     ? "text-green-400"
@@ -794,13 +794,29 @@ export default function VideoChat() {
                 }`}
               >
                 {voiceSubtitle?.speaker}:
-              </span> */}
+              </span>
 
               {voiceSubtitle?.text}
             </>
           </p>
         </div>
-      </div>
+      </div> */}
+
+      {voiceSubtitle?.text && (
+        <div
+          key={voiceSubtitle?.text}
+          className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl opacity-100 scale-100"
+        >
+          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+            {/* <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
+              {voiceSubtitle?.text}
+            </p> */}
+            <p className="text-center text-white font-extrabold text-lg md:text-xl leading-snug tracking-wide drop-shadow">
+              {voiceSubtitle?.text}
+            </p>
+          </div>
+        </div>
+      )}
 
       {isMobile ? (
         showChat && (
