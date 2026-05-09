@@ -119,11 +119,6 @@ export default function VideoChat() {
 
       if (!socketRef.current?.connected) return;
 
-      // socketRef.current.emit("voice-subtitle", {
-      //   text: transcript,
-      //   fromLang: language,
-      // });
-
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
         fromLang: language,
@@ -135,8 +130,6 @@ export default function VideoChat() {
 
     recognition.onerror = (e) => {
       console.log("❌ Speech error:", e.error);
-
-      // ignore abort spam
       if (e.error === "aborted") return;
     };
 
@@ -146,7 +139,6 @@ export default function VideoChat() {
       recognitionRef.current = null;
       recognitionStartingRef.current = false;
 
-      // ✅ only restart if allowed
       if (!shouldRestartRecognitionRef.current) {
         console.log("⛔ Restart blocked");
         return;
@@ -332,7 +324,6 @@ export default function VideoChat() {
 
       roleRef.current = role;
 
-      // 🔥 resend language after match
       socketRef.current.emit("update-language", languageRef.current);
 
       console.log("🌍 RESENT LANGUAGE:", languageRef.current);
@@ -487,13 +478,6 @@ export default function VideoChat() {
       }, 5000);
     });
 
-    // return () => {
-    //   mounted = false;
-    //   pcRef.current?.close();
-    //   streamRef.current?.getTracks().forEach((t) => t.stop());
-    //   socketRef.current?.disconnect();
-    // };
-
     return () => {
       mounted = false;
 
@@ -638,9 +622,46 @@ export default function VideoChat() {
 
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
-      setIsMuted(!audioTrack.enabled);
+
+      const muted = !audioTrack.enabled;
+
+      setIsMuted(muted);
+
+      // STOP speech recognition when muted
+      if (muted) {
+        shouldRestartRecognitionRef.current = false;
+
+        recognitionRef.current?.stop();
+        recognitionRef.current = null;
+
+        console.log("🎤 Speech recognition stopped");
+      } else {
+        // RESTART speech recognition when unmuted
+        shouldRestartRecognitionRef.current = true;
+
+        setTimeout(() => {
+          if (!recognitionRef.current) {
+            startSpeechRecognition();
+          }
+        }, 500);
+
+        console.log("🎤 Speech recognition restarted");
+      }
     }
   }
+
+  // function toggleMute() {
+  //   if (!streamRef.current) return;
+
+  //   const audioTrack = streamRef.current
+  //     .getTracks()
+  //     .find((track) => track.kind === "audio");
+
+  //   if (audioTrack) {
+  //     audioTrack.enabled = !audioTrack.enabled;
+  //     setIsMuted(!audioTrack.enabled);
+  //   }
+  // }
 
   function toggleVideo() {
     if (!streamRef.current) return;
@@ -785,29 +806,6 @@ export default function VideoChat() {
         </div>
       </div>
 
-      {/* <div
-        key={voiceSubtitle}
-        className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl opacity-100 scale-100"
-      >
-        <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-          <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
-            <>
-              <span
-                className={`font-bold mr-2 ${
-                  voiceSubtitle?.speaker === "You"
-                    ? "text-green-400"
-                    : "text-pink-400"
-                }`}
-              >
-                {voiceSubtitle?.speaker}:
-              </span>
-
-              {voiceSubtitle?.text}
-            </>
-          </p>
-        </div>
-      </div> */}
-
       {voiceSubtitle?.text && (
         <div
           key={voiceSubtitle?.text}
@@ -874,7 +872,6 @@ export default function VideoChat() {
               onSubmit={sendMessage}
               className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-md"
             >
-              {/* Image */}
               <input
                 type="file"
                 accept="image/*"
@@ -889,7 +886,6 @@ export default function VideoChat() {
                 📎
               </label>
 
-              {/* Input */}
               <input
                 value={text}
                 onChange={(e) => {
@@ -900,7 +896,6 @@ export default function VideoChat() {
                 placeholder="Message"
               />
 
-              {/* Voice / Send */}
               {text.trim() ? (
                 <button className="bg-green-500 text-black px-4 py-2 rounded-full">
                   ➤
@@ -950,7 +945,6 @@ export default function VideoChat() {
                       <span>{m.text}</span>
                     )}
 
-                    {/* Edited Label */}
                     {m.edited && (
                       <span className="text-xs italic text-gray-300 ml-1">
                         edited
@@ -1052,40 +1046,14 @@ export default function VideoChat() {
           <div className="flex justify-center">
             <select
               value={language}
-              // onChange={(e) => setLanguage(e.target.value)}
               onChange={(e) => {
                 const newLang = e.target.value;
 
                 setLanguage(newLang);
 
                 localStorage.setItem("subtitle_language", newLang);
-
-                // only subtitle language
                 socketRef.current.emit("update-language", newLang);
               }}
-              // onChange={(e) => {
-              //   const newLang = e.target.value;
-              //   setLanguage(newLang);
-
-              //   socketRef.current.emit("update-language", newLang);
-
-              //   if (recognitionRef.current) {
-              //     shouldRestartRecognitionRef.current = false;
-
-              //     recognitionRef.current.stop();
-              //     recognitionRef.current = null;
-              //   }
-
-              //   clearTimeout(languageRestartTimerRef.current);
-
-              //   languageRestartTimerRef.current = setTimeout(() => {
-              //     shouldRestartRecognitionRef.current = true;
-
-              //     startSpeechRecognition();
-              //   }, 1500);
-
-              //   // ❌ DON'T STOP recognition
-              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               <option value="en-US">English</option>
@@ -1141,7 +1109,6 @@ export default function VideoChat() {
               </span>
             </div>
 
-            {/* Switch */}
             <div className="flex flex-col items-center text-xs text-white">
               <button
                 onClick={switchCamera}
@@ -1152,7 +1119,6 @@ export default function VideoChat() {
               <span className="mt-1 text-gray-300">Flip</span>
             </div>
 
-            {/* Chat */}
             <div className="flex flex-col items-center text-xs text-white relative">
               <div className="relative">
                 <button

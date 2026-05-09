@@ -12,7 +12,6 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
-// import { translate } from "@vitalets/google-translate-api";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -113,97 +112,6 @@ async function translateText(text, targetLang) {
     return text;
   }
 }
-
-// async function translateText(text, targetLang) {
-//   try {
-//     const res = await fetch("https://translate.astian.org/translate", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({
-//         q: text,
-//         source: "auto",
-//         target: targetLang,
-//         format: "text",
-//       }),
-//     });
-
-//     if (!res.ok) {
-//       throw new Error(`HTTP ${res.status}`);
-//     }
-
-//     const data = await res.json();
-
-//     return data.translatedText || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-
-//     return text;
-//   }
-// }
-
-// async function translateText(text, targetLang) {
-//   try {
-//     const res = await translate(text, {
-//       to: targetLang,
-//     });
-
-//     return res.text || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-
-//     return text;
-//   }
-// }
-
-// async function translateText(text, targetLang) {
-//   try {
-//     const res = await fetch("https://translate.argosopentech.com/translate", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({
-//         q: text,
-//         source: "auto",
-//         target: targetLang,
-//         format: "text",
-//       }),
-//     });
-
-//     const data = await res.json();
-
-//     return data.translatedText || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-
-//     return text;
-//   }
-// }
-
-// async function translateText(text, targetLang) {
-//   try {
-//     const res = await fetch("https://translate.argosopentech.com/translate", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({
-//         q: text,
-//         source: "auto",
-//         target: targetLang,
-//         format: "text",
-//       }),
-//     });
-
-//     const data = await res.json();
-//     return data.translatedText || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-//     return text;
-//   }
-// }
 
 io.on("connection", async (socket) => {
   socket.language = "en-US";
@@ -745,14 +653,10 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // socket.on("voice-subtitle", async ({ text, fromLang }) => {
-
   socket.on("voice-subtitle", async ({ text, fromLang, senderId }) => {
     console.log("📩 RECEIVED:", text);
 
     if (!text || text.trim().length === 0) return;
-
-    // prevent rapid duplicate spam
     if (
       socket.lastText === text &&
       Date.now() - (socket.lastTextTime || 0) < 2000
@@ -772,7 +676,6 @@ io.on("connection", async (socket) => {
 
     if (!partner) return;
 
-    // partner preferred language
     const targetLang = (partner.language || "en-US").split("-")[0];
     console.log("🌍 PARTNER LANGUAGE:", partner.language);
     console.log("🎯 TARGET LANG:", targetLang);
@@ -796,21 +699,10 @@ io.on("connection", async (socket) => {
       console.log("Translation error:", err.message);
     }
 
-    // send translated subtitle to partner
     partner.emit("voice-subtitle", {
       text: translatedForPartner || text,
       speaker: "Stranger",
     });
-
-    // socket.emit("voice-subtitle", {
-    //   text,
-    //   speaker: "You",
-    // });
-
-    // console.log("📤 EMITTING:", translatedText);
-
-    // partner.emit("voice-subtitle", translatedText);
-    // console.log("✅ SUBTITLE EMITTED SUCCESSFULLY");
   });
 
   setTimeout(() => {
