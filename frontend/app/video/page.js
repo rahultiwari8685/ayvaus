@@ -119,9 +119,15 @@ export default function VideoChat() {
 
       if (!socketRef.current?.connected) return;
 
+      // socketRef.current.emit("voice-subtitle", {
+      //   text: transcript,
+      //   fromLang: language,
+      // });
+
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
         fromLang: language,
+        senderId: socketRef.current.id,
       });
 
       console.log("📤 SENT:", transcript);

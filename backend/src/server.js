@@ -745,7 +745,9 @@ io.on("connection", async (socket) => {
     }
   });
 
-  socket.on("voice-subtitle", async ({ text, fromLang }) => {
+  // socket.on("voice-subtitle", async ({ text, fromLang }) => {
+
+  socket.on("voice-subtitle", async ({ text, fromLang, senderId }) => {
     console.log("📩 RECEIVED:", text);
 
     if (!text || text.trim().length === 0) return;
@@ -800,10 +802,10 @@ io.on("connection", async (socket) => {
       speaker: "Stranger",
     });
 
-    socket.emit("voice-subtitle", {
-      text,
-      speaker: "You",
-    });
+    // socket.emit("voice-subtitle", {
+    //   text,
+    //   speaker: "You",
+    // });
 
     // console.log("📤 EMITTING:", translatedText);
 
