@@ -792,7 +792,7 @@ export default function VideoChat() {
         />
 
         <div
-          className={`absolute bottom-35 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
+          className={`absolute bottom-44 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
             isMobile && showChat ? "hidden" : "block"
           }`}
         >
