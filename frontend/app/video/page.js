@@ -1068,6 +1068,25 @@ export default function VideoChat() {
               <option value="pa-IN">Punjabi</option>
               <option value="ur-IN">Urdu</option>
               <option value="or-IN">Odia</option>
+
+              {/* Foreign Languages */}
+              <option value="es-ES">Spanish</option>
+              <option value="fr-FR">French</option>
+              <option value="de-DE">German</option>
+              <option value="it-IT">Italian</option>
+              <option value="pt-PT">Portuguese</option>
+              <option value="ru-RU">Russian</option>
+              <option value="ja-JP">Japanese</option>
+              <option value="ko-KR">Korean</option>
+              <option value="zh-CN">Chinese</option>
+              <option value="ar-SA">Arabic</option>
+              <option value="tr-TR">Turkish</option>
+              <option value="nl-NL">Dutch</option>
+              <option value="pl-PL">Polish</option>
+              <option value="uk-UA">Ukrainian</option>
+              <option value="vi-VN">Vietnamese</option>
+              <option value="th-TH">Thai</option>
+              <option value="id-ID">Indonesian</option>
             </select>
           </div>
           <div className="flex justify-between items-center w-full">
