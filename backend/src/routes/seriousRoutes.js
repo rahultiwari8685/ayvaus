@@ -3,12 +3,13 @@ import { loginUser } from "../controllers/authController.js";
 import { registerUser } from "../controllers/registerUser.js";
 import { giveDailyReward } from "../controllers/giveDailyReward.js";
 import getWallet from "../controllers/getWallet.js";
+import auth from "../middlewares/auth.js";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.post("/daily-reward", authMiddleware, giveDailyReward);
-router.get("/wallet", authMiddleware, getWallet);
+router.post("/daily-reward", auth, giveDailyReward);
+router.get("/wallet", auth, getWallet);
 
 export default router;
