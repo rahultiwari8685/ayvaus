@@ -2,7 +2,11 @@ import User from "../models/User.js";
 
 const getWallet = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select(
+    console.log("REQ USER:", req.user);
+
+    const userId = req.user.id || req.user._id;
+
+    const user = await User.findById(userId).select(
       "xp coins fragments level streakDays",
     );
 
@@ -24,7 +28,7 @@ const getWallet = async (req, res) => {
       },
     });
   } catch (err) {
-    console.log(err);
+    console.log("WALLET ERROR:", err);
 
     res.status(500).json({
       success: false,

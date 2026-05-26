@@ -157,7 +157,6 @@ export default function MatchPage() {
 
   useEffect(() => {
     if (!socket) return;
-    // let mounted = true;
 
     const token = localStorage.getItem("token");
 
@@ -166,12 +165,6 @@ export default function MatchPage() {
       window.location.href = "/serious/login";
       return;
     }
-
-    // if (!token) {
-    //   console.log("❌ No token → redirect");
-    //   window.location.href = "/serious/login";
-    //   return;
-    // }
 
     socketRef.current = socket;
 
@@ -203,48 +196,6 @@ export default function MatchPage() {
         console.log("❌ Init error:", err);
       }
     })();
-
-    // socketRef.current?.disconnect();
-
-    // socketRef.current = io("https://api.flirtaus.com", {
-    //   transports: ["websocket"],
-    //   auth: {
-    //     token,
-    //     mode: "serious",
-    //   },
-    // });
-
-    // const socket = socketRef.current;
-
-    // socketRef.current.on("connect", async () => {
-    //   console.log("✅ Connected to server");
-
-    //   try {
-    //     await initCamera();
-    //     await createPeer();
-
-    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
-
-    //     if (reconnectPartnerId) {
-    //       socketRef.current.emit("reconnect-user", {
-    //         token,
-    //         partnerId: reconnectPartnerId,
-    //       });
-
-    //       localStorage.removeItem("reconnect_partner_id");
-    //     } else {
-    //       socketRef.current.emit("join");
-    //     }
-
-    //     // socketRef.current.emit("join");
-
-    //     socketRef.current.emit("get-online-count");
-
-    //     console.log("🚀 Joined queue");
-    //   } catch (err) {
-    //     console.log("❌ Init error:", err);
-    //   }
-    // });
 
     socketRef.current.on("online-users", (count) => {
       console.log("👥 Online received:", count);

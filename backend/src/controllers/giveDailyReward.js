@@ -8,7 +8,6 @@ export const giveDailyReward = async (req, res) => {
       ? new Date(user.lastLoginDate).toDateString()
       : null;
 
-    // ✅ Already claimed today
     if (today === lastLogin) {
       return res.json({
         success: true,
@@ -16,12 +15,10 @@ export const giveDailyReward = async (req, res) => {
       });
     }
 
-    // 🔥 DAILY REWARD
     user.coins += 20;
     user.xp += 10;
     user.fragments += 1;
 
-    // 🔥 STREAK
     user.streakDays += 1;
 
     user.lastLoginDate = new Date();
