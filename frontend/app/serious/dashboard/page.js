@@ -10,6 +10,7 @@ export default function SeriousDashboard() {
 
   const [history, setHistory] = useState([]);
   const [onlineMap, setOnlineMap] = useState({});
+  const [wallet, setWallet] = useState(null);
 
   const totalUsers = history.length;
 
@@ -113,6 +114,30 @@ export default function SeriousDashboard() {
     };
   }, [socket]);
 
+  useEffect(() => {
+    const fetchWallet = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("https://api.flirtaus.com/api/serious/wallet", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          setWallet(data.wallet);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchWallet();
+  }, []);
+
   return (
     <div className="min-h-screen overflow-hidden bg-black text-white relative">
       <div className="absolute inset-0 overflow-hidden">
@@ -211,6 +236,38 @@ export default function SeriousDashboard() {
                 ❤️
               </div>
             </div>
+
+            {wallet && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-5">
+                <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                  <p className="text-gray-400 text-sm">⭐ XP</p>
+                  <h2 className="text-2xl font-bold">{wallet.xp}</h2>
+                </div>
+
+                <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                  <p className="text-gray-400 text-sm">🪙 Coins</p>
+                  <h2 className="text-2xl font-bold">{wallet.coins}</h2>
+                </div>
+
+                <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                  <p className="text-gray-400 text-sm">💸 Fragments</p>
+                  <h2 className="text-2xl font-bold">{wallet.fragments}</h2>
+                </div>
+
+                <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                  <p className="text-gray-400 text-sm">🔥 Streak</p>
+                  <h2 className="text-2xl font-bold">
+                    {wallet.streakDays} Days
+                  </h2>
+                </div>
+
+                <div className="bg-black/40 p-4 rounded-xl border border-white/10">
+                  <p className="text-gray-400 text-sm">⭐ Level</p>
+
+                  <h2 className="text-2xl font-bold">{wallet.level}</h2>
+                </div>
+              </div>
+            )}
 
             <div className="p-5 space-y-4 max-h-[650px] overflow-y-auto">
               {history.length === 0 ? (

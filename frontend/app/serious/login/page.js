@@ -39,9 +39,22 @@ export default function Login() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user._id);
 
+        // 🔥 DAILY REWARD API
+        try {
+          await fetch("https://api.flirtaus.com/api/serious/daily-reward", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.token}`,
+            },
+          });
+        } catch (err) {
+          console.log("Reward error:", err);
+        }
+
+        // 🚀 REDIRECT
         if (data.profileComplete) {
           window.location.href = "/serious/dashboard";
-          // router.push("/serious/match");
         } else {
           router.push("/serious/profile");
         }

@@ -441,13 +441,80 @@ io.on("connection", async (socket) => {
       try {
         const conn = await Connection.findById(socket.connectionId);
 
+        // if (conn && conn.status === "active") {
+        //   conn.endedAt = new Date();
+        //   conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+
+        //   conn.status = "ended";
+
+        //   await conn.save();
+
+        //   console.log("🔚 Connection ended:", conn._id);
+        // }
+
         if (conn && conn.status === "active") {
+          // ✅ PREVENT DOUBLE REWARDS
+          conn.status = "rewarded";
+
           conn.endedAt = new Date();
+
           conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
 
-          conn.status = "ended";
-
           await conn.save();
+
+          // 🔥 REWARD LOGIC
+          const durationMinutes = Math.floor(conn.duration / 60);
+
+          // 🚫 ANTI-FAKE LIMIT
+          if (durationMinutes > 60) {
+            console.log("⚠ Reward skipped - too long");
+          } else if (durationMinutes >= 5) {
+            const user1 = await User.findById(conn.user1);
+            const user2 = await User.findById(conn.user2);
+
+            // 🎁 REWARD CALCULATION
+            const xp = durationMinutes * 10;
+            const coins = durationMinutes * 2;
+            const fragments = durationMinutes >= 10 ? 2 : 1;
+
+            // 👤 USER 1 REWARD
+            user1.xp += xp;
+            user1.coins += coins;
+            user1.fragments += fragments;
+
+            // 👤 USER 2 REWARD
+            user2.xp += xp;
+            user2.coins += coins;
+            user2.fragments += fragments;
+
+            // ⭐ LEVEL SYSTEM
+            user1.level = Math.floor(user1.xp / 500) + 1;
+            user2.level = Math.floor(user2.xp / 500) + 1;
+
+            await user1.save();
+            await user2.save();
+
+            // 🔔 SEND REWARD EVENT
+            io.to(socket.id).emit("reward-earned", {
+              xp,
+              coins,
+              fragments,
+              level: user1.level,
+            });
+
+            const partner = io.sockets.sockets.get(socket.partnerId);
+
+            if (partner) {
+              io.to(partner.id).emit("reward-earned", {
+                xp,
+                coins,
+                fragments,
+                level: user2.level,
+              });
+            }
+
+            console.log("🎁 Rewards given");
+          }
 
           console.log("🔚 Connection ended:", conn._id);
         }
