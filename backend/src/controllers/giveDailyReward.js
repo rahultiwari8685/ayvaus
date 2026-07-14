@@ -1,7 +1,24 @@
 export const giveDailyReward = async (req, res) => {
   try {
-    console.log(req.user);
-    const user = await User.findById(req.user.id);
+    console.log("REQ USER:", req.user);
+
+    const userId = req.user.id || req.user._id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("BEFORE:", {
+      coins: user.coins,
+      xp: user.xp,
+      fragments: user.fragments,
+      streakDays: user.streakDays,
+    });
 
     const today = new Date().toDateString();
 
@@ -16,28 +33,31 @@ export const giveDailyReward = async (req, res) => {
       });
     }
 
-    user.coins += 20;
-    user.xp += 10;
-    user.fragments += 1;
-    user.streakDays += 1;
+    user.coins = (user.coins || 0) + 20;
+    user.xp = (user.xp || 0) + 10;
+    user.fragments = (user.fragments || 0) + 1;
+    user.streakDays = (user.streakDays || 0) + 1;
     user.lastLoginDate = new Date();
 
     await user.save();
 
-    res.json({
+    console.log("AFTER:", {
+      coins: user.coins,
+      xp: user.xp,
+      fragments: user.fragments,
+      streakDays: user.streakDays,
+    });
+
+    return res.json({
       success: true,
-      coins: 20,
-      xp: 10,
-      fragments: 1,
-      streak: user.streakDays,
+      wallet: user,
     });
   } catch (err) {
-    console.error("Daily Reward Error:", err);
+    console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: err.message,
-      stack: err.stack,
     });
   }
 };
