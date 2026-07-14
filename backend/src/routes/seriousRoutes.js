@@ -3,7 +3,7 @@ import { loginUser } from "../controllers/authController.js";
 import { registerUser } from "../controllers/registerUser.js";
 import { giveDailyReward } from "../controllers/giveDailyReward.js";
 import getWallet from "../controllers/getWallet.js";
-import { auth } from "../middlewares/authMiddleware.js";
+import { auth } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
