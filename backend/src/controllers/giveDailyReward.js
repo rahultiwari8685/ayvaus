@@ -18,9 +18,7 @@ export const giveDailyReward = async (req, res) => {
     user.coins += 20;
     user.xp += 10;
     user.fragments += 1;
-
     user.streakDays += 1;
-
     user.lastLoginDate = new Date();
 
     await user.save();
