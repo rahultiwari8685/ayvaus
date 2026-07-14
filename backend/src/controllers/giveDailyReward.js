@@ -1,3 +1,5 @@
+import User from "../models/User.js";
+
 export const giveDailyReward = async (req, res) => {
   try {
     console.log("REQ USER:", req.user);
