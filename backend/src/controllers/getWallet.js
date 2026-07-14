@@ -27,19 +27,17 @@ const getWallet = async (req, res) => {
         streakDays: user.streakDays,
       },
     });
-  }
-  
- } catch (err) {
-  console.error("========== WALLET ERROR ==========");
-  console.error(err);
-  console.error(err.message);
-  console.error(err.stack);
+  } catch (err) {
+    console.error("========== WALLET ERROR ==========");
+    console.error(err);
+    console.error(err.message);
+    console.error(err.stack);
 
-  return res.status(500).json({
-    success: false,
-    message: err.message,
-  });
-}
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
 };
 
 export default getWallet;

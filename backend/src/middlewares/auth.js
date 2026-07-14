@@ -4,6 +4,8 @@ export const auth = (req, res, next) => {
   try {
     const header = req.headers.authorization;
 
+    console.log("AUTH HEADER:", header);
+
     if (!header) {
       return res.status(401).json({ message: "No token" });
     }
@@ -12,10 +14,14 @@ export const auth = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    console.log("DECODED:", decoded);
+
     req.user = decoded;
 
     next();
   } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+    console.log("AUTH ERROR:", err);
+
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
