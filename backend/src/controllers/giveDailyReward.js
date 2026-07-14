@@ -1,5 +1,6 @@
 export const giveDailyReward = async (req, res) => {
   try {
+    console.log(req.user);
     const user = await User.findById(req.user.id);
 
     const today = new Date().toDateString();
@@ -31,10 +32,12 @@ export const giveDailyReward = async (req, res) => {
       streak: user.streakDays,
     });
   } catch (err) {
-    console.log(err);
+    console.error("Daily Reward Error:", err);
 
     res.status(500).json({
       success: false,
+      message: err.message,
+      stack: err.stack,
     });
   }
 };
