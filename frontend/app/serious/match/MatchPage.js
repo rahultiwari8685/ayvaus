@@ -568,17 +568,25 @@ export default function MatchPage() {
   //   window.location.href = "/serious/dashboard";
   // }
 
-  function exitChat() {
-    socketRef.current.emit("end-call");
+  // function exitChat() {
+  //   socketRef.current.emit("end-call");
+
+  //   setTimeout(() => {
+  //     pcRef.current?.close();
+
+  //     streamRef.current?.getTracks().forEach((t) => t.stop());
+
+  //     window.location.href = "/serious/dashboard";
+  //   }, 1500);
+  // }
+
+  const exitChat = () => {
+    socket.emit("end-call");
 
     setTimeout(() => {
-      pcRef.current?.close();
-
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-
-      window.location.href = "/serious/dashboard";
-    }, 1500);
-  }
+      router.push("/serious/dashboard");
+    }, 1000);
+  };
 
   function handleImage(e) {
     const file = e.target.files[0];

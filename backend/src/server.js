@@ -477,6 +477,28 @@ io.on("connection", async (socket) => {
       await user1.save();
       await user2.save();
 
+      await Reward.create({
+        user: user1._id,
+        type: conn.isReconnect ? "reconnect" : "session",
+        title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
+        description: `${durationMinutes} minute conversation`,
+        xp,
+        coins,
+        fragments,
+      });
+
+      await Reward.create({
+        user: user2._id,
+        type: conn.isReconnect ? "reconnect" : "session",
+        title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
+        description: `${durationMinutes} minute conversation`,
+        xp,
+        coins,
+        fragments,
+      });
+
+      console.log("✅ Reward history saved");
+
       io.to(socket.id).emit("reward-earned", {
         title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
         xp,
@@ -532,113 +554,113 @@ io.on("connection", async (socket) => {
         //   console.log("🔚 Connection ended:", conn._id);
         // }
 
-        if (conn && conn.status === "active") {
-          // ✅ PREVENT DOUBLE REWARDS
-          conn.status = "ended";
+        // if (conn && conn.status === "active") {
+        //   // ✅ PREVENT DOUBLE REWARDS
+        //   conn.status = "ended";
 
-          conn.endedAt = new Date();
+        //   conn.endedAt = new Date();
 
-          conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+        //   conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
 
-          await conn.save();
+        //   await conn.save();
 
-          // 🔥 REWARD LOGIC
-          const durationMinutes = Math.floor(conn.duration / 60);
+        //   // 🔥 REWARD LOGIC
+        //   const durationMinutes = Math.floor(conn.duration / 60);
 
-          // 🚫 ANTI-FAKE LIMIT
-          if (durationMinutes > 60) {
-            console.log("⚠ Reward skipped - too long");
-          } else if (durationMinutes >= 5) {
-            const user1 = await User.findById(conn.user1);
-            const user2 = await User.findById(conn.user2);
+        //   // 🚫 ANTI-FAKE LIMIT
+        //   if (durationMinutes > 60) {
+        //     console.log("⚠ Reward skipped - too long");
+        //   } else if (durationMinutes >= 5) {
+        //     const user1 = await User.findById(conn.user1);
+        //     const user2 = await User.findById(conn.user2);
 
-            // 🎁 REWARD CALCULATION
-            let xp = durationMinutes * 10;
-            let coins = durationMinutes * 2;
-            let fragments = durationMinutes >= 10 ? 2 : 1;
+        //     // 🎁 REWARD CALCULATION
+        //     let xp = durationMinutes * 10;
+        //     let coins = durationMinutes * 2;
+        //     let fragments = durationMinutes >= 10 ? 2 : 1;
 
-            // Extra reconnect bonus
-            if (conn.isReconnect && durationMinutes >= 5) {
-              xp += 50;
-              coins += 20;
-              fragments += 5;
-            }
+        //     // Extra reconnect bonus
+        //     if (conn.isReconnect && durationMinutes >= 5) {
+        //       xp += 50;
+        //       coins += 20;
+        //       fragments += 5;
+        //     }
 
-            // 👤 USER 1 REWARD
-            user1.xp += xp;
-            user1.coins += coins;
-            user1.fragments += fragments;
+        //     // 👤 USER 1 REWARD
+        //     user1.xp += xp;
+        //     user1.coins += coins;
+        //     user1.fragments += fragments;
 
-            // 👤 USER 2 REWARD
-            user2.xp += xp;
-            user2.coins += coins;
-            user2.fragments += fragments;
+        //     // 👤 USER 2 REWARD
+        //     user2.xp += xp;
+        //     user2.coins += coins;
+        //     user2.fragments += fragments;
 
-            // ⭐ LEVEL SYSTEM
-            user1.level = Math.floor(user1.xp / 500) + 1;
-            user2.level = Math.floor(user2.xp / 500) + 1;
+        //     // ⭐ LEVEL SYSTEM
+        //     user1.level = Math.floor(user1.xp / 500) + 1;
+        //     user2.level = Math.floor(user2.xp / 500) + 1;
 
-            await user1.save();
-            await user2.save();
+        //     await user1.save();
+        //     await user2.save();
 
-            await Reward.create({
-              user: user1._id,
-              type: conn.isReconnect ? "reconnect" : "session",
-              title: conn.isReconnect
-                ? "Reconnect Bonus"
-                : "Conversation Reward",
-              description: `${durationMinutes} minute conversation`,
-              xp,
-              coins,
-              fragments,
-            });
+        //     await Reward.create({
+        //       user: user1._id,
+        //       type: conn.isReconnect ? "reconnect" : "session",
+        //       title: conn.isReconnect
+        //         ? "Reconnect Bonus"
+        //         : "Conversation Reward",
+        //       description: `${durationMinutes} minute conversation`,
+        //       xp,
+        //       coins,
+        //       fragments,
+        //     });
 
-            await Reward.create({
-              user: user2._id,
-              type: conn.isReconnect ? "reconnect" : "session",
-              title: conn.isReconnect
-                ? "Reconnect Bonus"
-                : "Conversation Reward",
-              description: `${durationMinutes} minute conversation`,
-              xp,
-              coins,
-              fragments,
-            });
+        //     await Reward.create({
+        //       user: user2._id,
+        //       type: conn.isReconnect ? "reconnect" : "session",
+        //       title: conn.isReconnect
+        //         ? "Reconnect Bonus"
+        //         : "Conversation Reward",
+        //       description: `${durationMinutes} minute conversation`,
+        //       xp,
+        //       coins,
+        //       fragments,
+        //     });
 
-            // 🔔 SEND REWARD EVENT
-            // io.to(socket.id).emit("reward-earned", {
-            //   xp,
-            //   coins,
-            //   fragments,
-            //   level: user1.level,
-            // });
+        //     // 🔔 SEND REWARD EVENT
+        //     // io.to(socket.id).emit("reward-earned", {
+        //     //   xp,
+        //     //   coins,
+        //     //   fragments,
+        //     //   level: user1.level,
+        //     // });
 
-            io.to(socket.id).emit("reward-earned", {
-              title: conn.isReconnect
-                ? "Reconnect Bonus"
-                : "Conversation Reward",
-              xp,
-              coins,
-              fragments,
-              level: user1.level,
-            });
+        //     io.to(socket.id).emit("reward-earned", {
+        //       title: conn.isReconnect
+        //         ? "Reconnect Bonus"
+        //         : "Conversation Reward",
+        //       xp,
+        //       coins,
+        //       fragments,
+        //       level: user1.level,
+        //     });
 
-            const partner = io.sockets.sockets.get(socket.partnerId);
+        //     const partner = io.sockets.sockets.get(socket.partnerId);
 
-            if (partner) {
-              io.to(partner.id).emit("reward-earned", {
-                xp,
-                coins,
-                fragments,
-                level: user2.level,
-              });
-            }
+        //     if (partner) {
+        //       io.to(partner.id).emit("reward-earned", {
+        //         xp,
+        //         coins,
+        //         fragments,
+        //         level: user2.level,
+        //       });
+        //     }
 
-            console.log("🎁 Rewards given");
-          }
+        //     console.log("🎁 Rewards given");
+        //   }
 
-          console.log("🔚 Connection ended:", conn._id);
-        }
+        //   console.log("🔚 Connection ended:", conn._id);
+        // }
       } catch (err) {
         console.log("❌ Disconnect error:", err.message);
       }
