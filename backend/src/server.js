@@ -545,26 +545,26 @@ io.on("connection", async (socket) => {
             //   level: user1.level,
             // });
 
-            // io.to(socket.id).emit("reward-earned", {
-            //   title: conn.isReconnect
-            //     ? "Reconnect Bonus"
-            //     : "Conversation Reward",
-            //   xp,
-            //   coins,
-            //   fragments,
-            //   level: user1.level,
-            // });
+            io.to(socket.id).emit("reward-earned", {
+              title: conn.isReconnect
+                ? "Reconnect Bonus"
+                : "Conversation Reward",
+              xp,
+              coins,
+              fragments,
+              level: user1.level,
+            });
 
-            // const partner = io.sockets.sockets.get(socket.partnerId);
+            const partner = io.sockets.sockets.get(socket.partnerId);
 
-            // if (partner) {
-            //   io.to(partner.id).emit("reward-earned", {
-            //     xp,
-            //     coins,
-            //     fragments,
-            //     level: user2.level,
-            //   });
-            // }
+            if (partner) {
+              io.to(partner.id).emit("reward-earned", {
+                xp,
+                coins,
+                fragments,
+                level: user2.level,
+              });
+            }
 
             console.log("🎁 Rewards given");
           }
