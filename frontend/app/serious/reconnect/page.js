@@ -27,8 +27,12 @@ export default function ReconnectPage() {
     }
   };
 
+  // const handleReconnect = (userId) => {
+  //   router.push(`/serious/chat?userId=${userId}`);
+  // };
   const handleReconnect = (userId) => {
-    router.push(`/serious/chat?userId=${userId}`);
+    localStorage.setItem("reconnect_partner_id", userId);
+    router.push("/serious/match");
   };
 
   return (
