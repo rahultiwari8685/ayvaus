@@ -177,6 +177,13 @@ export default function SeriousDashboard() {
 
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
           </button>
+
+          <button
+            onClick={() => router.push("/serious/rewards")}
+            className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            🎁 Reward History
+          </button>
         </div>
       </nav>
 
@@ -269,6 +276,34 @@ export default function SeriousDashboard() {
               </div>
             )}
 
+            <div className="mx-5 mb-4 rounded-2xl border border-pink-500/20 bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-5">
+              <h3 className="text-lg font-bold text-pink-400">
+                🎁 Reconnect Rewards
+              </h3>
+
+              <p className="text-gray-300 text-sm mt-2">
+                Complete a reconnect conversation of at least <b>5 minutes</b>{" "}
+                to earn:
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="text-center">
+                  <p className="text-yellow-400 text-xl">⭐</p>
+                  <p className="font-bold">+50 XP</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-yellow-500 text-xl">🪙</p>
+                  <p className="font-bold">+20 Coins</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-green-400 text-xl">💸</p>
+                  <p className="font-bold">+5 Fragments</p>
+                </div>
+              </div>
+            </div>
+
             <div className="p-5 space-y-4 max-h-[650px] overflow-y-auto">
               {history.length === 0 ? (
                 <div className="text-center py-20">
@@ -343,6 +378,11 @@ export default function SeriousDashboard() {
                         >
                           {item.status}
                         </span>
+
+                        <div className="mt-3 text-xs rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 text-green-300 text-center">
+                          🎁 Bonus on successful reconnect
+                          <br />⭐ +50 XP • 🪙 +20 Coins • 💸 +5 Fragments
+                        </div>
 
                         <button
                           onClick={() => handleReconnect(item)}

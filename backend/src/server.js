@@ -473,9 +473,16 @@ io.on("connection", async (socket) => {
             const user2 = await User.findById(conn.user2);
 
             // 🎁 REWARD CALCULATION
-            const xp = durationMinutes * 10;
-            const coins = durationMinutes * 2;
-            const fragments = durationMinutes >= 10 ? 2 : 1;
+            let xp = durationMinutes * 10;
+            let coins = durationMinutes * 2;
+            let fragments = durationMinutes >= 10 ? 2 : 1;
+
+            // Extra reconnect bonus
+            if (conn.isReconnect && durationMinutes >= 5) {
+              xp += 50;
+              coins += 20;
+              fragments += 5;
+            }
 
             // 👤 USER 1 REWARD
             user1.xp += xp;
@@ -494,8 +501,42 @@ io.on("connection", async (socket) => {
             await user1.save();
             await user2.save();
 
+            await Reward.create({
+              user: user1._id,
+              type: conn.isReconnect ? "reconnect" : "session",
+              title: conn.isReconnect
+                ? "Reconnect Bonus"
+                : "Conversation Reward",
+              description: `${durationMinutes} minute conversation`,
+              xp,
+              coins,
+              fragments,
+            });
+
+            await Reward.create({
+              user: user2._id,
+              type: conn.isReconnect ? "reconnect" : "session",
+              title: conn.isReconnect
+                ? "Reconnect Bonus"
+                : "Conversation Reward",
+              description: `${durationMinutes} minute conversation`,
+              xp,
+              coins,
+              fragments,
+            });
+
             // 🔔 SEND REWARD EVENT
+            // io.to(socket.id).emit("reward-earned", {
+            //   xp,
+            //   coins,
+            //   fragments,
+            //   level: user1.level,
+            // });
+
             io.to(socket.id).emit("reward-earned", {
+              title: conn.isReconnect
+                ? "Reconnect Bonus"
+                : "Conversation Reward",
               xp,
               coins,
               fragments,
