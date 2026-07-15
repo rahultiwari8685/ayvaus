@@ -525,17 +525,17 @@ io.on("connection", async (socket) => {
               fragments,
             });
 
-            await Reward.create({
-              user: user2._id,
-              type: conn.isReconnect ? "reconnect" : "session",
-              title: conn.isReconnect
-                ? "Reconnect Bonus"
-                : "Conversation Reward",
-              description: `${durationMinutes} minute conversation`,
-              xp,
-              coins,
-              fragments,
-            });
+            // await Reward.create({
+            //   user: user2._id,
+            //   type: conn.isReconnect ? "reconnect" : "session",
+            //   title: conn.isReconnect
+            //     ? "Reconnect Bonus"
+            //     : "Conversation Reward",
+            //   description: `${durationMinutes} minute conversation`,
+            //   xp,
+            //   coins,
+            //   fragments,
+            // });
 
             // 🔔 SEND REWARD EVENT
             // io.to(socket.id).emit("reward-earned", {
