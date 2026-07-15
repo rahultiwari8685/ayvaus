@@ -457,7 +457,7 @@ io.on("connection", async (socket) => {
         partner.connectionId = null;
       }
 
-      const durationMinutes = Math.floor(conn.duration / 60);
+      // const durationMinutes = Math.floor(conn.duration / 60);
 
       if (durationMinutes < 5) return;
 
