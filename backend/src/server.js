@@ -375,11 +375,11 @@ io.on("connection", async (socket) => {
           await conn.save();
           socket.connectionId = null;
 
-          const partner = io.sockets.sockets.get(socket.partnerId);
+          // const partner = io.sockets.sockets.get(socket.partnerId);
 
-          if (partner) {
-            partner.connectionId = null;
-          }
+          // if (partner) {
+          //   partner.connectionId = null;
+          // }
 
           console.log("⏭️ Connection skipped:", conn._id);
         }
@@ -438,13 +438,24 @@ io.on("connection", async (socket) => {
 
       const conn = await Connection.findById(socket.connectionId);
 
-      if (!conn || conn.status !== "active") return;
+      if (!conn) return;
+
+      if (conn.status !== "active") return;
+
+      // lock reward calculation
+      conn.status = "processing";
+      await conn.save();
 
       conn.endedAt = new Date();
       conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-      conn.status = "ended";
 
-      await conn.save();
+      const durationMinutes = Math.floor(conn.duration / 60);
+
+      const partner = io.sockets.sockets.get(socket.partnerId);
+
+      if (partner) {
+        partner.connectionId = null;
+      }
 
       const durationMinutes = Math.floor(conn.duration / 60);
 
@@ -517,6 +528,14 @@ io.on("connection", async (socket) => {
           fragments,
           level: user2.level,
         });
+      }
+      conn.status = "ended";
+      await conn.save();
+
+      socket.connectionId = null;
+
+      if (partner) {
+        partner.connectionId = null;
       }
     } catch (err) {
       console.log(err);
@@ -786,6 +805,11 @@ io.on("connection", async (socket) => {
           gender: socket.user.gender,
         },
       });
+
+      setTimeout(() => {
+        socket.emit("ready");
+        partnerSocket.emit("ready");
+      }, 300);
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {

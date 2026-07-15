@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { useSocket } from "@/context/SocketContext";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
 
@@ -397,16 +398,28 @@ export default function MatchPage() {
     //     });
 
     socket.on("reward-earned", async (reward) => {
-      alert(`
-🎉 ${reward.title}
+      toast.custom(() => (
+        <div className="bg-zinc-900 border border-pink-500 rounded-2xl shadow-2xl p-5 w-80">
+          <h2 className="text-pink-400 font-bold text-lg">🎉 {reward.title}</h2>
 
-⭐ +${reward.xp} XP
-🪙 +${reward.coins} Coins
-💸 +${reward.fragments}
-`);
+          <div className="mt-4 space-y-2 text-white">
+            <p>⭐ +{reward.xp} XP</p>
 
-      window.location.href = "/serious/dashboard";
+            <p>🪙 +{reward.coins} Coins</p>
+
+            <p>💸 +{reward.fragments} Fragments</p>
+          </div>
+
+          <div className="mt-4 text-green-400 font-semibold">
+            Level {reward.level}
+          </div>
+        </div>
+      ));
+      setTimeout(() => {
+        router.push("/serious/dashboard");
+      }, 2500);
     });
+
     return () => {
       socket.off("reward-earned");
     };

@@ -13,7 +13,7 @@ const connectionSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["active", "ended", "skipped"],
+    enum: ["active", "processing", "ended", "skipped"],
     default: "active",
   },
   isReconnect: {
