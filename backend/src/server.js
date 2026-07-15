@@ -627,6 +627,18 @@ io.on("connection", async (socket) => {
 
       socket.user = user;
 
+      seriousUsers.set(user._id.toString(), {
+        socketId: socket.id,
+        userId: user._id.toString(),
+        name: user.name,
+        age: user.age,
+        gender: user.gender,
+      });
+
+      console.log("Requester:", userId);
+      console.log("Partner:", partnerId);
+      console.log("Online users:", [...seriousUsers.keys()]);
+
       if (!seriousUsers.has(partnerId)) {
         throw new Error("User is offline");
       }
@@ -680,6 +692,11 @@ io.on("connection", async (socket) => {
           gender: socket.user.gender,
         },
       });
+
+      setTimeout(() => {
+        socket.emit("ready");
+        partnerSocket.emit("ready");
+      }, 300);
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {

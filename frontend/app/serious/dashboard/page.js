@@ -58,14 +58,9 @@ export default function SeriousDashboard() {
   }
 
   const handleReconnect = (user) => {
-    const token = localStorage.getItem("token");
-
     localStorage.setItem("reconnect_partner_id", user.userId);
 
-    socket.emit("reconnect-user", {
-      token,
-      partnerId: user.userId,
-    });
+    router.push("/serious/match");
   };
 
   useEffect(() => {
