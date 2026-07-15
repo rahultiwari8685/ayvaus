@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { useSocket } from "@/context/SocketContext";
-
+import { useRouter } from "next/navigation";
 function getOrCreateUserId() {
   let userId = localStorage.getItem("flirtaus_user_id");
 
@@ -43,6 +43,7 @@ export default function MatchPage() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
   const [partner, setPartner] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
