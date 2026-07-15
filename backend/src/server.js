@@ -12,6 +12,7 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
+import Reward from "./models/Reward.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -221,14 +222,25 @@ io.on("connection", async (socket) => {
 
         if (mode === "serious") {
           try {
+            // const connection = await Connection.create({
+            //   user1: s1.user._id,
+            //   user2: s2.user._id,
+            //   socket1: s1.id,
+            //   socket2: s2.id,
+            //   startedAt: new Date(),
+            //   status: "active",
+            //   mode: "serious",
+            // });
+
             const connection = await Connection.create({
-              user1: s1.user._id,
-              user2: s2.user._id,
-              socket1: s1.id,
-              socket2: s2.id,
+              user1: user._id,
+              user2: partnerSocket.user._id,
+              socket1: socket.id,
+              socket2: partnerSocket.id,
               startedAt: new Date(),
               status: "active",
               mode: "serious",
+              isReconnect: true, // ✅ Add this
             });
 
             s1.connectionId = connection._id;
@@ -533,26 +545,26 @@ io.on("connection", async (socket) => {
             //   level: user1.level,
             // });
 
-            io.to(socket.id).emit("reward-earned", {
-              title: conn.isReconnect
-                ? "Reconnect Bonus"
-                : "Conversation Reward",
-              xp,
-              coins,
-              fragments,
-              level: user1.level,
-            });
+            // io.to(socket.id).emit("reward-earned", {
+            //   title: conn.isReconnect
+            //     ? "Reconnect Bonus"
+            //     : "Conversation Reward",
+            //   xp,
+            //   coins,
+            //   fragments,
+            //   level: user1.level,
+            // });
 
-            const partner = io.sockets.sockets.get(socket.partnerId);
+            // const partner = io.sockets.sockets.get(socket.partnerId);
 
-            if (partner) {
-              io.to(partner.id).emit("reward-earned", {
-                xp,
-                coins,
-                fragments,
-                level: user2.level,
-              });
-            }
+            // if (partner) {
+            //   io.to(partner.id).emit("reward-earned", {
+            //     xp,
+            //     coins,
+            //     fragments,
+            //     level: user2.level,
+            //   });
+            // }
 
             console.log("🎁 Rewards given");
           }

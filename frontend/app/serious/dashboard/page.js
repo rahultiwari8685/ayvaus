@@ -114,27 +114,47 @@ export default function SeriousDashboard() {
     };
   }, [socket]);
 
+  // useEffect(() => {
+  //   const fetchWallet = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+
+  //       const res = await fetch("https://api.flirtaus.com/api/serious/wallet", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       const data = await res.json();
+
+  //       if (data.success) {
+  //         setWallet(data.wallet);
+  //       }
+  //     } catch (err) {
+  //       console.log(err);
+  //     }
+  //   };
+
+  //   fetchWallet();
+  // }, []);
+
+  const fetchWallet = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("https://api.flirtaus.com/api/serious/wallet", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setWallet(data.wallet);
+    }
+  };
+
   useEffect(() => {
-    const fetchWallet = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const res = await fetch("https://api.flirtaus.com/api/serious/wallet", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          setWallet(data.wallet);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
     fetchWallet();
   }, []);
 

@@ -380,6 +380,26 @@ export default function MatchPage() {
     }
   }, [showChat]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("reward-earned", (reward) => {
+      alert(`
+🎉 ${reward.title}
+
+⭐ +${reward.xp} XP
+🪙 +${reward.coins} Coins
+💸 +${reward.fragments} Fragments
+
+Level ${reward.level}
+    `);
+    });
+
+    return () => {
+      socket.off("reward-earned");
+    };
+  }, [socket]);
+
   async function nextChat() {
     setStatus("Looking for someone...");
     setMessages([]);
