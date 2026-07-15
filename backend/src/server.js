@@ -12,7 +12,6 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
-import Reward from "./models/Reward.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -478,17 +477,6 @@ io.on("connection", async (socket) => {
             const coins = durationMinutes * 2;
             const fragments = durationMinutes >= 10 ? 2 : 1;
 
-            // 🎁 Extra reward for reconnect sessions
-            if (conn.isReconnect) {
-              user1.xp += 50;
-              user1.coins += 20;
-              user1.fragments += 5;
-
-              user2.xp += 50;
-              user2.coins += 20;
-              user2.fragments += 5;
-            }
-
             // 👤 USER 1 REWARD
             user1.xp += xp;
             user1.coins += coins;
@@ -502,30 +490,6 @@ io.on("connection", async (socket) => {
             // ⭐ LEVEL SYSTEM
             user1.level = Math.floor(user1.xp / 500) + 1;
             user2.level = Math.floor(user2.xp / 500) + 1;
-
-            await Reward.create({
-              user: user1._id,
-              type: conn.isReconnect ? "reconnect" : "session",
-              xp,
-              coins,
-              fragments,
-              title: conn.isReconnect
-                ? "Reconnect Reward"
-                : "Conversation Reward",
-              description: `${durationMinutes} minute conversation`,
-            });
-
-            await Reward.create({
-              user: user2._id,
-              type: conn.isReconnect ? "reconnect" : "session",
-              xp,
-              coins,
-              fragments,
-              title: conn.isReconnect
-                ? "Reconnect Reward"
-                : "Conversation Reward",
-              description: `${durationMinutes} minute conversation`,
-            });
 
             await user1.save();
             await user2.save();
@@ -627,18 +591,6 @@ io.on("connection", async (socket) => {
 
       socket.user = user;
 
-      seriousUsers.set(user._id.toString(), {
-        socketId: socket.id,
-        userId: user._id.toString(),
-        name: user.name,
-        age: user.age,
-        gender: user.gender,
-      });
-
-      console.log("Requester:", userId);
-      console.log("Partner:", partnerId);
-      console.log("Online users:", [...seriousUsers.keys()]);
-
       if (!seriousUsers.has(partnerId)) {
         throw new Error("User is offline");
       }
@@ -669,7 +621,6 @@ io.on("connection", async (socket) => {
         startedAt: new Date(),
         status: "active",
         mode: "serious",
-        isReconnect: true,
       });
 
       socket.connectionId = connection._id;
@@ -692,11 +643,6 @@ io.on("connection", async (socket) => {
           gender: socket.user.gender,
         },
       });
-
-      setTimeout(() => {
-        socket.emit("ready");
-        partnerSocket.emit("ready");
-      }, 300);
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
