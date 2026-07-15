@@ -12,6 +12,7 @@ import seriousRoutes from "./routes/seriousRoutes.js";
 import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
+import Reward from "./models/Reward.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -477,6 +478,17 @@ io.on("connection", async (socket) => {
             const coins = durationMinutes * 2;
             const fragments = durationMinutes >= 10 ? 2 : 1;
 
+            // 🎁 Extra reward for reconnect sessions
+            if (conn.isReconnect) {
+              user1.xp += 50;
+              user1.coins += 20;
+              user1.fragments += 5;
+
+              user2.xp += 50;
+              user2.coins += 20;
+              user2.fragments += 5;
+            }
+
             // 👤 USER 1 REWARD
             user1.xp += xp;
             user1.coins += coins;
@@ -490,6 +502,30 @@ io.on("connection", async (socket) => {
             // ⭐ LEVEL SYSTEM
             user1.level = Math.floor(user1.xp / 500) + 1;
             user2.level = Math.floor(user2.xp / 500) + 1;
+
+            await Reward.create({
+              user: user1._id,
+              type: conn.isReconnect ? "reconnect" : "session",
+              xp,
+              coins,
+              fragments,
+              title: conn.isReconnect
+                ? "Reconnect Reward"
+                : "Conversation Reward",
+              description: `${durationMinutes} minute conversation`,
+            });
+
+            await Reward.create({
+              user: user2._id,
+              type: conn.isReconnect ? "reconnect" : "session",
+              xp,
+              coins,
+              fragments,
+              title: conn.isReconnect
+                ? "Reconnect Reward"
+                : "Conversation Reward",
+              description: `${durationMinutes} minute conversation`,
+            });
 
             await user1.save();
             await user2.save();
@@ -621,6 +657,7 @@ io.on("connection", async (socket) => {
         startedAt: new Date(),
         status: "active",
         mode: "serious",
+        isReconnect: true,
       });
 
       socket.connectionId = connection._id;

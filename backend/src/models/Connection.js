@@ -16,6 +16,10 @@ const connectionSchema = new mongoose.Schema({
     enum: ["active", "ended", "skipped"],
     default: "active",
   },
+  isReconnect: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 connectionSchema.index({ user1: 1, startedAt: -1 });

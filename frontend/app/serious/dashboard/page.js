@@ -58,9 +58,12 @@ export default function SeriousDashboard() {
   }
 
   const handleReconnect = (user) => {
+    const token = localStorage.getItem("token");
+
     localStorage.setItem("reconnect_partner_id", user.userId);
 
-    socket.emit("send-reconnect-request", {
+    socket.emit("reconnect-user", {
+      token,
       partnerId: user.userId,
     });
   };
@@ -109,8 +112,18 @@ export default function SeriousDashboard() {
       router.push("/serious/match");
     });
 
+    socket.on("reconnect-request-sent", (msg) => {
+      alert(msg);
+    });
+
+    socket.on("reconnect-failed", (msg) => {
+      alert(msg);
+    });
+
     return () => {
       socket.off("reconnect-accepted");
+      socket.off("reconnect-request-sent");
+      socket.off("reconnect-failed");
     };
   }, [socket]);
 
@@ -177,6 +190,13 @@ export default function SeriousDashboard() {
 
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
           </button>
+
+          <button
+            onClick={() => router.push("/serious/rewards")}
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+          >
+            🎁 Reward History
+          </button>
         </div>
       </nav>
 
@@ -222,6 +242,20 @@ export default function SeriousDashboard() {
             </div>
           </div>
 
+          {/* <div className="bg-pink-500/10 border border-pink-500/20 rounded-2xl p-4 mb-4">
+            <h3 className="font-bold text-pink-400">🎁 Reconnect Bonus</h3>
+
+            <p className="text-sm text-gray-300 mt-2">
+              Complete a reconnect conversation of at least 5 minutes to earn:
+            </p>
+
+            <ul className="mt-3 text-sm space-y-1">
+              <li>⭐ +50 XP</li>
+              <li>🪙 +20 Coins</li>
+              <li>💸 +5 Fragments</li>
+            </ul>
+          </div> */}
+
           <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <div>
@@ -234,6 +268,26 @@ export default function SeriousDashboard() {
 
               <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center text-xl">
                 ❤️
+              </div>
+            </div>
+
+            <div className="mx-5 mt-5 rounded-2xl border border-pink-500/20 bg-pink-500/10 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-pink-400">
+                    🎁 Reconnect Bonus
+                  </h3>
+
+                  <p className="text-sm text-gray-300 mt-1">
+                    Complete a reconnect conversation of at least 5 minutes.
+                  </p>
+                </div>
+
+                <div className="text-right text-sm">
+                  <div>⭐ +50 XP</div>
+                  <div>🪙 +20 Coins</div>
+                  <div>💸 +5 Fragments</div>
+                </div>
               </div>
             </div>
 
@@ -343,6 +397,11 @@ export default function SeriousDashboard() {
                         >
                           {item.status}
                         </span>
+
+                        <div className="mt-3 rounded-lg bg-green-500/10 border border-green-500/20 p-2 text-xs text-green-400">
+                          🎁 Reconnect Bonus:
+                          <br />⭐ +50 XP | 🪙 +20 Coins | 💸 +5 Fragments
+                        </div>
 
                         <button
                           onClick={() => handleReconnect(item)}
