@@ -547,14 +547,26 @@ Level ${reward.level}
     }
   }
 
+  // function exitChat() {
+  //   pcRef.current?.close();
+
+  //   streamRef.current?.getTracks().forEach((t) => t.stop());
+
+  //   socketRef.current.emit("next");
+
+  //   window.location.href = "/serious/dashboard";
+  // }
+
   function exitChat() {
-    pcRef.current?.close();
+    socketRef.current.emit("end-call");
 
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    setTimeout(() => {
+      pcRef.current?.close();
 
-    socketRef.current.emit("next");
+      streamRef.current?.getTracks().forEach((t) => t.stop());
 
-    window.location.href = "/serious/dashboard";
+      window.location.href = "/serious/dashboard";
+    }, 1500);
   }
 
   function handleImage(e) {

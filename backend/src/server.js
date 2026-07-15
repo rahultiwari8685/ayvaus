@@ -233,14 +233,13 @@ io.on("connection", async (socket) => {
             // });
 
             const connection = await Connection.create({
-              user1: user._id,
-              user2: partnerSocket.user._id,
-              socket1: socket.id,
-              socket2: partnerSocket.id,
+              user1: s1.user._id,
+              user2: s2.user._id,
+              socket1: s1.id,
+              socket2: s2.id,
               startedAt: new Date(),
               status: "active",
-              mode: "serious",
-              isReconnect: true, // ✅ Add this
+              isReconnect: false,
             });
 
             s1.connectionId = connection._id;
@@ -433,6 +432,75 @@ io.on("connection", async (socket) => {
     }, 300);
   });
 
+  socket.on("end-call", async () => {
+    try {
+      if (!socket.connectionId) return;
+
+      const conn = await Connection.findById(socket.connectionId);
+
+      if (!conn || conn.status !== "active") return;
+
+      conn.endedAt = new Date();
+      conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+      conn.status = "ended";
+
+      await conn.save();
+
+      const durationMinutes = Math.floor(conn.duration / 60);
+
+      if (durationMinutes < 5) return;
+
+      const user1 = await User.findById(conn.user1);
+      const user2 = await User.findById(conn.user2);
+
+      let xp = durationMinutes * 10;
+      let coins = durationMinutes * 2;
+      let fragments = durationMinutes >= 10 ? 2 : 1;
+
+      if (conn.isReconnect) {
+        xp += 50;
+        coins += 20;
+        fragments += 5;
+      }
+
+      user1.xp += xp;
+      user1.coins += coins;
+      user1.fragments += fragments;
+
+      user2.xp += xp;
+      user2.coins += coins;
+      user2.fragments += fragments;
+
+      user1.level = Math.floor(user1.xp / 500) + 1;
+      user2.level = Math.floor(user2.xp / 500) + 1;
+
+      await user1.save();
+      await user2.save();
+
+      io.to(socket.id).emit("reward-earned", {
+        title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
+        xp,
+        coins,
+        fragments,
+        level: user1.level,
+      });
+
+      const partner = io.sockets.sockets.get(socket.partnerId);
+
+      if (partner) {
+        io.to(partner.id).emit("reward-earned", {
+          title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
+          xp,
+          coins,
+          fragments,
+          level: user2.level,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
   socket.on("disconnect", async () => {
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
@@ -466,7 +534,7 @@ io.on("connection", async (socket) => {
 
         if (conn && conn.status === "active") {
           // ✅ PREVENT DOUBLE REWARDS
-          conn.status = "rewarded";
+          conn.status = "ended";
 
           conn.endedAt = new Date();
 
@@ -525,17 +593,17 @@ io.on("connection", async (socket) => {
               fragments,
             });
 
-            // await Reward.create({
-            //   user: user2._id,
-            //   type: conn.isReconnect ? "reconnect" : "session",
-            //   title: conn.isReconnect
-            //     ? "Reconnect Bonus"
-            //     : "Conversation Reward",
-            //   description: `${durationMinutes} minute conversation`,
-            //   xp,
-            //   coins,
-            //   fragments,
-            // });
+            await Reward.create({
+              user: user2._id,
+              type: conn.isReconnect ? "reconnect" : "session",
+              title: conn.isReconnect
+                ? "Reconnect Bonus"
+                : "Conversation Reward",
+              description: `${durationMinutes} minute conversation`,
+              xp,
+              coins,
+              fragments,
+            });
 
             // 🔔 SEND REWARD EVENT
             // io.to(socket.id).emit("reward-earned", {
@@ -673,7 +741,7 @@ io.on("connection", async (socket) => {
         socket2: partnerSocket.id,
         startedAt: new Date(),
         status: "active",
-        mode: "serious",
+        isReconnect: true,
       });
 
       socket.connectionId = connection._id;

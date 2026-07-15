@@ -151,6 +151,7 @@ export default function SeriousDashboard() {
 
     if (data.success) {
       setWallet(data.wallet);
+      router.push("/serious/dashboard");
     }
   };
 
