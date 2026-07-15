@@ -383,18 +383,29 @@ export default function MatchPage() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("reward-earned", (reward) => {
+    //     socket.on("reward-earned", (reward) => {
+    //       alert(`
+    // 🎉 ${reward.title}
+
+    // ⭐ +${reward.xp} XP
+    // 🪙 +${reward.coins} Coins
+    // 💸 +${reward.fragments} Fragments
+
+    // Level ${reward.level}
+    //     `);
+    //     });
+
+    socket.on("reward-earned", async (reward) => {
       alert(`
 🎉 ${reward.title}
 
 ⭐ +${reward.xp} XP
 🪙 +${reward.coins} Coins
-💸 +${reward.fragments} Fragments
+💸 +${reward.fragments}
+`);
 
-Level ${reward.level}
-    `);
+      window.location.href = "/serious/dashboard";
     });
-
     return () => {
       socket.off("reward-earned");
     };
