@@ -518,7 +518,7 @@ io.on("connection", async (socket) => {
         level: user1.level,
       });
 
-      const partner = io.sockets.sockets.get(socket.partnerId);
+      // const partner = io.sockets.sockets.get(socket.partnerId);
 
       if (partner) {
         io.to(partner.id).emit("reward-earned", {
