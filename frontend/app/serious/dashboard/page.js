@@ -178,7 +178,7 @@ export default function SeriousDashboard() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      router.replace("/serious/login");
+      router.replace("/");
     }
   }, [router]);
 
