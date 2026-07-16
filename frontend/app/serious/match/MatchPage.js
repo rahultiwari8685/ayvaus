@@ -313,14 +313,14 @@ export default function MatchPage() {
       );
     });
 
-    socketRef.current.on("reward-earned", (data) => {
-      alert(`🔥 Great Session
-           ⭐ Level ${data.level}
-       +${data.xp} XP
-       +${data.coins} Coins
-      +${data.fragments} Fragments
- `);
-    });
+    //     socketRef.current.on("reward-earned", (data) => {
+    //       alert(`🔥 Great Session
+    //            ⭐ Level ${data.level}
+    //        +${data.xp} XP
+    //        +${data.coins} Coins
+    //       +${data.fragments} Fragments
+    //  `);
+    //     });
 
     socketRef.current.on("partner-left", () => {
       setStatus("Looking for someone...");

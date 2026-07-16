@@ -451,27 +451,50 @@ io.on("connection", async (socket) => {
 
       const durationMinutes = Math.floor(conn.duration / 60);
 
-      const partner = io.sockets.sockets.get(socket.partnerId);
+      // const partner = io.sockets.sockets.get(socket.partnerId);
 
-      if (partner) {
-        partner.connectionId = null;
-      }
+      // if (partner) {
+      //   partner.connectionId = null;
+      // }
 
       // const durationMinutes = Math.floor(conn.duration / 60);
 
-      if (durationMinutes < 5) return;
+      // if (durationMinutes < 5) return;
+
+      if (durationMinutes < 5) {
+        conn.status = "ended";
+        await conn.save();
+
+        socket.connectionId = null;
+
+        if (partner) {
+          partner.connectionId = null;
+        }
+
+        return;
+      }
 
       const user1 = await User.findById(conn.user1);
       const user2 = await User.findById(conn.user2);
 
-      let xp = durationMinutes * 10;
-      let coins = durationMinutes * 2;
-      let fragments = durationMinutes >= 10 ? 2 : 1;
+      // Default: no reward
+      let xp = 0;
+      let coins = 0;
+      let fragments = 0;
 
-      if (conn.isReconnect) {
-        xp += 50;
-        coins += 20;
-        fragments += 5;
+      // Give rewards only if conversation is at least 5 minutes
+      if (durationMinutes >= 5) {
+        if (conn.isReconnect) {
+          // Reconnect Reward
+          xp = 25;
+          coins = 50;
+          fragments = 5;
+        } else {
+          // Normal Conversation Reward (Double of Reconnect)
+          xp = 50;
+          coins = 100;
+          fragments = 5;
+        }
       }
 
       user1.xp += xp;
@@ -492,7 +515,9 @@ io.on("connection", async (socket) => {
         user: user1._id,
         type: conn.isReconnect ? "reconnect" : "session",
         title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
-        description: `${durationMinutes} minute conversation`,
+        description: conn.isReconnect
+          ? `Reconnect call completed (${durationMinutes} minutes)`
+          : `Normal conversation completed (${durationMinutes} minutes)`,
         xp,
         coins,
         fragments,
@@ -502,7 +527,9 @@ io.on("connection", async (socket) => {
         user: user2._id,
         type: conn.isReconnect ? "reconnect" : "session",
         title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
-        description: `${durationMinutes} minute conversation`,
+        description: conn.isReconnect
+          ? `Reconnect call completed (${durationMinutes} minutes)`
+          : `Normal conversation completed (${durationMinutes} minutes)`,
         xp,
         coins,
         fragments,
