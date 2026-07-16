@@ -8,6 +8,21 @@ export default function SeriousDashboard() {
   const { socket } = useSocket();
   const router = useRouter();
 
+  const handleLogout = () => {
+    // Disconnect socket
+    if (socket) {
+      socket.disconnect();
+    }
+
+    // Clear local storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("reconnect_partner_id");
+
+    // Redirect to login
+    router.replace("/serious/login");
+  };
+
   const [history, setHistory] = useState([]);
   const [onlineMap, setOnlineMap] = useState({});
   const [wallet, setWallet] = useState(null);
@@ -159,6 +174,14 @@ export default function SeriousDashboard() {
     fetchWallet();
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.replace("/serious/login");
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen overflow-hidden bg-black text-white relative">
       <div className="absolute inset-0 overflow-hidden">
@@ -204,6 +227,13 @@ export default function SeriousDashboard() {
             className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-xl transition-all duration-300 hover:scale-105"
           >
             🎁 Reward History
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            🚪 Logout
           </button>
         </div>
       </nav>

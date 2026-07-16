@@ -624,6 +624,14 @@ export default function MatchPage() {
     reader.readAsDataURL(file);
   }
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.replace("/serious/login");
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white relative flex flex-col items-center justify-center overflow-hidden">
       {!(isMobile && showChat) && (
