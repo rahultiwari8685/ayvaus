@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import Reward from "../models/Reward.js";
 const SECRET = process.env.JWT_SECRET;
 
 export const registerUser = async (req, res) => {
@@ -31,6 +31,23 @@ export const registerUser = async (req, res) => {
       is_serious_profile: true,
     });
 
+    user.coins = 500;
+    user.xp = 20;
+    user.fragments = 2;
+    user.level = 1;
+
+    await user.save();
+
+    await Reward.create({
+      user: user._id,
+      type: "bonus",
+      title: "Welcome Bonus",
+      description: "Reward for completing registration",
+      xp: 20,
+      coins: 500,
+      fragments: 2,
+    });
+
     const token = jwt.sign({ id: user._id }, SECRET, {
       expiresIn: "7d",
     });
@@ -39,6 +56,12 @@ export const registerUser = async (req, res) => {
       success: true,
       token,
       user,
+      reward: {
+        title: "Welcome Bonus",
+        xp: 20,
+        coins: 500,
+        fragments: 2,
+      },
     });
   } catch (err) {
     console.error(err);

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import toast from "react-hot-toast";
 export default function Profile() {
   const router = useRouter();
 
@@ -59,7 +59,13 @@ export default function Profile() {
         localStorage.setItem("token", data.token);
         console.log("Registered user:", data.token);
         console.log("Registered user:", data);
-        window.location.href = "/serious/dashboard";
+        toast.success(
+          "🎉 Welcome Bonus!\n⭐ +20 XP\n🪙 +500 Coins\n💸 +2 Fragments",
+        );
+
+        setTimeout(() => {
+          window.location.href = "/serious/dashboard";
+        }, 2000);
       } else {
         setError(data.message || "Registration failed");
       }
