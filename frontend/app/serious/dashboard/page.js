@@ -220,7 +220,7 @@ export default function SeriousDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => router.push("/")}
             className="group relative overflow-hidden px-5 py-2.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-105"
