@@ -97,8 +97,8 @@ export default function VideoChat() {
 
     recognition.continuous = true;
     recognition.interimResults = false;
-    // recognition.lang = language;
-    recognition.lang = "en-US";
+    recognition.lang = language;
+    // recognition.lang = "en-US";
 
     recognition.onstart = () => {
       console.log("✅ Speech recognition STARTED");
