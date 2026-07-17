@@ -211,7 +211,7 @@ export default function SeriousDashboard() {
         <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-purple-500/20 blur-3xl rounded-full animate-pulse" />
       </div>
 
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-10 py-6 border-b border-white/10 backdrop-blur-xl">
+      <nav className="relative z-5 flex items-center justify-between px-6 md:px-10 py-6 border-b border-white/10 backdrop-blur-xl">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Flirta</h1>
 
@@ -253,7 +253,7 @@ https://flirtaus.com`;
                 alert("Referral message copied!");
               }
             }}
-            className="mt-5 w-full rounded-xl bg-white text-black py-3 font-bold"
+            className="mt-5 rounded-xl bg-white text-black py-3 font-bold"
           >
             🚀 Invite Friends
           </button>
