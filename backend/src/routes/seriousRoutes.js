@@ -5,6 +5,7 @@ import { giveDailyReward } from "../controllers/giveDailyReward.js";
 import getWallet from "../controllers/getWallet.js";
 import { auth } from "../middlewares/auth.js";
 import getRewardHistory from "../controllers/getRewardHistory.js";
+import getReferral from "../controllers/getReferral.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
