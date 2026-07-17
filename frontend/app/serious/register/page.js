@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-export default function Profile() {
+export default function Register() {
   const router = useRouter();
 
   const [form, setForm] = useState({
