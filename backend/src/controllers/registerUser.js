@@ -19,6 +19,30 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    let referredBy = null;
+
+    if (req.body.referralCode) {
+      const referrer = await User.findOne({
+        referralCode: req.body.referralCode,
+      });
+
+      if (referrer) {
+        referredBy = referrer._id;
+      }
+    }
+
+    // const user = await User.create({
+    //   name,
+    //   email,
+    //   password: hashedPassword,
+    //   age: Number(age),
+    //   gender,
+    //   looking_for,
+    //   intent,
+    //   bio,
+    //   is_serious_profile: true,
+    // });
+
     const user = await User.create({
       name,
       email,
@@ -29,12 +53,21 @@ export const registerUser = async (req, res) => {
       intent,
       bio,
       is_serious_profile: true,
+
+      // Referral
+      referredBy,
     });
 
-    user.coins = 500;
-    user.xp = 20;
-    user.fragments = 2;
-    user.level = 1;
+    const random = Math.floor(100000 + Math.random() * 900000);
+
+    user.referralCode = user.name.replace(/\s/g, "").toUpperCase() + random;
+
+    await user.save();
+
+    user.coins += 500;
+    user.xp += 20;
+    user.fragments += 2;
+    user.level = Math.floor(user.xp / 500) + 1;
 
     await user.save();
 

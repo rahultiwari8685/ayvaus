@@ -112,6 +112,13 @@ export default function Register() {
         />
 
         <input
+          type="text"
+          placeholder="Referral Code (Optional)"
+          className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
+          onChange={(e) => handleChange("referralCode", e.target.value)}
+        />
+
+        <input
           type="number"
           placeholder="Age"
           className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
