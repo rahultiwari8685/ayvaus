@@ -511,6 +511,60 @@ io.on("connection", async (socket) => {
       await user1.save();
       await user2.save();
 
+      if (user1.referredBy && !user1.referralRewardGiven) {
+        const referrer = await User.findById(user1.referredBy);
+
+        if (referrer) {
+          referrer.coins += 1000;
+          referrer.xp += 50;
+          referrer.totalReferrals += 1;
+
+          referrer.level = Math.floor(referrer.xp / 500) + 1;
+
+          await referrer.save();
+
+          user1.referralRewardGiven = true;
+          await user1.save();
+
+          await Reward.create({
+            user: referrer._id,
+            type: "bonus",
+            title: "Referral Reward",
+            description: `${user1.name} completed the first serious conversation`,
+            xp: 50,
+            coins: 1000,
+            fragments: 0,
+          });
+        }
+      }
+
+      if (user2.referredBy && !user2.referralRewardGiven) {
+        const referrer = await User.findById(user2.referredBy);
+
+        if (referrer) {
+          referrer.coins += 1000;
+          referrer.xp += 50;
+          referrer.totalReferrals += 1;
+
+          referrer.level = Math.floor(referrer.xp / 500) + 1;
+
+          await referrer.save();
+
+          user2.referralRewardGiven = true;
+          await user2.save();
+
+          await Reward.create({
+            user: referrer._id,
+            type: "bonus",
+            title: "Referral Reward",
+            description: `${user2.name} completed the first serious conversation`,
+            xp: 50,
+            coins: 1000,
+            fragments: 0,
+          });
+        }
+      }
+
       await Reward.create({
         user: user1._id,
         type: conn.isReconnect ? "reconnect" : "session",

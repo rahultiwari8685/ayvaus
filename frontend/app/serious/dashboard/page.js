@@ -26,8 +26,29 @@ export default function SeriousDashboard() {
   const [history, setHistory] = useState([]);
   const [onlineMap, setOnlineMap] = useState({});
   const [wallet, setWallet] = useState(null);
+  const [referral, setReferral] = useState(null);
 
   const totalUsers = history.length;
+
+  const fetchReferral = async () => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("https://api.flirtaus.com/api/serious/referral", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setReferral(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchReferral();
+  }, []);
 
   const totalTime = history.reduce((sum, item) => {
     return sum + (item.duration || 0);
@@ -212,6 +233,32 @@ export default function SeriousDashboard() {
           </button>
 
           <button
+            onClick={() => {
+              const message = `Join Flirtaus ❤️
+
+Use my referral code:
+
+${referral.referralCode}
+
+https://flirtaus.com`;
+
+              if (navigator.share) {
+                navigator.share({
+                  title: "Flirtaus",
+                  text: message,
+                });
+              } else {
+                navigator.clipboard.writeText(message);
+
+                alert("Referral message copied!");
+              }
+            }}
+            className="mt-5 w-full rounded-xl bg-white text-black py-3 font-bold"
+          >
+            🚀 Invite Friends
+          </button>
+
+          <button
             onClick={() => router.push("/video")}
             className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold shadow-xl transition-all duration-300 hover:scale-105"
           >
@@ -326,6 +373,33 @@ export default function SeriousDashboard() {
                 </div>
               </div>
             )}
+
+            <div className="rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white shadow-xl">
+              <h2 className="text-2xl font-bold">🎁 Refer & Earn</h2>
+
+              <p className="mt-2">Invite your friends and earn</p>
+
+              <div className="mt-4 text-lg font-bold">
+                🪙 1000 Coins
+                <br />⭐ 50 XP
+              </div>
+
+              <div className="mt-6 bg-white/20 rounded-xl p-3">
+                <p className="text-sm">Referral Code</p>
+
+                <h3 className="text-xl font-bold">{referral?.referralCode}</h3>
+              </div>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(referral.referralCode);
+                  alert("Referral Code Copied!");
+                }}
+                className="mt-5 w-full rounded-xl bg-white text-black py-3 font-bold"
+              >
+                📋 Copy Referral Code
+              </button>
+            </div>
 
             <div className="mx-5 mb-4 rounded-2xl border border-pink-500/20 bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-5">
               <h3 className="text-lg font-bold text-pink-400">

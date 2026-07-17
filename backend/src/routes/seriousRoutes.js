@@ -15,5 +15,6 @@ router.post("/daily-reward", auth, giveDailyReward);
 router.get("/wallet", auth, getWallet);
 // router.get("/wallet", loginUser, getWallet);
 router.get("/reward-history", auth, getRewardHistory);
+router.get("/referral", auth, getReferral);
 
 export default router;
