@@ -97,7 +97,9 @@ export default function VideoChat() {
 
     recognition.continuous = true;
     recognition.interimResults = false;
-    recognition.lang = language;
+
+    recognition.lang = languageRef.current;
+    // recognition.lang = language;
     // recognition.lang = "en-US";
 
     recognition.onstart = () => {
@@ -106,26 +108,42 @@ export default function VideoChat() {
       recognitionStartingRef.current = false;
     };
 
+    // recognition.onresult = (event) => {
+    //   const lastResult = event.results[event.results.length - 1];
+
+    //   if (!lastResult.isFinal) return;
+
+    //   const transcript = lastResult[0].transcript.trim();
+
+    //   if (!transcript) return;
+
+    //   console.log("🎤 FINAL:", transcript);
+
+    //   if (!socketRef.current?.connected) return;
+
+    //   socketRef.current.emit("voice-subtitle", {
+    //     text: transcript,
+    //     fromLang: language,
+    //     senderId: socketRef.current.id,
+    //   });
+
+    //   console.log("📤 SENT:", transcript);
+    // };
+
     recognition.onresult = (event) => {
-      const lastResult = event.results[event.results.length - 1];
+      const result = event.results[event.results.length - 1];
 
-      if (!lastResult.isFinal) return;
-
-      const transcript = lastResult[0].transcript.trim();
+      const transcript = result[0].transcript.trim();
 
       if (!transcript) return;
 
-      console.log("🎤 FINAL:", transcript);
-
-      if (!socketRef.current?.connected) return;
+      if (!result.isFinal) return; // send only final text
 
       socketRef.current.emit("voice-subtitle", {
         text: transcript,
-        fromLang: language,
+        fromLang: languageRef.current,
         senderId: socketRef.current.id,
       });
-
-      console.log("📤 SENT:", transcript);
     };
 
     recognition.onerror = (e) => {
@@ -149,7 +167,7 @@ export default function VideoChat() {
           shouldRestartRecognitionRef.current = true;
           startSpeechRecognition();
         }
-      }, 2000);
+      }, 200);
     };
 
     recognitionRef.current = recognition;
