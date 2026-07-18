@@ -232,15 +232,21 @@ export default function SeriousDashboard() {
 
           <button
             onClick={() => {
-              const message = `Join Flirtaus ❤️
+              const referralLink = `https://flirtaus.com/serious/register?ref=${referral?.referralCode}`;
 
-Use my referral code:
+              const message = `❤️ Join Flirtaus
 
-${referral?.referralCode || ""}
+Find meaningful connections.
 
-https://flirtaus.com`;
+🎁 Use my referral link:
+${referralLink}
 
-              if (navigator.share) {
+Or Referral Code:
+${referral?.referralCode}`;
+
+              //flirtaus.com`;
+
+              https: if (navigator.share) {
                 navigator.share({
                   title: "Flirtaus",
                   text: message,

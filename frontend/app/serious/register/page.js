@@ -1,11 +1,11 @@
 "use client";
-
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 export default function Register() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -15,6 +15,7 @@ export default function Register() {
     looking_for: "",
     intent: "",
     bio: "",
+    referralCode: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,17 @@ export default function Register() {
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
   };
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+
+    if (ref) {
+      setForm((prev) => ({
+        ...prev,
+        referralCode: ref,
+      }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async () => {
     setError("");
@@ -113,9 +125,15 @@ export default function Register() {
 
         <input
           type="text"
-          placeholder="Referral Code (Optional)"
+          placeholder="Referral Code"
+          value={form.referralCode}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              referralCode: e.target.value,
+            })
+          }
           className="w-full p-3 mb-3 rounded-lg bg-black/40 border border-white/10"
-          onChange={(e) => handleChange("referralCode", e.target.value)}
         />
 
         <input
