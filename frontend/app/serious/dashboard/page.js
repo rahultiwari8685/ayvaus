@@ -1,5 +1,4 @@
 "use client";
-
 import { useSocket } from "@/context/SocketContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -187,7 +186,6 @@ export default function SeriousDashboard() {
 
     if (data.success) {
       setWallet(data.wallet);
-      router.push("/serious/dashboard");
     }
   };
 
@@ -238,7 +236,7 @@ export default function SeriousDashboard() {
 
 Use my referral code:
 
-${referral.referralCode}
+${referral?.referralCode || ""}
 
 https://flirtaus.com`;
 
@@ -392,6 +390,8 @@ https://flirtaus.com`;
 
               <button
                 onClick={() => {
+                  if (!referral) return;
+
                   navigator.clipboard.writeText(referral.referralCode);
                   alert("Referral Code Copied!");
                 }}
