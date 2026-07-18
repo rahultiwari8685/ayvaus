@@ -1,11 +1,11 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+
 export default function Register() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -26,7 +26,8 @@ export default function Register() {
   };
 
   useEffect(() => {
-    const ref = searchParams.get("ref");
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
 
     if (ref) {
       setForm((prev) => ({
@@ -34,7 +35,7 @@ export default function Register() {
         referralCode: ref,
       }));
     }
-  }, [searchParams]);
+  }, []);
 
   const handleSubmit = async () => {
     setError("");
