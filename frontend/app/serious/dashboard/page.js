@@ -327,7 +327,21 @@ https://flirtaus.com`;
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Connection History</h2>
+
+                <p className="text-zinc-500 text-sm mt-1">
+                  Recent people you connected with
+                </p>
+              </div>
+
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center text-xl">
+                ❤️
+              </div>
+            </div>
+
             {wallet && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-5">
                 <div className="bg-black/40 p-4 rounded-xl border border-white/10">
@@ -359,9 +373,7 @@ https://flirtaus.com`;
                 </div>
               </div>
             )}
-          </div>
 
-          <div className="rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 p-6">
             <div className="rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white shadow-xl">
               <h2 className="text-2xl font-bold">🎁 Refer & Earn</h2>
 
@@ -390,48 +402,35 @@ https://flirtaus.com`;
                 📋 Copy Referral Code
               </button>
             </div>
-          </div>
 
-          <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
-            {" "}
-            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Connection History</h2>
+            <div className="mx-5 mb-4 rounded-2xl border border-pink-500/20 bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-5">
+              <h3 className="text-lg font-bold text-pink-400">
+                🎁 Reconnect Rewards
+              </h3>
 
-                <p className="text-zinc-500 text-sm mt-1">
-                  Recent people you connected with
-                </p>
-              </div>
+              <p className="text-gray-300 text-sm mt-2">
+                Complete a reconnect conversation of at least <b>5 minutes</b>{" "}
+                to earn:
+              </p>
 
-              <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center text-xl">
-                ❤️
-              </div>
-            </div>
-            <div className="rounded-3xl border border-pink-500/20 bg-white/5 p-6">
-              <h2 className="text-xl font-bold">🎁 Reward Guide</h2>
-
-              <div className="space-y-3 mt-5">
-                <div className="flex justify-between">
-                  <span>💬 Normal Chat</span>
-                  <span>⭐50 XP • 🪙100</span>
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="text-center">
+                  <p className="text-yellow-400 text-xl">⭐</p>
+                  <p className="font-bold">+50 XP</p>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>❤️ Reconnect</span>
-                  <span>⭐25 XP • 🪙50</span>
+                <div className="text-center">
+                  <p className="text-yellow-500 text-xl">🪙</p>
+                  <p className="font-bold">+20 Coins</p>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>👥 Referral</span>
-                  <span>⭐50 XP • 🪙1000</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>📅 Daily Login</span>
-                  <span>⭐5 XP • 🪙20</span>
+                <div className="text-center">
+                  <p className="text-green-400 text-xl">💸</p>
+                  <p className="font-bold">+5 Fragments</p>
                 </div>
               </div>
             </div>
+
             <div className="p-5 space-y-4 max-h-[650px] overflow-y-auto">
               {history.length === 0 ? (
                 <div className="text-center py-20">
