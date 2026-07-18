@@ -251,7 +251,7 @@ https://flirtaus.com`;
                 alert("Referral message copied!");
               }
             }}
-            className="mt-5 rounded-xl bg-white text-black py-3 font-bold"
+            className="mt-5 w-full rounded-xl bg-white text-black py-3 font-bold"
           >
             🚀 Invite
           </button>
