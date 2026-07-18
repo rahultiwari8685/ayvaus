@@ -253,7 +253,7 @@ https://flirtaus.com`;
             className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-xl transition-all duration-300 hover:scale-105"
           >
             <span className="relative z-10 flex items-center gap-2 text-sm">
-              🚀 Invite
+              🚀 Invite Friends
             </span>
 
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
