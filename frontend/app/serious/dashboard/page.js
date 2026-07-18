@@ -253,7 +253,7 @@ https://flirtaus.com`;
             }}
             className="mt-5 rounded-xl bg-white text-black py-3 font-bold"
           >
-            🚀 Invite Friends
+            🚀 Invite
           </button>
 
           <button
