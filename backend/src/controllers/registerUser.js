@@ -97,10 +97,14 @@ export const registerUser = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
+    console.log("========== REGISTER ERROR ==========");
+    console.log(err);
+    console.log(err.message);
+    console.log(err.stack);
+
+    return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: err.message,
     });
   }
 };
