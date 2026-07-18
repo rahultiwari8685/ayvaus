@@ -247,13 +247,16 @@ https://flirtaus.com`;
                 });
               } else {
                 navigator.clipboard.writeText(message);
-
                 alert("Referral message copied!");
               }
             }}
-            className="mt-5 w-full rounded-xl bg-white text-black py-3 font-bold"
+            className="group relative overflow-hidden px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-xl transition-all duration-300 hover:scale-105"
           >
-            🚀 Invite
+            <span className="relative z-10 flex items-center gap-2 text-sm">
+              🚀 Invite
+            </span>
+
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition" />
           </button>
 
           <button
