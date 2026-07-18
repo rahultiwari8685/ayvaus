@@ -2,7 +2,6 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Reward from "../models/Reward.js";
-const SECRET = process.env.JWT_SECRET;
 
 export const registerUser = async (req, res) => {
   try {
@@ -81,7 +80,7 @@ export const registerUser = async (req, res) => {
       fragments: 2,
     });
 
-    const token = jwt.sign({ id: user._id }, SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
