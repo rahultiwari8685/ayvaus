@@ -64,7 +64,7 @@ Referral Code: ${referralCode}`;
 
       <div className="relative z-10">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">🚀 Refer & Earn</h2>
+          <h3 className="text-xl font-bold">Refer & Earn</h3>
 
           <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-xs text-cyan-300">
             Invite Friends
@@ -87,7 +87,7 @@ Referral Code: ${referralCode}`;
           <div className="rounded-2xl bg-white/5 p-4">
             <p className="text-xs text-gray-400">👥 Referrals</p>
 
-            <h4 className="mt-2 text-2xl font-bold">
+            <h4 className="mt-2 text-xl font-bold">
               {referral.totalReferrals ?? 0}
             </h4>
           </div>

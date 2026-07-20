@@ -41,7 +41,7 @@ export default function RewardGuide() {
 
       <div className="relative z-10">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">🎁 Reward Guide</h2>
+          <h3 className="text-xl font-bold">Reward Guide</h3>
 
           <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs text-purple-300">
             Earn More
