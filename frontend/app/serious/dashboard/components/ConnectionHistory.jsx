@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import ConnectionCard from "./ConnectionCard";
-export default function ConnectionHistory({ history, socket, onlineMap }) {
+
+// export default function ConnectionHistory({ history, socket, onlineMap }) {
+export default function ConnectionHistory({
+  history,
+  socket,
+  onlineMap,
+  wallet,
+  totalChatTime,
+}) {
   const [loadingId, setLoadingId] = useState(null);
 
   const handleReconnect = (userId) => {
@@ -55,6 +63,39 @@ export default function ConnectionHistory({ history, socket, onlineMap }) {
             <p className="mt-1 text-gray-400">
               Reconnect with people you've enjoyed talking to.
             </p>
+            <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="rounded-2xl bg-pink-500/10 border border-pink-500/20 p-4">
+                <div className="text-sm text-gray-400">Connections</div>
+
+                <div className="mt-2 text-3xl font-bold">
+                  ❤️ {history.length}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-cyan-500/10 border border-cyan-500/20 p-4">
+                <div className="text-sm text-gray-400">Chat Time</div>
+
+                <div className="mt-2 text-3xl font-bold">
+                  ⏱ {Math.floor(totalChatTime / 60)} min
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-yellow-500/10 border border-yellow-500/20 p-4">
+                <div className="text-sm text-gray-400">Coins</div>
+
+                <div className="mt-2 text-3xl font-bold">
+                  🪙 {wallet?.coins || 0}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-4">
+                <div className="text-sm text-gray-400">XP</div>
+
+                <div className="mt-2 text-3xl font-bold">
+                  ⭐ {wallet?.xp || 0}
+                </div>
+              </div>
+            </div>
           </div>
 
           <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
