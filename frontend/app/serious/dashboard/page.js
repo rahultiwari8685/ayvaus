@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import Navbar from "./components/Navbar";
-// import HeroSection from "./components/HeroSection";
 import StartMatchingCard from "./components/StartMatchingCard";
 import WalletCard from "./components/WalletCard";
 import ReferralCard from "./components/ReferralCard";
 import RewardGuide from "./components/RewardGuide";
-// import StatsCards from "./components/StatsCards";
 import ConnectionHistory from "./components/ConnectionHistory";
 
 export default function SeriousDashboard() {
@@ -75,24 +73,26 @@ export default function SeriousDashboard() {
 
     setHistory(historyData || []);
 
-    const ids = historyData.map((x) => x.userId);
+    const ids = historyData.map((item) => item.userId);
 
-    const onlineRes = await fetch(
-      "https://api.flirtaus.com/api/user/online-status",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    if (ids.length > 0) {
+      const onlineRes = await fetch(
+        "https://api.flirtaus.com/api/user/online-status",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userIds: ids,
+          }),
         },
-        body: JSON.stringify({
-          userIds: ids,
-        }),
-      },
-    );
+      );
 
-    const onlineData = await onlineRes.json();
+      const onlineData = await onlineRes.json();
 
-    setOnlineMap(onlineData);
+      setOnlineMap(onlineData);
+    }
   };
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function SeriousDashboard() {
     return () => {
       socket.off("reconnect-accepted");
     };
-  }, [socket]);
+  }, [socket, router]);
 
   const totalChatTime = history.reduce(
     (sum, item) => sum + (item.duration || 0),
@@ -119,34 +119,48 @@ export default function SeriousDashboard() {
   );
 
   return (
-    <div className="grid grid-cols-12 gap-6 mt-8">
-      {/* Left */}
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Background */}
 
-      <div className="col-span-12 lg:col-span-3 space-y-6">
-        <StartMatchingCard router={router} />
+      <div className="absolute inset-0">
+        <div className="absolute -top-40 -left-32 h-[450px] w-[450px] rounded-full bg-pink-500/20 blur-[120px]" />
 
-        <WalletCard wallet={wallet} />
+        <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[140px]" />
       </div>
 
-      {/* Center */}
+      <Navbar router={router} referral={referral} handleLogout={handleLogout} />
 
-      <div className="col-span-12 lg:col-span-6">
-        <ConnectionHistory
-          history={history}
-          socket={socket}
-          onlineMap={onlineMap}
-          wallet={wallet}
-          totalChatTime={totalChatTime}
-        />
-      </div>
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-12 gap-6">
+          {/* LEFT SIDEBAR */}
 
-      {/* Right */}
+          <div className="col-span-12 lg:col-span-3 space-y-6">
+            <StartMatchingCard router={router} />
 
-      <div className="col-span-12 lg:col-span-3 space-y-6">
-        <ReferralCard referral={referral} />
+            <WalletCard wallet={wallet} />
+          </div>
 
-        <RewardGuide />
-      </div>
+          {/* CENTER */}
+
+          <div className="col-span-12 lg:col-span-6">
+            <ConnectionHistory
+              history={history}
+              socket={socket}
+              onlineMap={onlineMap}
+              wallet={wallet}
+              totalChatTime={totalChatTime}
+            />
+          </div>
+
+          {/* RIGHT SIDEBAR */}
+
+          <div className="col-span-12 lg:col-span-3 space-y-6">
+            <ReferralCard referral={referral} />
+
+            <RewardGuide />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
