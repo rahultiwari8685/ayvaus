@@ -7,18 +7,30 @@ export default function ConnectionCard({
   loadingId,
   setLoadingId,
 }) {
-  const handleReconnect = () => {
-    if (!socket) return;
+  //   const handleReconnect = () => {
+  //     if (!socket) return;
 
-    setLoadingId(item.userId);
+  //     setLoadingId(item.userId);
 
-    socket.emit("request-reconnect", {
-      targetUserId: item.userId,
+  //     socket.emit("request-reconnect", {
+  //       targetUserId: item.userId,
+  //     });
+
+  //       socket.emit("send-reconnect-request", {
+  //   partnerId: user.userId,
+  // });
+
+  //     setTimeout(() => {
+  //       setLoadingId(null);
+  //     }, 3000);
+  //   };
+
+  const handleReconnect = (user) => {
+    localStorage.setItem("reconnect_partner_id", user.userId);
+
+    socket.emit("send-reconnect-request", {
+      partnerId: user.userId,
     });
-
-    setTimeout(() => {
-      setLoadingId(null);
-    }, 3000);
   };
 
   const formatDuration = (seconds = 0) => {

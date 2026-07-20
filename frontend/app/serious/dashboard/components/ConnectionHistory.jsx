@@ -13,20 +13,6 @@ export default function ConnectionHistory({
 }) {
   const [loadingId, setLoadingId] = useState(null);
 
-  const handleReconnect = (userId) => {
-    if (!socket) return;
-
-    setLoadingId(userId);
-
-    socket.emit("request-reconnect", {
-      targetUserId: userId,
-    });
-
-    setTimeout(() => {
-      setLoadingId(null);
-    }, 3000);
-  };
-
   const formatDuration = (seconds = 0) => {
     if (!seconds) return "0 min";
 
