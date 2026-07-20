@@ -70,12 +70,12 @@ ${referral.referralCode}`;
             🎉 Fun Mode
           </button>
 
-          <button
+          {/* <button
             onClick={handleShare}
             className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 font-semibold transition hover:scale-105"
           >
             🚀 Invite Friends
-          </button>
+          </button> */}
 
           <button
             onClick={handleLogout}
