@@ -53,7 +53,7 @@ export default function ConnectionCard({
         {/* Left */}
 
         <div className="flex items-center gap-5">
-          <div className="relative">
+          {/* <div className="relative">
             <img
               src={item.profileImage || "/default-avatar.png"}
               alt={item.name}
@@ -65,7 +65,7 @@ export default function ConnectionCard({
                 isOnline ? "bg-green-500" : "bg-gray-500"
               }`}
             />
-          </div>
+          </div> */}
 
           <div>
             <div className="flex items-center gap-3">
