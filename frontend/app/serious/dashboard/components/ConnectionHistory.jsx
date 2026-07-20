@@ -97,10 +97,6 @@ export default function ConnectionHistory({
               </div>
             </div>
           </div>
-
-          <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
-            {history.length} Connections
-          </span>
         </div>
       </div>
 
