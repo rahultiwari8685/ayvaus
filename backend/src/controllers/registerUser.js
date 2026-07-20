@@ -69,11 +69,8 @@ export const registerUser = async (req, res) => {
       referredBy,
     });
 
-    // const random = Math.floor(100000 + Math.random() * 900000);
-
-    // user.referralCode = user.name.replace(/\s/g, "").toUpperCase() + random;
-
-    // await user.save();
+    console.log("Generated referral:", referralCode);
+    console.log("Saved user referral:", user.referralCode);
 
     user.coins += 500;
     user.xp += 20;
