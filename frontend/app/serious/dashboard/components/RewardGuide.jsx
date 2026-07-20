@@ -86,14 +86,14 @@ export default function RewardGuide() {
 
         {/* Tips */}
 
-        <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
+        {/* <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
           <h3 className="font-bold text-emerald-300">💡 Pro Tip</h3>
 
           <p className="mt-2 text-sm leading-6 text-gray-300">
             The longer you stay active, complete chats, and reconnect with
             quality matches, the faster you level up and unlock premium rewards.
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
