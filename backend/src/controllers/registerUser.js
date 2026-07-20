@@ -64,7 +64,7 @@ export const registerUser = async (req, res) => {
       intent,
       bio,
       is_serious_profile: true,
-
+      referralCode,
       // Referral
       referredBy,
     });
