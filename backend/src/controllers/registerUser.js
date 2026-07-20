@@ -3,6 +3,28 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Reward from "../models/Reward.js";
 
+// Generate unique 6-character referral code
+const generateReferralCode = async () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  let code;
+  let exists = true;
+
+  while (exists) {
+    code = "";
+
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    exists = await User.exists({
+      referralCode: code,
+    });
+  }
+
+  return code;
+};
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, age, gender, looking_for, intent, bio } =
@@ -30,17 +52,7 @@ export const registerUser = async (req, res) => {
       }
     }
 
-    // const user = await User.create({
-    //   name,
-    //   email,
-    //   password: hashedPassword,
-    //   age: Number(age),
-    //   gender,
-    //   looking_for,
-    //   intent,
-    //   bio,
-    //   is_serious_profile: true,
-    // });
+    const referralCode = await generateReferralCode();
 
     const user = await User.create({
       name,
@@ -57,11 +69,11 @@ export const registerUser = async (req, res) => {
       referredBy,
     });
 
-    const random = Math.floor(100000 + Math.random() * 900000);
+    // const random = Math.floor(100000 + Math.random() * 900000);
 
-    user.referralCode = user.name.replace(/\s/g, "").toUpperCase() + random;
+    // user.referralCode = user.name.replace(/\s/g, "").toUpperCase() + random;
 
-    await user.save();
+    // await user.save();
 
     user.coins += 500;
     user.xp += 20;

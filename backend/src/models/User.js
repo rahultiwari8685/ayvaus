@@ -45,6 +45,7 @@ const UserSchema = new mongoose.Schema(
     referralCode: {
       type: String,
       unique: true,
+      maxlength: 6,
     },
 
     referredBy: {
