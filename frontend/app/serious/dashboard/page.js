@@ -3,7 +3,7 @@
 import { useSocket } from "@/context/SocketContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import StartMatchingCard from "./components/StartMatchingCard";
 import WalletCard from "./components/WalletCard";
@@ -161,6 +161,8 @@ export default function SeriousDashboard() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
