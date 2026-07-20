@@ -96,9 +96,11 @@ export default function SeriousDashboard() {
   };
 
   useEffect(() => {
-    fetchWallet();
-    fetchReferral();
-    fetchHistory();
+    const loadData = async () => {
+      await Promise.all([fetchWallet(), fetchReferral(), fetchHistory()]);
+    };
+
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -130,7 +132,7 @@ export default function SeriousDashboard() {
 
       <Navbar router={router} referral={referral} handleLogout={handleLogout} />
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <main className="relative z-10 max-w-[1500px] mx-auto px-6 py-8">
         <div className="grid grid-cols-12 gap-6">
           {/* LEFT SIDEBAR */}
 

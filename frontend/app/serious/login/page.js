@@ -39,7 +39,6 @@ export default function Login() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user._id);
 
-        // 🔥 DAILY REWARD API
         try {
           await fetch("https://api.flirtaus.com/api/serious/daily-reward", {
             method: "POST",
@@ -52,7 +51,6 @@ export default function Login() {
           console.log("Reward error:", err);
         }
 
-        // 🚀 REDIRECT
         if (data.profileComplete) {
           window.location.href = "/serious/dashboard";
         } else {

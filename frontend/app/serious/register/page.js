@@ -70,6 +70,7 @@ export default function Register() {
       // router.push("/serious/match");
       if (data.success === true) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.user._id);
         console.log("Registered user:", data.token);
         console.log("Registered user:", data);
         toast.success(
