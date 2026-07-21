@@ -7,10 +7,7 @@ import { auth } from "../middlewares/auth.js";
 import getRewardHistory from "../controllers/getRewardHistory.js";
 import getReferral from "../controllers/getReferral.js";
 import { sendOtpMail } from "../utils/sendMail.js";
-import {
-  forgotPassword,
-  resetPassword,
-} from "../controllers/seriousController.js";
+import { forgotPassword, resetPassword } from "../controllers/registerUser.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
