@@ -97,6 +97,15 @@ export default function Login() {
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
 
+        <div className="mb-6 text-right">
+          <Link
+            href="/serious/forgot-password"
+            className="text-sm text-pink-500 hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
         {/* BUTTON */}
         <button
           onClick={handleLogin}

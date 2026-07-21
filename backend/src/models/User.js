@@ -50,6 +50,15 @@ const UserSchema = new mongoose.Schema(
       minlength: 6,
       maxlength: 6,
     },
+    resetOtp: {
+      type: String,
+      default: null,
+    },
+
+    resetOtpExpire: {
+      type: Date,
+      default: null,
+    },
 
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
