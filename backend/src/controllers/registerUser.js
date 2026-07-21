@@ -26,6 +26,52 @@ const generateReferralCode = async () => {
   return code;
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.resetOtp = otp;
+    user.resetOtpExpire = new Date(Date.now() + 10 * 60 * 1000);
+
+    await user.save();
+
+    await sendOtpMail(user.email, otp);
+
+    return res.json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (err) {
+    console.log(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, age, gender, looking_for, intent, bio } =
