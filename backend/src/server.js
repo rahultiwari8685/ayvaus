@@ -440,26 +440,24 @@ io.on("connection", async (socket) => {
 
       if (!conn) return;
 
-      if (conn.status !== "active") return;
+      const partner = io.sockets.sockets.get(socket.partnerId);
 
-      // lock reward calculation
-      conn.status = "processing";
-      await conn.save();
+      if (conn.status !== "active") return;
 
       conn.endedAt = new Date();
       conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
 
+      conn.status = "processing";
+      await conn.save();
+
+      // lock reward calculation
+      // conn.status = "processing";
+      // await conn.save();
+
+      // conn.endedAt = new Date();
+      // conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+
       const durationMinutes = Math.floor(conn.duration / 60);
-
-      // const partner = io.sockets.sockets.get(socket.partnerId);
-
-      // if (partner) {
-      //   partner.connectionId = null;
-      // }
-
-      // const durationMinutes = Math.floor(conn.duration / 60);
-
-      // if (durationMinutes < 5) return;
 
       if (durationMinutes < 5) {
         conn.status = "ended";
@@ -620,6 +618,25 @@ io.on("connection", async (socket) => {
       }
     } catch (err) {
       console.log(err);
+
+      try {
+        if (socket.connectionId) {
+          const conn = await Connection.findById(socket.connectionId);
+
+          if (conn) {
+            conn.endedAt = new Date();
+            conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
+
+            conn.status = "ended";
+
+            await conn.save();
+
+            console.log("✅ Connection closed after error");
+          }
+        }
+      } catch (saveErr) {
+        console.log("Save Error:", saveErr);
+      }
     }
   });
 

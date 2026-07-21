@@ -103,26 +103,6 @@ export default function SeriousDashboard() {
     loadData();
   }, []);
 
-  //   useEffect(() => {
-  //     if (!socket) return;
-
-  //     socket.on("reconnect-accepted", () => {
-  //       router.push("/serious/match");
-  //     });
-
-  //     return () => {
-  //       socket.off("reconnect-accepted");
-  //     };
-  //   }, [socket, router]);
-
-  // const handleReconnect = (user) => {
-  //   localStorage.setItem("reconnect_partner_id", user.userId);
-
-  //   socket.emit("send-reconnect-request", {
-  //     partnerId: user.userId,
-  //   });
-  // };
-
   useEffect(() => {
     if (!socket) return;
 
