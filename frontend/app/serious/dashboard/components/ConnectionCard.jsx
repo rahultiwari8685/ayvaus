@@ -7,30 +7,20 @@ export default function ConnectionCard({
   loadingId,
   setLoadingId,
 }) {
-  //   const handleReconnect = () => {
-  //     if (!socket) return;
-
-  //     setLoadingId(item.userId);
-
-  //     socket.emit("request-reconnect", {
-  //       targetUserId: item.userId,
-  //     });
-
-  //       socket.emit("send-reconnect-request", {
-  //   partnerId: user.userId,
-  // });
-
-  //     setTimeout(() => {
-  //       setLoadingId(null);
-  //     }, 3000);
-  //   };
-
   const handleReconnect = (user) => {
+    if (!socket) return;
+
+    setLoadingId(user.userId);
+
     localStorage.setItem("reconnect_partner_id", user.userId);
 
     socket.emit("send-reconnect-request", {
       partnerId: user.userId,
     });
+
+    setTimeout(() => {
+      setLoadingId(null);
+    }, 3000);
   };
 
   const formatDuration = (seconds = 0) => {
@@ -65,20 +55,6 @@ export default function ConnectionCard({
         {/* Left */}
 
         <div className="flex items-center gap-5">
-          {/* <div className="relative">
-            <img
-              src={item.profileImage || "/default-avatar.png"}
-              alt={item.name}
-              className="h-24 w-24 rounded-full border-2 border-pink-500 object-cover"
-            />
-
-            <span
-              className={`absolute bottom-2 right-2 h-5 w-5 rounded-full border-2 border-black ${
-                isOnline ? "bg-green-500" : "bg-gray-500"
-              }`}
-            />
-          </div> */}
-
           <div>
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-bold">{item.name}</h2>
@@ -130,7 +106,7 @@ export default function ConnectionCard({
           </div>
 
           <button
-            onClick={handleReconnect}
+            onClick={() => handleReconnect(item)}
             disabled={loadingId === item.userId}
             className="rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 px-8 py-3 font-bold transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
           >

@@ -115,13 +115,13 @@ export default function SeriousDashboard() {
   //     };
   //   }, [socket, router]);
 
-  const handleReconnect = (user) => {
-    localStorage.setItem("reconnect_partner_id", user.userId);
+  // const handleReconnect = (user) => {
+  //   localStorage.setItem("reconnect_partner_id", user.userId);
 
-    socket.emit("send-reconnect-request", {
-      partnerId: user.userId,
-    });
-  };
+  //   socket.emit("send-reconnect-request", {
+  //     partnerId: user.userId,
+  //   });
+  // };
 
   useEffect(() => {
     if (!socket) return;
