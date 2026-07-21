@@ -99,9 +99,7 @@ export default function ConnectionCard({
             <div className="rounded-2xl bg-white/5 p-4 text-center">
               <p className="text-xs uppercase text-gray-400">Last Match</p>
 
-              <h3 className="mt-2 text-lg font-bold">
-                {formatDate(item.startedAt)}
-              </h3>
+              <h3 className="mt-2 text-lg font-bold">{item.endedAt || "-"}</h3>
             </div>
           </div>
 
