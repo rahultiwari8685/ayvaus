@@ -3,7 +3,6 @@ import express from "express";
 import {
   createRedeemRequest,
   redeemHistory,
-  getRedeemById,
 } from "../controllers/redeemController.js";
 
 import { auth } from "../middlewares/auth.js";
