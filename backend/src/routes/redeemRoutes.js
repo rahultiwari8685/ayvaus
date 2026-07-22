@@ -10,38 +10,27 @@ import {
   getRedeemById,
 } from "../controllers/redeemController.js";
 
-import { protect } from "../middleware/authMiddleware.js";
-import { adminProtect } from "../middleware/adminMiddleware.js";
+import { auth } from "../middleware/auth.js";
+import { adminProtect } from "../middleware/admin.js";
 
 const router = express.Router();
 
-/* ===========================
-   USER ROUTES
-=========================== */
+/* USER */
 
-// Create Redeem Request
-router.post("/", protect, createRedeemRequest);
+router.post("/", auth, createRedeemRequest);
 
-// Redeem History
-router.get("/history", protect, redeemHistory);
+router.get("/history", auth, redeemHistory);
 
-// Single Redeem Details
-router.get("/:id", protect, getRedeemById);
+router.get("/:id", auth, getRedeemById);
 
-/* ===========================
-   ADMIN ROUTES
-=========================== */
+/* ADMIN */
 
-// Get All Redeem Requests
-router.get("/admin/all", protect, adminProtect, getAllRedeemRequests);
+router.get("/admin/all", auth, adminProtect, getAllRedeemRequests);
 
-// Approve Request
-router.put("/admin/approve/:id", protect, adminProtect, approveRedeem);
+router.put("/admin/approve/:id", auth, adminProtect, approveRedeem);
 
-// Reject Request
-router.put("/admin/reject/:id", protect, adminProtect, rejectRedeem);
+router.put("/admin/reject/:id", auth, adminProtect, rejectRedeem);
 
-// Mark as Paid
-router.put("/admin/paid/:id", protect, adminProtect, markPaid);
+router.put("/admin/paid/:id", auth, adminProtect, markPaid);
 
 export default router;
