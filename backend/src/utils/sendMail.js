@@ -1,45 +1,25 @@
-import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
+console.log("cwd:", process.cwd());
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
 console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "Loaded" : "Missing");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+import nodemailer from "nodemailer";
 
 export const sendOtpMail = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
   await transporter.sendMail({
     from: `"Flirtaus" <${process.env.EMAIL_USER}>`,
-
     to: email,
-
     subject: "Reset Your Flirtaus Password",
-
-    html: `
-      <div style="font-family:Arial;padding:30px">
-
-        <h2>Reset Password</h2>
-
-        <p>Your OTP is:</p>
-
-        <h1 style="letter-spacing:6px;color:#ff3366">
-            ${otp}
-        </h1>
-
-        <p>This OTP is valid for 10 minutes.</p>
-
-        <br/>
-
-        <small>
-        If you didn't request this, please ignore this email.
-        </small>
-
-      </div>
-    `,
+    html: `<h2>Your OTP is ${otp}</h2>`,
   });
 };
