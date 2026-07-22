@@ -13,6 +13,7 @@ import jwt from "jsonwebtoken";
 import User from "./models/User.js";
 import Connection from "./models/Connection.js";
 import Reward from "./models/Reward.js";
+import redeemRoutes from "./routes/redeemRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,7 +22,7 @@ console.log("ENV SECRET:", process.env.JWT_SECRET);
 
 app.use(cors());
 app.use("/api/serious", seriousRoutes);
-
+app.use("/api/redeem", redeemRoutes);
 app.use(
   cors({
     origin: ["https://flirtaus.com", "https://www.flirtaus.com"],

@@ -1,6 +1,9 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 export default function WalletCard({ wallet }) {
+  const router = useRouter();
+
   if (!wallet) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl animate-pulse">
@@ -15,11 +18,6 @@ export default function WalletCard({ wallet }) {
 
   const xp = wallet?.xp || 0;
   const level = wallet?.level || 1;
-
-  // Example:
-  // Level 1 -> 100 XP
-  // Level 2 -> 200 XP
-  // Level 3 -> 300 XP
 
   const xpRequired = level * 100;
 
@@ -105,7 +103,10 @@ export default function WalletCard({ wallet }) {
 
         {/* Rewards Button */}
 
-        <button className="mt-8 w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 py-3 font-bold text-black transition-all duration-300 hover:scale-105">
+        <button
+          onClick={() => router.push("/wallet/redeem")}
+          className="mt-8 w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 py-3 font-bold text-black transition-all duration-300 hover:scale-105"
+        >
           🎁 Redeem Rewards
         </button>
       </div>
