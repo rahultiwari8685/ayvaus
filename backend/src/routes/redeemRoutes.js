@@ -10,8 +10,8 @@ import {
   getRedeemById,
 } from "../controllers/redeemController.js";
 
-import { auth } from "../middleware/auth.js";
-import { adminProtect } from "../middleware/admin.js";
+import { auth } from "../middlewares/auth.js";
+import { adminProtect } from "../middlewares/admin.js";
 
 const router = express.Router();
 
