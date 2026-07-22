@@ -15,6 +15,6 @@ router.post("/", auth, createRedeemRequest);
 
 router.get("/history", auth, redeemHistory);
 
-router.get("/:id", auth, getRedeemById);
+// router.get("/:id", auth, getRedeemById);
 
 export default router;
