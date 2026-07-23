@@ -108,9 +108,11 @@ const Login = () => {
               <CCardBody>
                 {/* Logo */}
                 <div className="text-center mb-4">
-                  <h1 style={styles.brand}>Hindustan TV Live</h1>
+                  <h1 style={styles.brand}>Flirtaus Admin</h1>
                   <div style={styles.divider}></div>
-                  <p style={styles.subtitle}>News Admin Login</p>
+                  <p style={styles.subtitle}>
+                    Manage Users, Moderation, Rewards & Platform Settings
+                  </p>
                 </div>
 
                 <CForm onSubmit={handleSubmit(login)}>
@@ -191,6 +193,27 @@ const styles = {
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     minHeight: '100vh',
+  },
+
+  brand: {
+    fontWeight: 800,
+    fontSize: '2rem',
+    letterSpacing: '1px',
+    color: '#ffffff',
+  },
+
+  divider: {
+    width: '60px',
+    height: '4px',
+    background: 'linear-gradient(90deg, #ff4d6d, #ff7a18)',
+    margin: '12px auto',
+    borderRadius: '10px',
+  },
+
+  subtitle: {
+    color: '#bfbfbf',
+    fontSize: '0.9rem',
+    marginTop: '10px',
   },
 
   overlay: {
