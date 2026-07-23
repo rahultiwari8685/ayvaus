@@ -123,45 +123,6 @@ io.on("connection", async (socket) => {
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
 
-  let dgConnection;
-
-  function initDeepgram(lang = "multi") {
-    dgConnection = deepgram.listen.live({
-      model: "nova-3",
-      language: lang,
-      punctuate: true,
-      smart_format: true,
-      interim_results: true,
-    });
-
-    dgConnection.on("Transcript", async (data) => {
-      const transcript = data.channel.alternatives[0]?.transcript;
-
-      if (!transcript) return;
-
-      const partner = io.sockets.sockets.get(socket.partnerId);
-
-      if (!partner) return;
-
-      const targetLang = (partner.language || "en-US").split("-")[0];
-
-      let translated = transcript;
-
-      try {
-        translated = await translateText(transcript, targetLang);
-      } catch (e) {
-        console.log(e.message);
-      }
-
-      partner.emit("voice-subtitle", {
-        text: translated,
-        speaker: "Stranger",
-      });
-    });
-  }
-
-  initDeepgram();
-
   if (token) {
     socket.mode = "serious";
   } else {
@@ -344,16 +305,6 @@ io.on("connection", async (socket) => {
 
     emitOnlineCount();
     tryMatch(socket.mode);
-  });
-
-  socket.on("update-language", (lang) => {
-    socket.language = lang;
-
-    dgConnection?.finish();
-
-    initDeepgram(lang.split("-")[0]);
-
-    console.log("🌍 LANGUAGE UPDATED:", socket.id, lang);
   });
 
   socket.on("ready", () => {
@@ -687,8 +638,6 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    dgConnection?.finish();
-
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
@@ -1030,16 +979,6 @@ io.on("connection", async (socket) => {
       console.log("Accept reconnect error:", err.message);
 
       socket.emit("reconnect-failed", err.message);
-    }
-  });
-
-  socket.on("audio-stream", (audio) => {
-    if (!dgConnection) return;
-
-    try {
-      dgConnection.send(Buffer.from(audio));
-    } catch (err) {
-      console.log("Deepgram Send Error:", err.message);
     }
   });
 
