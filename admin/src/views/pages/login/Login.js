@@ -53,7 +53,7 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch(setting.api + '/api/login', {
+      const response = await fetch(setting.api + '/api/serious/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
