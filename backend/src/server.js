@@ -14,6 +14,8 @@ import User from "./models/User.js";
 import Connection from "./models/Connection.js";
 import Reward from "./models/Reward.js";
 import redeemRoutes from "./routes/redeemRoutes.js";
+
+import deepgram from "./deepgram.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -120,6 +122,45 @@ io.on("connection", async (socket) => {
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
+
+  let dgConnection;
+
+  function initDeepgram(lang = "multi") {
+    dgConnection = deepgram.listen.live({
+      model: "nova-3",
+      language: lang,
+      punctuate: true,
+      smart_format: true,
+      interim_results: true,
+    });
+
+    dgConnection.on("Transcript", async (data) => {
+      const transcript = data.channel.alternatives[0]?.transcript;
+
+      if (!transcript) return;
+
+      const partner = io.sockets.sockets.get(socket.partnerId);
+
+      if (!partner) return;
+
+      const targetLang = (partner.language || "en-US").split("-")[0];
+
+      let translated = transcript;
+
+      try {
+        translated = await translateText(transcript, targetLang);
+      } catch (e) {
+        console.log(e.message);
+      }
+
+      partner.emit("voice-subtitle", {
+        text: translated,
+        speaker: "Stranger",
+      });
+    });
+  }
+
+  initDeepgram();
 
   if (token) {
     socket.mode = "serious";
@@ -307,6 +348,10 @@ io.on("connection", async (socket) => {
 
   socket.on("update-language", (lang) => {
     socket.language = lang;
+
+    dgConnection?.finish();
+
+    initDeepgram(lang.split("-")[0]);
 
     console.log("🌍 LANGUAGE UPDATED:", socket.id, lang);
   });
@@ -642,6 +687,8 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
+    dgConnection?.finish();
+
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
@@ -986,56 +1033,14 @@ io.on("connection", async (socket) => {
     }
   });
 
-  socket.on("voice-subtitle", async ({ text, fromLang, senderId }) => {
-    console.log("📩 RECEIVED:", text);
-
-    if (!text || text.trim().length === 0) return;
-    if (
-      socket.lastText === text &&
-      Date.now() - (socket.lastTextTime || 0) < 2000
-    ) {
-      return;
-    }
-
-    socket.lastText = text;
-    socket.lastTextTime = Date.now();
-
-    const partner = io.sockets.sockets.get(socket.partnerId);
-
-    console.log("👤 SPEAKER:", socket.id);
-    console.log("👥 PARTNER:", partner?.id);
-    console.log("🌍 SPEAKER LANG:", socket.language);
-    console.log("🌍 PARTNER LANG:", partner?.language);
-
-    if (!partner) return;
-
-    const targetLang = (partner.language || "en-US").split("-")[0];
-    console.log("🌍 PARTNER LANGUAGE:", partner.language);
-    console.log("🎯 TARGET LANG:", targetLang);
-    console.log("📝 ORIGINAL TEXT:", text);
-
-    let translatedForPartner = text;
+  socket.on("audio-stream", (audio) => {
+    if (!dgConnection) return;
 
     try {
-      translatedForPartner = await translateText(text, targetLang);
-
-      if (
-        translatedForPartner.trim().toLowerCase() ===
-          text.trim().toLowerCase() &&
-        targetLang !== "en"
-      ) {
-        console.log("⚠ Translation may have failed");
-      }
-
-      console.log("✅ TRANSLATED:", translatedForPartner);
+      dgConnection.send(Buffer.from(audio));
     } catch (err) {
-      console.log("Translation error:", err.message);
+      console.log("Deepgram Send Error:", err.message);
     }
-
-    partner.emit("voice-subtitle", {
-      text: translatedForPartner || text,
-      speaker: "Stranger",
-    });
   });
 
   setTimeout(() => {

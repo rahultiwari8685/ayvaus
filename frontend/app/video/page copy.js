@@ -29,6 +29,8 @@ export default function VideoChat() {
   const languageRestartTimerRef = useRef(null);
   const lastSpeechEndRef = useRef(0);
 
+  const recognitionStartingRef = useRef(false);
+
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -68,53 +70,122 @@ export default function VideoChat() {
     }
   }, []);
 
+  const recognitionRef = useRef(null);
+  const shouldRestartRecognitionRef = useRef(true);
+
+  const recognitionStartedOnceRef = useRef(false);
+
+  function startSpeechRecognition() {
+    if (recognitionRef.current || recognitionStartingRef.current) {
+      return;
+    }
+
+    recognitionStartingRef.current = true;
+
+    console.log("🎤 STARTING SPEECH");
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      console.log("❌ SpeechRecognition unsupported");
+      recognitionStartingRef.current = false;
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.lang = languageRef.current;
+    // recognition.lang = language;
+    // recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      console.log("✅ Speech recognition STARTED");
+
+      recognitionStartingRef.current = false;
+    };
+
+    // recognition.onresult = (event) => {
+    //   const lastResult = event.results[event.results.length - 1];
+
+    //   if (!lastResult.isFinal) return;
+
+    //   const transcript = lastResult[0].transcript.trim();
+
+    //   if (!transcript) return;
+
+    //   console.log("🎤 FINAL:", transcript);
+
+    //   if (!socketRef.current?.connected) return;
+
+    //   socketRef.current.emit("voice-subtitle", {
+    //     text: transcript,
+    //     fromLang: language,
+    //     senderId: socketRef.current.id,
+    //   });
+
+    //   console.log("📤 SENT:", transcript);
+    // };
+
+    recognition.onresult = (event) => {
+      const result = event.results[event.results.length - 1];
+
+      const transcript = result[0].transcript.trim();
+
+      if (!transcript) return;
+
+      if (!result.isFinal) return; // send only final text
+
+      socketRef.current.emit("voice-subtitle", {
+        text: transcript,
+        fromLang: languageRef.current,
+        senderId: socketRef.current.id,
+      });
+    };
+
+    recognition.onerror = (e) => {
+      console.log("❌ Speech error:", e.error);
+      if (e.error === "aborted") return;
+    };
+
+    recognition.onend = () => {
+      console.log("🛑 Speech ended");
+
+      recognitionRef.current = null;
+      recognitionStartingRef.current = false;
+
+      if (!shouldRestartRecognitionRef.current) {
+        console.log("⛔ Restart blocked");
+        return;
+      }
+
+      setTimeout(() => {
+        if (socketRef.current?.connected && !recognitionRef.current) {
+          shouldRestartRecognitionRef.current = true;
+          startSpeechRecognition();
+        }
+      }, 200);
+    };
+
+    recognitionRef.current = recognition;
+
+    try {
+      recognition.start();
+    } catch (err) {
+      console.log("❌ Start failed:", err);
+      recognitionStartingRef.current = false;
+    }
+  }
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  async function startAudioStreaming() {
-    if (!streamRef.current) return;
-
-    const audioTrack = streamRef.current.getAudioTracks()[0];
-
-    if (!audioTrack) return;
-
-    const stream = new MediaStream([audioTrack]);
-
-    audioStreamRef.current = stream;
-
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm",
-    });
-
-    mediaRecorderRef.current = recorder;
-
-    recorder.ondataavailable = async (event) => {
-      if (!event.data || event.data.size === 0) return;
-
-      const buffer = await event.data.arrayBuffer();
-
-      socketRef.current.emit("audio-stream", buffer);
-    };
-
-    recorder.start(250);
-
-    console.log("🎤 Audio Streaming Started");
-  }
-
-  function stopAudioStreaming() {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current = null;
-    }
-
-    audioStreamRef.current = null;
-
-    console.log("🛑 Audio Streaming Stopped");
-  }
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -131,44 +202,6 @@ export default function VideoChat() {
 
     streamRef.current = stream;
     localVideo.current.srcObject = stream;
-  }
-
-  function startAudioStreaming() {
-    if (!streamRef.current) return;
-
-    const audioTrack = streamRef.current.getAudioTracks()[0];
-
-    if (!audioTrack) return;
-
-    const stream = new MediaStream([audioTrack]);
-
-    audioStreamRef.current = stream;
-
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm",
-    });
-
-    mediaRecorderRef.current = recorder;
-
-    recorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0 && socketRef.current?.connected) {
-        socketRef.current.emit("audio-stream", event.data);
-      }
-    };
-
-    recorder.start(250);
-
-    console.log("🎤 Audio Streaming Started");
-  }
-
-  function stopAudioStreaming() {
-    mediaRecorderRef.current?.stop();
-
-    mediaRecorderRef.current = null;
-
-    audioStreamRef.current = null;
-
-    console.log("🛑 Audio Streaming Stopped");
   }
 
   function handleTouchStart(e) {
@@ -245,9 +278,14 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        setTimeout(() => {
-          startAudioStreaming();
-        }, 1000);
+        if (!recognitionRef.current && !recognitionStartedOnceRef.current) {
+          recognitionStartedOnceRef.current = true;
+
+          setTimeout(() => {
+            shouldRestartRecognitionRef.current = true;
+            startSpeechRecognition();
+          }, 1000);
+        }
       }
 
       if (
@@ -424,7 +462,7 @@ export default function VideoChat() {
 
       shouldRestartRecognitionRef.current = false;
 
-      stopAudioStreaming();
+      recognitionRef.current?.stop();
       setVoiceSubtitle("");
 
       recognitionStartedOnceRef.current = false;
@@ -461,7 +499,12 @@ export default function VideoChat() {
     return () => {
       mounted = false;
 
-      stopAudioStreaming();
+      if (recognitionRef.current) {
+        shouldRestartRecognitionRef.current = false;
+
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
 
       clearTimeout(subtitleTimerRef.current);
 
@@ -510,7 +553,8 @@ export default function VideoChat() {
 
     shouldRestartRecognitionRef.current = false;
 
-    stopAudioStreaming();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
     setVoiceSubtitle("");
 
     if (pcRef.current) {
@@ -605,7 +649,7 @@ export default function VideoChat() {
       if (muted) {
         shouldRestartRecognitionRef.current = false;
 
-        stopAudioStreaming();
+        recognitionRef.current?.stop();
         recognitionRef.current = null;
 
         console.log("🎤 Speech recognition stopped");
@@ -615,7 +659,7 @@ export default function VideoChat() {
 
         setTimeout(() => {
           if (!recognitionRef.current) {
-            startAudioStreaming();
+            startSpeechRecognition();
           }
         }, 500);
 
