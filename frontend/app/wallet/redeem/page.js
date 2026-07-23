@@ -26,30 +26,31 @@ export default function RedeemPage() {
 
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
-        "http://api.flirtaus.com/api/redeem",
-        {
+      const response = await fetch("https://api.flirtaus.com/api/redeem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           upiId,
           coins: Number(coins),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+        }),
+      });
 
-      alert(res.data.message || "Redeem request submitted successfully");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      alert(data.message || "Redeem request submitted successfully");
 
       setUpiId("");
       setCoins("");
     } catch (err) {
-      console.log(err);
-
-      alert(
-        err.response?.data?.message ||
-          "Something went wrong. Please try again.",
-      );
+      console.error("Redeem Error:", err);
+      alert(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
