@@ -1,294 +1,57 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import { CNavGroup, CNavItem } from '@coreui/react'
-
 import {
   cilSpeedometer,
-  cilBullhorn,
-  cilFolder,
   cilPeople,
   cilSettings,
-  cilFile,
-  cilMap,
-  cilRss,
-  cilNewspaper,
-  cilPlus,
-  cilCheckCircle,
-  cilPencil,
-  cilTrash,
-  cilChart,
-  cilCalendar,
+  cilDollar,
+  cilGift,
+  cilChatBubble,
   cilUser,
-  cilTags,
 } from '@coreui/icons'
 
-export const adminNav = [
+export const navigation = [
   {
     component: CNavItem,
     name: 'Dashboard',
     to: '/dashboard',
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
   },
-
-  {
-    component: CNavGroup,
-    name: 'News',
-    to: '/news',
-    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Add News',
-        to: '/news',
-        icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Add Short',
-        to: '/shorts',
-        icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Published News',
-        to: '/PublishedNews',
-        icon: <CIcon icon={cilCheckCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Draft News',
-        to: '/DraftNews',
-        icon: <CIcon icon={cilPencil} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Scheduled News',
-        to: '/ScheduleNews',
-        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-      },
-      // {
-      //   component: CNavItem,
-      //   name: 'Deleted News',
-      //   to: '/DeletedNews',
-      //   icon: <CIcon icon={cilTrash} customClassName="nav-icon" />,
-      // },
-    ],
-  },
-
   {
     component: CNavItem,
     name: 'Users',
-    to: '/Users',
+    to: '/users',
     icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
-    name: 'Category',
-    to: '/Category',
-    icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
+    name: 'Redeem Requests',
+    to: '/redeem-requests',
+    icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
-    name: 'Advertisement',
-    to: '/Advertisement',
-    icon: <CIcon icon={cilBullhorn} customClassName="nav-icon" />,
+    name: 'Rewards',
+    to: '/rewards',
+    icon: <CIcon icon={cilGift} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
-    name: 'SiteSetting',
-    to: '/siteSetting',
-    icon: <CIcon icon={cilBullhorn} customClassName="nav-icon" />,
+    name: 'Reports',
+    to: '/reports',
+    icon: <CIcon icon={cilChatBubble} customClassName="nav-icon" />,
   },
-]
-export const editorNav = [
   {
     component: CNavItem,
-    name: 'Dashboard',
-    to: '/dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-  },
-
-  {
-    component: CNavGroup,
-    name: 'News',
-    to: '/news',
-    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Add News',
-        to: '/news',
-        icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Published News',
-        to: '/PublishedNews',
-        icon: <CIcon icon={cilCheckCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Draft News',
-        to: '/DraftNews',
-        icon: <CIcon icon={cilPencil} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Scheduled News',
-        to: '/ScheduleNews',
-        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-      },
-      // {
-      //   component: CNavItem,
-      //   name: 'Deleted News',
-      //   to: '/DeletedNews',
-      //   icon: <CIcon icon={cilTrash} customClassName="nav-icon" />,
-      // },
-    ],
-  },
-
-  {
-    component: CNavItem,
-    name: 'Category',
-    to: '/Category',
-    icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
+    name: 'Settings',
+    to: '/settings',
+    icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Profile',
-    to: '/Profile',
-    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-  },
-]
-export const correspondenceNav = [
-  {
-    component: CNavItem,
-    name: 'Dashboard',
-    to: '/dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-  },
-
-  {
-    component: CNavGroup,
-    name: 'News',
-    to: '/news',
-    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Add News',
-        to: '/news',
-        icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Published News',
-        to: '/PublishedNews',
-        icon: <CIcon icon={cilCheckCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Draft News',
-        to: '/DraftNews',
-        icon: <CIcon icon={cilPencil} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Scheduled News',
-        to: '/ScheduleNews',
-        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-      },
-      // {
-      //   component: CNavItem,
-      //   name: 'Deleted News',
-      //   to: '/DeletedNews',
-      //   icon: <CIcon icon={cilTrash} customClassName="nav-icon" />,
-      // },
-    ],
-  },
-
-  // {
-  //   component: CNavItem,
-  //   name: 'Users',
-  //   to: '/Users',
-  //   icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
-  // },
-  // {
-  //   component: CNavItem,
-  //   name: 'Category',
-  //   to: '/Category',
-  //   icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
-  // },
-  {
-    component: CNavItem,
-    name: 'Profile',
-    to: '/Profile',
-    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-  },
-]
-export const subscriberNav = [
-  {
-    component: CNavItem,
-    name: 'Dashboard',
-    to: '/dashboard',
-    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
-  },
-
-  {
-    component: CNavGroup,
-    name: 'News',
-    to: '/news',
-    icon: <CIcon icon={cilNewspaper} customClassName="nav-icon" />,
-    items: [
-      // {
-      //   component: CNavItem,
-      //   name: 'Add News',
-      //   to: '/news',
-      //   icon: <CIcon icon={cilPlus} customClassName="nav-icon" />,
-      // },
-      {
-        component: CNavItem,
-        name: 'Published News',
-        to: '/PublishedNews',
-        icon: <CIcon icon={cilCheckCircle} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Draft News',
-        to: '/DraftNews',
-        icon: <CIcon icon={cilPencil} customClassName="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Scheduled News',
-        to: '/ScheduleNews',
-        icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
-      },
-      // {
-      //   component: CNavItem,
-      //   name: 'Deleted News',
-      //   to: '/DeletedNews',
-      //   icon: <CIcon icon={cilTrash} customClassName="nav-icon" />,
-      // },
-    ],
-  },
-
-  // {
-  //   component: CNavItem,
-  //   name: 'Users',
-  //   to: '/Users',
-  //   icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
-  // },
-  // {
-  //   component: CNavItem,
-  //   name: 'Category',
-  //   to: '/Category',
-  //   icon: <CIcon icon={cilTags} customClassName="nav-icon" />,
-  // },
-  {
-    component: CNavItem,
-    name: 'Profile',
-    to: '/Profile',
+    to: '/profile',
     icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
   },
 ]
