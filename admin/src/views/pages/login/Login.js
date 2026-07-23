@@ -71,7 +71,7 @@ const Login = () => {
 
       console.log('API response:', dd)
 
-      if (dd.result === 'success') {
+      if (dd.success === true) {
         let loginData = {
           token: dd.token,
           role: dd.role,
