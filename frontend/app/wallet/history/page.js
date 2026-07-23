@@ -15,16 +15,27 @@ export default function RedeemHistoryPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get("http://localhost:5000/api/redeem/history", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://api.flirtaus.com/api/redeem/history",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
-      setHistory(res.data);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to load history");
+      }
+
+      setHistory(data);
     } catch (err) {
-      console.log(err);
-      alert("Unable to load history");
+      console.error("History Error:", err);
+      alert(err.message || "Unable to load history");
     } finally {
       setLoading(false);
     }
