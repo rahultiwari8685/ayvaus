@@ -693,7 +693,9 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    dgConnection.finish();
+    if (dgConnection?.close) {
+      dgConnection.close();
+    }
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
