@@ -46,7 +46,7 @@ const RedeemRequest = () => {
     setLoading(true)
 
     try {
-      const response = await fetch(setting.api + '/api/redeem/history', {
+      const response = await fetch(setting.api + '/api/redeem/admin/list', {
         headers: {
           Authorization: 'Bearer ' + token,
         },
@@ -54,9 +54,11 @@ const RedeemRequest = () => {
 
       const result = await response.json()
 
-      console.log(result)
-
-      setRedeemList(result) // API returns array directly
+      if (result.status) {
+        setRedeemList(result.data)
+      } else {
+        setRedeemList([])
+      }
     } catch (err) {
       console.log(err)
     }
