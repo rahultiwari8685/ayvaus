@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react'
 import {
   CCard,
   CCardBody,
@@ -22,140 +22,127 @@ import {
   COffcanvasHeader,
   COffcanvasBody,
   CImage,
-} from "@coreui/react";
+} from '@coreui/react'
 
-import secureLocalStorage from "react-secure-storage";
-import setting from "../../../setting.json";
+import secureLocalStorage from 'react-secure-storage'
+import setting from '../../../setting.json'
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [visible, setVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [visible, setVisible] = useState(false)
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 10
 
-  const token =
-    JSON.parse(secureLocalStorage.getItem("logininfo"))?.token || "";
+  const token = JSON.parse(secureLocalStorage.getItem('logininfo'))?.token || ''
 
   const getUsers = async () => {
-    setLoading(true);
+    setLoading(true)
 
     try {
-      const response = await fetch(setting.api + "/api/users/admin/list", {
+      const response = await fetch(setting.api + '/api/users/admin/list', {
         headers: {
-          Authorization: "Bearer " + token,
+          Authorization: 'Bearer ' + token,
         },
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        setUsers(result.data);
+        setUsers(result.data)
       } else {
-        setUsers([]);
+        setUsers([])
       }
     } catch (err) {
-      console.log(err);
-      setUsers([]);
+      console.log(err)
+      setUsers([])
     }
 
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   useEffect(() => {
-    getUsers();
-  }, []);
+    getUsers()
+  }, [])
 
   const blockUser = async (id) => {
-    if (!window.confirm("Block this user?")) return;
+    if (!window.confirm('Block this user?')) return
 
     try {
-      const response = await fetch(
-        setting.api + "/api/users/admin/block/" + id,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
+      const response = await fetch(setting.api + '/api/users/admin/block/' + id, {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + token,
         },
-      );
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
-      alert(result.message);
+      alert(result.message)
 
-      getUsers();
+      getUsers()
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
-  };
+  }
 
   const unblockUser = async (id) => {
-    if (!window.confirm("Unblock this user?")) return;
+    if (!window.confirm('Unblock this user?')) return
 
     try {
-      const response = await fetch(
-        setting.api + "/api/users/admin/unblock/" + id,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
+      const response = await fetch(setting.api + '/api/users/admin/unblock/' + id, {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + token,
         },
-      );
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
-      alert(result.message);
+      alert(result.message)
 
-      getUsers();
+      getUsers()
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
-  };
+  }
 
   const filteredUsers = users.filter((item) => {
-    const keyword = search.toLowerCase();
+    const keyword = search.toLowerCase()
 
     const matchesSearch =
       item.name?.toLowerCase().includes(keyword) ||
       item.email?.toLowerCase().includes(keyword) ||
-      item.phone?.toLowerCase().includes(keyword);
+      item.phone?.toLowerCase().includes(keyword)
 
     const matchesStatus =
-      statusFilter === ""
-        ? true
-        : statusFilter === "active"
-          ? !item.isBlocked
-          : item.isBlocked;
+      statusFilter === '' ? true : statusFilter === 'active' ? !item.isBlocked : item.isBlocked
 
-    return matchesSearch && matchesStatus;
-  });
+    return matchesSearch && matchesStatus
+  })
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
   const currentUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
-  );
+  )
 
   return (
     <>
-      <CCard className="mb-4">
-        <CCardHeader>
+      <CCard className="shadow border-0 rounded-4">
+        <CCardHeader className="bg-dark text-white">
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Registered Users</h4>
 
-            <CBadge color="primary">
-              Total Users : {filteredUsers.length}
-            </CBadge>
+            <CBadge color="primary">Total Users : {filteredUsers.length}</CBadge>
           </div>
         </CCardHeader>
 
@@ -166,8 +153,8 @@ const Users = () => {
                 placeholder="Search by Name, Email, Phone..."
                 value={search}
                 onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
+                  setSearch(e.target.value)
+                  setCurrentPage(1)
                 }}
               />
             </CCol>
@@ -176,8 +163,8 @@ const Users = () => {
               <CFormSelect
                 value={statusFilter}
                 onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
+                  setStatusFilter(e.target.value)
+                  setCurrentPage(1)
                 }}
               >
                 <option value="">All Users</option>
@@ -241,8 +228,7 @@ const Users = () => {
                           src={
                             user.profileImage
                               ? user.profileImage
-                              : "https://ui-avatars.com/api/?name=" +
-                                encodeURIComponent(user.name)
+                              : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name)
                           }
                         />
                       </CTableDataCell>
@@ -253,7 +239,7 @@ const Users = () => {
 
                       <CTableDataCell>{user.email}</CTableDataCell>
 
-                      <CTableDataCell>{user.phone || "-"}</CTableDataCell>
+                      <CTableDataCell>{user.phone || '-'}</CTableDataCell>
 
                       <CTableDataCell>{user.gender}</CTableDataCell>
 
@@ -283,27 +269,19 @@ const Users = () => {
                           size="sm"
                           className="me-2"
                           onClick={() => {
-                            setSelectedUser(user);
-                            setVisible(true);
+                            setSelectedUser(user)
+                            setVisible(true)
                           }}
                         >
                           View
                         </CButton>
 
                         {user.isBlocked ? (
-                          <CButton
-                            color="success"
-                            size="sm"
-                            onClick={() => unblockUser(user._id)}
-                          >
+                          <CButton color="success" size="sm" onClick={() => unblockUser(user._id)}>
                             Unblock
                           </CButton>
                         ) : (
-                          <CButton
-                            color="danger"
-                            size="sm"
-                            onClick={() => blockUser(user._id)}
-                          >
+                          <CButton color="danger" size="sm" onClick={() => blockUser(user._id)}>
                             Block
                           </CButton>
                         )}
@@ -341,11 +319,7 @@ const Users = () => {
 
       {/* User Details Offcanvas */}
 
-      <COffcanvas
-        placement="end"
-        visible={visible}
-        onHide={() => setVisible(false)}
-      >
+      <COffcanvas placement="end" visible={visible} onHide={() => setVisible(false)}>
         <COffcanvasHeader closeButton>
           <h5>User Details</h5>
         </COffcanvasHeader>
@@ -361,15 +335,14 @@ const Users = () => {
                   src={
                     selectedUser.profileImage
                       ? selectedUser.profileImage
-                      : "https://ui-avatars.com/api/?name=" +
-                        encodeURIComponent(selectedUser.name)
+                      : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedUser.name)
                   }
                 />
 
                 <h5 className="mt-3">{selectedUser.name}</h5>
 
-                <CBadge color={selectedUser.isBlocked ? "danger" : "success"}>
-                  {selectedUser.isBlocked ? "Blocked" : "Active"}
+                <CBadge color={selectedUser.isBlocked ? 'danger' : 'success'}>
+                  {selectedUser.isBlocked ? 'Blocked' : 'Active'}
                 </CBadge>
               </div>
 
@@ -389,17 +362,17 @@ const Users = () => {
 
                   <tr>
                     <th>Phone</th>
-                    <td>{selectedUser.phone || "-"}</td>
+                    <td>{selectedUser.phone || '-'}</td>
                   </tr>
 
                   <tr>
                     <th>Gender</th>
-                    <td>{selectedUser.gender || "-"}</td>
+                    <td>{selectedUser.gender || '-'}</td>
                   </tr>
 
                   <tr>
                     <th>Age</th>
-                    <td>{selectedUser.age || "-"}</td>
+                    <td>{selectedUser.age || '-'}</td>
                   </tr>
 
                   <tr>
@@ -424,7 +397,7 @@ const Users = () => {
 
                   <tr>
                     <th>Referral Code</th>
-                    <td>{selectedUser.referralCode || "-"}</td>
+                    <td>{selectedUser.referralCode || '-'}</td>
                   </tr>
 
                   <tr>
@@ -434,22 +407,22 @@ const Users = () => {
 
                   <tr>
                     <th>Bio</th>
-                    <td>{selectedUser.bio || "-"}</td>
+                    <td>{selectedUser.bio || '-'}</td>
                   </tr>
 
                   <tr>
                     <th>Intent</th>
-                    <td>{selectedUser.intent || "-"}</td>
+                    <td>{selectedUser.intent || '-'}</td>
                   </tr>
 
                   <tr>
                     <th>Looking For</th>
-                    <td>{selectedUser.looking_for || "-"}</td>
+                    <td>{selectedUser.looking_for || '-'}</td>
                   </tr>
 
                   <tr>
                     <th>Serious Profile</th>
-                    <td>{selectedUser.is_serious_profile ? "Yes" : "No"}</td>
+                    <td>{selectedUser.is_serious_profile ? 'Yes' : 'No'}</td>
                   </tr>
 
                   <tr>
@@ -457,7 +430,7 @@ const Users = () => {
                     <td>
                       {selectedUser.createdAt
                         ? new Date(selectedUser.createdAt).toLocaleString()
-                        : "-"}
+                        : '-'}
                     </td>
                   </tr>
 
@@ -466,7 +439,7 @@ const Users = () => {
                     <td>
                       {selectedUser.updatedAt
                         ? new Date(selectedUser.updatedAt).toLocaleString()
-                        : "-"}
+                        : '-'}
                     </td>
                   </tr>
                 </tbody>
@@ -477,8 +450,8 @@ const Users = () => {
                   <CButton
                     color="success"
                     onClick={() => {
-                      unblockUser(selectedUser._id);
-                      setVisible(false);
+                      unblockUser(selectedUser._id)
+                      setVisible(false)
                     }}
                   >
                     Unblock User
@@ -487,19 +460,15 @@ const Users = () => {
                   <CButton
                     color="danger"
                     onClick={() => {
-                      blockUser(selectedUser._id);
-                      setVisible(false);
+                      blockUser(selectedUser._id)
+                      setVisible(false)
                     }}
                   >
                     Block User
                   </CButton>
                 )}
 
-                <CButton
-                  color="secondary"
-                  variant="outline"
-                  onClick={() => setVisible(false)}
-                >
+                <CButton color="secondary" variant="outline" onClick={() => setVisible(false)}>
                   Close
                 </CButton>
               </div>
@@ -508,7 +477,7 @@ const Users = () => {
         </COffcanvasBody>
       </COffcanvas>
     </>
-  );
-};
+  )
+}
 
-export default Users;
+export default Users
