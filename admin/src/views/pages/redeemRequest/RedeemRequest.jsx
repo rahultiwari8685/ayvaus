@@ -166,9 +166,9 @@ const RedeemRequest = () => {
                 }}
               >
                 <option value="">All Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
               </CFormSelect>
             </CCol>
           </CRow>
@@ -214,11 +214,11 @@ const RedeemRequest = () => {
                         <CTableDataCell>₹ {item.amount}</CTableDataCell>
 
                         <CTableDataCell>
-                          {item.status === 'Pending' && <CBadge color="warning">Pending</CBadge>}
+                          {item.status === 'pending' && <CBadge color="warning">Pending</CBadge>}
 
-                          {item.status === 'Approved' && <CBadge color="success">Approved</CBadge>}
+                          {item.status === 'approved' && <CBadge color="success">Approved</CBadge>}
 
-                          {item.status === 'Rejected' && <CBadge color="danger">Rejected</CBadge>}
+                          {item.status === 'rejected' && <CBadge color="danger">Rejected</CBadge>}
                         </CTableDataCell>
 
                         <CTableDataCell>
@@ -238,7 +238,7 @@ const RedeemRequest = () => {
                             View
                           </CButton>
 
-                          {item.status === 'Pending' && (
+                          {item.status === 'pending' && (
                             <>
                               <CButton
                                 color="success"
