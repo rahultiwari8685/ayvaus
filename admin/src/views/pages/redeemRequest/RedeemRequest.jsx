@@ -54,9 +54,9 @@ const RedeemRequest = () => {
 
       const result = await response.json()
 
-      setRedeemList(result.data)
+      console.log(result)
 
-      setRedeemList([])
+      setRedeemList(result) // API returns array directly
     } catch (err) {
       console.log(err)
     }
