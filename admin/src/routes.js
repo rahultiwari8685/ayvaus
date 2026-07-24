@@ -14,7 +14,7 @@ const ChangePassword = React.lazy(() => import('./views/pages/changePassword/Cha
 // const Advertisement = React.lazy(() => import('./views/pages/advertisement/Advertisement'))
 // const SiteSetting = React.lazy(() => import('./views/pages/siteSetting/SiteSetting'))
 // const Shorts = React.lazy(() => import('./views/pages/shorts/Shorts'))
-const RedeemRequest = React.lazy(() => import('./views/pages/redeem/RedeemRequest'))
+const RedeemRequest = React.lazy(() => import('./views/pages/redeemRequest/RedeemRequest'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -27,7 +27,7 @@ const routes = [
   // { path: '/DeletedNews', name: 'Deleted News', element: DeletedNews },
   // { path: '/ScheduleNews', name: 'Scheduled News', element: ScheduleNews },
   // { path: '/siteSetting', name: 'Site Setting', element: SiteSetting },
-  { path: '/redeemRequests', name: 'Site Setting', element: RedeemRequest },
+  { path: '/redeemRequest', name: 'Redeem Request', element: RedeemRequest },
 
   { path: '/ChangePassword', name: 'Change Password', element: ChangePassword },
   //   { path: '/Users', name: 'Users', element: Users },
