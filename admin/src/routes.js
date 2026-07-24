@@ -30,9 +30,9 @@ const routes = [
   { path: '/redeemRequests', name: 'Site Setting', element: RedeemRequest },
 
   { path: '/ChangePassword', name: 'Change Password', element: ChangePassword },
-//   { path: '/Users', name: 'Users', element: Users },
-//   { path: '/Category', name: 'Category', element: Category },
-//   { path: '/advertisement', name: 'Advertisement', element: Advertisement },
-//   { path: '/shorts', name: 'Shorts', element: Shorts },
-// ]
+  //   { path: '/Users', name: 'Users', element: Users },
+  //   { path: '/Category', name: 'Category', element: Category },
+  //   { path: '/advertisement', name: 'Advertisement', element: Advertisement },
+  //   { path: '/shorts', name: 'Shorts', element: Shorts },
+]
 export default routes
