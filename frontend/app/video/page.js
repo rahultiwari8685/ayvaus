@@ -24,11 +24,14 @@ export default function VideoChat() {
   const streamRef = useRef(null);
   const roleRef = useRef(null);
 
+  const audioStreamRef = useRef(null);
+
   const iceQueueRef = useRef([]);
   const subtitleTimerRef = useRef(null);
   const languageRestartTimerRef = useRef(null);
   const lastSpeechEndRef = useRef(0);
-
+  const shouldRestartRecognitionRef = useRef(false);
+  const recognitionStartedOnceRef = useRef(false);
   const [status, setStatus] = useState("Looking for someone...");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -37,7 +40,7 @@ export default function VideoChat() {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [showChat, setShowChat] = useState(false);
-
+  const recognitionRef = useRef(null);
   const [typing, setTyping] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState(0);
@@ -131,34 +134,6 @@ export default function VideoChat() {
 
     streamRef.current = stream;
     localVideo.current.srcObject = stream;
-  }
-
-  function startAudioStreaming() {
-    if (!streamRef.current) return;
-
-    const audioTrack = streamRef.current.getAudioTracks()[0];
-
-    if (!audioTrack) return;
-
-    const stream = new MediaStream([audioTrack]);
-
-    audioStreamRef.current = stream;
-
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm",
-    });
-
-    mediaRecorderRef.current = recorder;
-
-    recorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0 && socketRef.current?.connected) {
-        socketRef.current.emit("audio-stream", event.data);
-      }
-    };
-
-    recorder.start(250);
-
-    console.log("🎤 Audio Streaming Started");
   }
 
   function stopAudioStreaming() {
