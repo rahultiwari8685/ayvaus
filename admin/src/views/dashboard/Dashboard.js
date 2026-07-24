@@ -1259,7 +1259,7 @@ const Dashboard = () => {
                         FOOTER
 ========================================================== */}
 
-      <CCard
+      {/* <CCard
         className="border-0 shadow-sm"
         style={{
           borderRadius: 22,
@@ -1294,7 +1294,7 @@ const Dashboard = () => {
             </div>
           </div>
         </CCardBody>
-      </CCard>
+      </CCard> */}
     </div>
   )
 }
