@@ -17,6 +17,7 @@ import redeemRoutes from "./routes/redeemRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import deepgram from "./deepgram.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import { LiveTranscriptionEvents } from "@deepgram/sdk";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -121,6 +122,50 @@ async function translateText(text, targetLang) {
 }
 
 io.on("connection", async (socket) => {
+  socket.on("audio-stream", (audio) => {
+    console.log("🎤 Audio received:", audio?.byteLength || audio?.size);
+
+    if (dgConnection.getReadyState() === 1) {
+      dgConnection.send(audio);
+    } else {
+      console.log("❌ Deepgram not ready");
+    }
+  });
+
+  const dgConnection = deepgram.listen.live({
+    model: "nova-3",
+    language: "en",
+    smart_format: true,
+  });
+
+  dgConnection.on(LiveTranscriptionEvents.Transcript, (data) => {
+    const transcript = data.channel.alternatives[0].transcript;
+
+    if (!transcript) return;
+
+    console.log("✅ Transcript:", transcript);
+
+    socket.emit("voice-subtitle", { text: transcript });
+
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    partner?.emit("voice-subtitle", {
+      text: transcript,
+    });
+  });
+
+  dgConnection.on(LiveTranscriptionEvents.Open, () => {
+    console.log("✅ Deepgram Connected");
+  });
+
+  dgConnection.on(LiveTranscriptionEvents.Close, () => {
+    console.log("🔴 Deepgram Closed");
+  });
+
+  dgConnection.on(LiveTranscriptionEvents.Error, (err) => {
+    console.log("❌ Deepgram Error:", err);
+  });
+
   socket.language = "en-US";
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
@@ -641,6 +686,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
+    dgConnection.finish();
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
