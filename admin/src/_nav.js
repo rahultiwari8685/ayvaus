@@ -27,7 +27,7 @@ export const navigation = [
   {
     component: CNavItem,
     name: 'Redeem Requests',
-    to: '/redeem-requests',
+    to: '/redeemRequests',
     icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
   },
   {

@@ -69,45 +69,107 @@ export const redeemHistory = async (req, res) => {
 };
 
 export const approveRedeem = async (req, res) => {
-  const request = await RedeemRequest.findById(req.params.id);
+  try {
+    const request = await RedeemRequest.findById(req.params.id);
 
-  request.status = "approved";
+    if (!request) {
+      return res.status(404).json({
+        status: false,
+        message: "Request not found",
+      });
+    }
 
-  await request.save();
+    request.status = "approved";
 
-  res.json({
-    success: true,
-  });
+    await request.save();
+
+    res.json({
+      status: true,
+      message: "Redeem request approved successfully.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
+  }
 };
 
 export const markPaid = async (req, res) => {
-  const request = await RedeemRequest.findById(req.params.id);
+  try {
+    const request = await RedeemRequest.findById(req.params.id);
 
-  request.status = "paid";
+    if (!request) {
+      return res.status(404).json({
+        status: false,
+        message: "Request not found",
+      });
+    }
 
-  request.transactionId = req.body.transactionId;
+    request.status = "paid";
+    request.transactionId = req.body.transactionId;
 
-  await request.save();
+    await request.save();
 
-  res.json({
-    success: true,
-  });
+    res.json({
+      status: true,
+      message: "Payment marked successfully.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
+  }
 };
 
 export const rejectRedeem = async (req, res) => {
-  const request = await RedeemRequest.findById(req.params.id);
+  try {
+    const request = await RedeemRequest.findById(req.params.id);
 
-  const user = await User.findById(request.user);
+    if (!request) {
+      return res.status(404).json({
+        status: false,
+        message: "Request not found",
+      });
+    }
 
-  user.coins += request.coins;
+    const user = await User.findById(request.user);
 
-  await user.save();
+    user.coins += request.coins;
 
-  request.status = "rejected";
+    await user.save();
 
-  await request.save();
+    request.status = "rejected";
 
-  res.json({
-    success: true,
-  });
+    await request.save();
+
+    res.json({
+      status: true,
+      message: "Redeem request rejected successfully.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
+  }
+};
+
+export const adminRedeemList = async (req, res) => {
+  try {
+    const data = await RedeemRequest.find()
+      .populate("user", "name email phone profileImage")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      status: true,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
+  }
 };
