@@ -481,7 +481,7 @@ const Dashboard = () => {
         Premium Analytics Section
 ====================================== */}
 
-      <CRow className="mb-4">
+      {/* <CRow className="mb-4">
         <CCol lg={8}>
           <CCard
             className="border-0 shadow-sm"
@@ -605,7 +605,7 @@ const Dashboard = () => {
             </CCardBody>
           </CCard>
         </CCol>
-      </CRow>
+      </CRow> */}
 
       {/* ======================================
         Reward Analytics
