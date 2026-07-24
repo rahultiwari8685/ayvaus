@@ -14,12 +14,12 @@ import User from "./models/User.js";
 import Connection from "./models/Connection.js";
 import Reward from "./models/Reward.js";
 import redeemRoutes from "./routes/redeemRoutes.js";
-
+import userRoutes from "./routes/userRoutes.js";
 import deepgram from "./deepgram.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/api/users", userRoutes);
 console.log("ENV SECRET:", process.env.JWT_SECRET);
 
 app.use(cors());
