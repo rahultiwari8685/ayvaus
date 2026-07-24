@@ -30,28 +30,10 @@ export const navigation = [
     to: '/redeemRequest',
     icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
   },
-  {
-    component: CNavItem,
-    name: 'Rewards',
-    to: '/rewards',
-    icon: <CIcon icon={cilGift} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Reports',
-    to: '/reports',
-    icon: <CIcon icon={cilChatBubble} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Settings',
-    to: '/settings',
-    icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
-  },
-  {
-    component: CNavItem,
-    name: 'Profile',
-    to: '/profile',
-    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-  },
+  // {
+  //   component: CNavItem,
+  //   name: 'Rewards',
+  //   to: '/rewards',
+  //   icon: <CIcon icon={cilGift} customClassName="nav-icon" />,
+  // },
 ]
