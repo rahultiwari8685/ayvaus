@@ -19,12 +19,13 @@ import deepgram from "./deepgram.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/users", userRoutes);
+
 console.log("ENV SECRET:", process.env.JWT_SECRET);
 
 app.use(cors());
 app.use("/api/serious", seriousRoutes);
 app.use("/api/redeem", redeemRoutes);
+app.use("/api/users", userRoutes);
 app.use(
   cors({
     origin: ["https://flirtaus.com", "https://www.flirtaus.com"],
