@@ -8,7 +8,8 @@ export default function RedeemPage() {
   const [coins, setCoins] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const amount = coins ? Number(coins) / 10 : 0;
+  const amount = coins ? Number(coins) / 100 : 0;
+  const [coinError, setCoinError] = useState("");
 
   const handleRedeem = async () => {
     if (!upiId.trim()) {
@@ -16,8 +17,8 @@ export default function RedeemPage() {
       return;
     }
 
-    if (!coins || Number(coins) < 500) {
-      alert("Minimum redeem is 500 Coins");
+    if (!coins || Number(coins) < 5000) {
+      setCoinError("Minimum redeem is 5000 Coins");
       return;
     }
 
@@ -86,11 +87,30 @@ export default function RedeemPage() {
 
           <input
             type="number"
-            placeholder="Minimum 500"
+            placeholder="Minimum 5000"
             value={coins}
-            onChange={(e) => setCoins(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-black p-3 outline-none focus:border-yellow-500"
+            onChange={(e) => {
+              const value = e.target.value;
+              setCoins(value);
+
+              if (!value) {
+                setCoinError("");
+              } else if (Number(value) < 5000) {
+                setCoinError("Minimum redeem is 5000 Coins");
+              } else {
+                setCoinError("");
+              }
+            }}
+            className={`w-full rounded-xl border bg-black p-3 outline-none ${
+              coinError
+                ? "border-red-500"
+                : "border-gray-700 focus:border-yellow-500"
+            }`}
           />
+
+          {coinError && (
+            <p className="mt-2 text-sm text-red-500">{coinError}</p>
+          )}
         </div>
 
         {/* Amount */}
@@ -112,8 +132,8 @@ export default function RedeemPage() {
         {/* Note */}
 
         <div className="mb-6 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-gray-300">
-          <p>• Minimum Redeem : 500 Coins</p>
-          <p>• 10 Coins = ₹1</p>
+          <p>• Minimum Redeem : 5000 Coins</p>
+          <p>• 100 Coins = ₹1</p>
           <p>• Payment will be sent after admin approval.</p>
         </div>
 
