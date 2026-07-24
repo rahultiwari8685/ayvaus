@@ -54,11 +54,9 @@ const RedeemRequest = () => {
 
       const result = await response.json()
 
-      if (result.status) {
-        setRedeemList(result.data)
-      } else {
-        setRedeemList([])
-      }
+      setRedeemList(result.data)
+
+      setRedeemList([])
     } catch (err) {
       console.log(err)
     }
