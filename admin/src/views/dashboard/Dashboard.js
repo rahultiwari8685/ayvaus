@@ -40,7 +40,7 @@ import {
 } from '@coreui/icons'
 
 import secureLocalStorage from 'react-secure-storage'
-import setting from '../../../setting.json'
+import setting from '../../setting.json'
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
