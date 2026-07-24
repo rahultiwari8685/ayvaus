@@ -611,7 +611,7 @@ const Dashboard = () => {
         Reward Analytics
 ====================================== */}
 
-      <CRow className="mb-4">
+      {/* <CRow className="mb-4">
         <CCol lg={12}>
           <CCard
             className="border-0 shadow-sm"
@@ -664,7 +664,7 @@ const Dashboard = () => {
             </CCardBody>
           </CCard>
         </CCol>
-      </CRow>
+      </CRow> */}
 
       {/* ======================================
           KPI Summary Cards
