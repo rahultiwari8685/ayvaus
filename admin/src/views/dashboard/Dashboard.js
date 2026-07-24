@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { CCard, CCardBody, CCardHeader, CCol, CRow, CSpinner, CWidgetStatsA } from '@coreui/react'
+
+import {
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CRow,
+  CSpinner,
+  CWidgetStatsA,
+  CButton,
+} from '@coreui/react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -37,7 +47,6 @@ import {
   cilXCircle,
   cilClock,
   cilStar,
-  CButton,
 } from '@coreui/icons'
 
 import secureLocalStorage from 'react-secure-storage'
