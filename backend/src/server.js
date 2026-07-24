@@ -16,6 +16,7 @@ import Reward from "./models/Reward.js";
 import redeemRoutes from "./routes/redeemRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import deepgram from "./deepgram.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,6 +27,7 @@ app.use(cors());
 app.use("/api/serious", seriousRoutes);
 app.use("/api/redeem", redeemRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use(
   cors({
     origin: ["https://flirtaus.com", "https://www.flirtaus.com"],
