@@ -17,7 +17,7 @@ import redeemRoutes from "./routes/redeemRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import deepgram from "./deepgram.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-import { LiveTranscriptionEvents } from "@deepgram/sdk";
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -126,26 +126,33 @@ io.on("connection", async (socket) => {
     console.log("🎤 Audio received:", audio?.byteLength || audio?.size);
 
     if (dgConnection.getReadyState() === 1) {
-      dgConnection.send(audio);
+      dgConnection.sendMedia(audio);
     } else {
       console.log("❌ Deepgram not ready");
     }
   });
 
-  const dgConnection = deepgram.listen.live({
+  const dgConnection = await deepgram.listen.v1.connect({
     model: "nova-3",
     language: "en",
     smart_format: true,
   });
 
-  dgConnection.on(LiveTranscriptionEvents.Transcript, (data) => {
+  dgConnection.connect();
+  await dgConnection.waitForOpen();
+
+  dgConnection.on("message", (data) => {
+    if (data.type !== "Results") return;
+
     const transcript = data.channel.alternatives[0].transcript;
 
     if (!transcript) return;
 
-    console.log("✅ Transcript:", transcript);
+    console.log(transcript);
 
-    socket.emit("voice-subtitle", { text: transcript });
+    socket.emit("voice-subtitle", {
+      text: transcript,
+    });
 
     const partner = io.sockets.sockets.get(socket.partnerId);
 
@@ -154,16 +161,16 @@ io.on("connection", async (socket) => {
     });
   });
 
-  dgConnection.on(LiveTranscriptionEvents.Open, () => {
+  dgConnection.on("open", () => {
     console.log("✅ Deepgram Connected");
   });
 
-  dgConnection.on(LiveTranscriptionEvents.Close, () => {
+  dgConnection.on("close", () => {
     console.log("🔴 Deepgram Closed");
   });
 
-  dgConnection.on(LiveTranscriptionEvents.Error, (err) => {
-    console.log("❌ Deepgram Error:", err);
+  dgConnection.on("error", (err) => {
+    console.log(err);
   });
 
   socket.language = "en-US";
