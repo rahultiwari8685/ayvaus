@@ -1,39 +1,33 @@
-import React, { useState, useEffect } from 'react'
-import { cilUser, cilLockLocked } from '@coreui/icons'
-import {
-  CContainer,
-  CRow,
-  CCol,
-  CCard,
-  CCardBody,
-  CForm,
-  CFormInput,
-  CButton,
-  CInputGroup,
-  CInputGroupText,
-} from '@coreui/react'
+import React, { useState } from 'react'
+import { CContainer, CRow, CCol, CCard, CCardBody, CForm, CButton, CSpinner } from '@coreui/react'
 
-import * as yup from 'yup'
 import { useNavigate } from 'react-router-dom'
-import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
-import CIcon from '@coreui/icons-react'
-import toast from 'react-hot-toast'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
-import setting from '../../../setting.json'
+import toast from 'react-hot-toast'
 import secureLocalStorage from 'react-secure-storage'
 
-const schema = yup.object().shape({
-  email: yup.string().email().required('Enter your valid email'),
-  password: yup
-    .string()
-    .required('Password is required')
-    .min(1, 'Password must be at least 1 character'),
+import { cilUser, cilLockLocked, cilLowVision, cilShieldAlt } from '@coreui/icons'
+
+import CIcon from '@coreui/icons-react'
+
+import setting from '../../../setting.json'
+
+import './Login.css'
+
+const schema = yup.object({
+  email: yup.string().email('Please enter valid email').required('Email is required'),
+
+  password: yup.string().required('Password is required'),
 })
 
 const Login = () => {
   const navigate = useNavigate()
+
   const [loading, setLoading] = useState(false)
+
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -45,231 +39,248 @@ const Login = () => {
   })
 
   const login = async (data) => {
-    console.log('Login data:', data)
-
-    let lg = {
-      email: data.email,
-      password: data.password,
-    }
+    setLoading(true)
 
     try {
-      const response = await fetch(setting.api + '/api/serious/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        setting.api + '/api/serious/login',
+
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json',
+          },
+
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(lg),
-        mode: 'cors',
-      })
+      )
 
-      // Check server response
-      if (!response.ok) {
-        throw new Error('Server error. Please try again.')
-      }
+      const result = await response.json()
 
-      const dd = await response.json()
+      if (result.success) {
+        secureLocalStorage.setItem(
+          'logininfo',
 
-      console.log('API response:', dd)
+          JSON.stringify({
+            token: result.token,
 
-      if (dd.success === true) {
-        let loginData = {
-          token: dd.token,
-          role: dd.role,
-          user: dd.user,
-        }
+            role: result.role,
 
-        secureLocalStorage.setItem('logininfo', JSON.stringify(loginData))
+            user: result.user,
+          }),
+        )
 
-        toast.success('Login Successful')
+        toast.success('Welcome Back 👋')
 
-        setTimeout(() => {
-          navigate('/dashboard')
-        }, 1000)
+        navigate('/dashboard')
       } else {
-        toast.error(dd.message || dd.reason || 'Invalid email or password')
+        toast.error(result.message)
       }
-    } catch (error) {
-      console.error('Login Error:', error)
-
-      toast.error(error.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      toast.error('Server Error')
     }
+
+    setLoading(false)
   }
 
   return (
-    <div style={styles.bg}>
-      <div style={styles.overlay}></div>
+    <div className="login-page">
+      <div className="blob blob1"></div>
+      <div className="blob blob2"></div>
+      <div className="blob blob3"></div>
+      <div className="grid-overlay"></div>
 
-      <CContainer className="min-vh-100 d-flex justify-content-center align-items-center">
-        <CRow className="justify-content-center w-100">
-          <CCol md={5} lg={4}>
-            <CCard style={styles.card} className="border-0">
-              <CCardBody>
-                {/* Logo */}
-                <div className="text-center mb-4">
-                  <h1 style={styles.brand}>Flirtaus Admin</h1>
-                  <div style={styles.divider}></div>
-                  <p style={styles.subtitle}>
-                    Manage Users, Moderation, Rewards & Platform Settings
-                  </p>
+      <CContainer fluid>
+        <CRow className="min-vh-100">
+          {/* LEFT */}
+
+          <CCol lg={6} className="left-panel d-none d-lg-flex">
+            <div className="left-content">
+              <div className="premium-badge">🚀 Premium Administration</div>
+
+              <h1>
+                Manage
+                <br />
+                Flirtaus
+                <br />
+                Like Never Before
+              </h1>
+
+              <p>
+                A modern administration dashboard to manage users, rewards, analytics, moderation,
+                redeems and platform monitoring.
+              </p>
+
+              <div className="stats-grid">
+                <div className="stats-card">
+                  <h2>25K+</h2>
+
+                  <p>Active Users</p>
                 </div>
 
-                <CForm onSubmit={handleSubmit(login)}>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText style={styles.iconBox}>
-                      <CIcon icon={cilUser} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="email"
-                      placeholder="Email"
-                      style={styles.input}
-                      {...register('email')}
-                    />
-                  </CInputGroup>
-                  {errors.email && <p style={styles.error}>{errors.email.message}</p>}
+                <div className="stats-card">
+                  <h2>₹12.5L</h2>
 
-                  {/* <CInputGroup className="mb-3">
-                    <CInputGroupText style={styles.iconBox}>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Password"
-                      style={styles.input}
-                      {...register('password')}
-                    />
-                  </CInputGroup> */}
+                  <p>Redeemed</p>
+                </div>
 
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText style={styles.iconBox}>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
+                <div className="stats-card">
+                  <h2>1.8M</h2>
 
-                    <CFormInput
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
-                      style={styles.input}
-                      {...register('password')}
-                    />
+                  <p>XP Earned</p>
+                </div>
 
-                    <CInputGroupText
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? '🙈' : '👁️'}
-                    </CInputGroupText>
-                  </CInputGroup>
-                  {errors.password && <p style={styles.error}>{errors.password.message}</p>}
+                <div className="stats-card">
+                  <h2>99.9%</h2>
 
-                  {/* <CButton type="submit" className="w-100 mt-3" style={styles.button}>
-                    Sign In
-                  </CButton> */}
+                  <p>Server Uptime</p>
+                </div>
+              </div>
 
-                  <CButton
-                    type="submit"
-                    className="w-100 mt-3"
-                    style={styles.button}
-                    disabled={loading}
-                  >
-                    {loading ? 'Signing In...' : 'Sign In'}
-                  </CButton>
-                </CForm>
-              </CCardBody>
-            </CCard>
+              <div className="feature-list">
+                <div className="feature">
+                  ⚡
+                  <div>
+                    <h5>Lightning Fast</h5>
+
+                    <span>Real-time dashboard updates</span>
+                  </div>
+                </div>
+
+                <div className="feature">
+                  📊
+                  <div>
+                    <h5>Analytics</h5>
+
+                    <span>Monitor users and rewards</span>
+                  </div>
+                </div>
+
+                <div className="feature">
+                  🔐
+                  <div>
+                    <h5>Enterprise Security</h5>
+
+                    <span>Secure authentication system</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CCol>
+
+          {/* RIGHT */}
+
+          <CCol lg={6} className="right-panel">
+            <div className="login-wrapper">
+              <CCard className="login-card border-0">
+                <CCardBody>
+                  <div className="login-logo">
+                    <div className="logo-circle">⚡</div>
+
+                    <h2>Welcome Back</h2>
+
+                    <p>Sign in to continue</p>
+                  </div>
+
+                  <CForm onSubmit={handleSubmit(login)}>
+                    {/* Email */}
+
+                    <div className="form-group">
+                      <label>Email Address</label>
+
+                      <div className="input-box">
+                        <CIcon icon={cilUser} className="input-icon" />
+
+                        <input type="email" placeholder="Enter your email" {...register('email')} />
+                      </div>
+
+                      {errors.email && <small className="error-text">{errors.email.message}</small>}
+                    </div>
+
+                    {/* Password */}
+
+                    <div className="form-group">
+                      <label>Password</label>
+
+                      <div className="input-box">
+                        <CIcon icon={cilLockLocked} className="input-icon" />
+
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Enter password"
+                          {...register('password')}
+                        />
+
+                        <button
+                          type="button"
+                          className="eye-btn"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          <CIcon icon={cilLowVision} />
+                        </button>
+                      </div>
+
+                      {errors.password && (
+                        <small className="error-text">{errors.password.message}</small>
+                      )}
+                    </div>
+
+                    {/* Options */}
+
+                    <div className="login-options">
+                      <label className="remember">
+                        <input type="checkbox" />
+
+                        <span>Remember Me</span>
+                      </label>
+
+                      <button type="button" className="forgot-btn">
+                        Forgot Password?
+                      </button>
+                    </div>
+
+                    {/* Login */}
+
+                    <CButton type="submit" className="login-btn" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <CSpinner size="sm" className="me-2" />
+                          Signing In...
+                        </>
+                      ) : (
+                        <>Sign In</>
+                      )}
+                    </CButton>
+
+                    {/* Divider */}
+
+                    <div className="divider">
+                      <span>Secure Access</span>
+                    </div>
+
+                    {/* Security */}
+
+                    <div className="security-box">
+                      <div className="security-item">
+                        <CIcon icon={cilShieldAlt} />
+
+                        <span>JWT Authentication</span>
+                      </div>
+
+                      <div className="security-item">🔒 SSL Protected</div>
+
+                      <div className="security-item">🛡 Role Based Access</div>
+                    </div>
+                  </CForm>
+                </CCardBody>
+              </CCard>
+            </div>
           </CCol>
         </CRow>
       </CContainer>
     </div>
   )
-}
-
-const styles = {
-  bg: {
-    background: `
-      linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
-      url('https://images.unsplash.com/photo-1504711434969-e33886168f5c')
-    `,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    minHeight: '100vh',
-  },
-
-  brand: {
-    fontWeight: 800,
-    fontSize: '2rem',
-    letterSpacing: '1px',
-    color: '#ffffff',
-  },
-
-  divider: {
-    width: '60px',
-    height: '4px',
-    background: 'linear-gradient(90deg, #ff4d6d, #ff7a18)',
-    margin: '12px auto',
-    borderRadius: '10px',
-  },
-
-  subtitle: {
-    color: '#bfbfbf',
-    fontSize: '0.9rem',
-    marginTop: '10px',
-  },
-
-  overlay: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-
-  card: {
-    padding: '2rem',
-    borderRadius: '8px',
-    background: 'rgba(20,20,20,0.85)',
-    color: '#fff',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-
-  brand: {
-    fontWeight: 800,
-    fontSize: '1.8rem',
-    letterSpacing: '1px',
-  },
-
-  divider: {
-    width: '40px',
-    height: '3px',
-    background: '#e50914',
-    margin: '10px auto',
-  },
-
-  subtitle: {
-    color: '#aaa',
-    fontSize: '0.85rem',
-  },
-
-  input: {
-    backgroundColor: 'transparent',
-    border: '1px solid #444',
-    color: '#fff',
-  },
-
-  iconBox: {
-    backgroundColor: 'transparent',
-    border: '1px solid #444',
-    color: '#aaa',
-  },
-
-  button: {
-    background: '#e50914',
-    border: 'none',
-    fontWeight: 'bold',
-  },
-
-  error: {
-    color: '#ff6b6b',
-    fontSize: '0.8rem',
-  },
 }
 
 export default Login
