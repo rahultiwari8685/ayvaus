@@ -37,6 +37,7 @@ import {
   cilXCircle,
   cilClock,
   cilStar,
+  CButton,
 } from '@coreui/icons'
 
 import secureLocalStorage from 'react-secure-storage'
