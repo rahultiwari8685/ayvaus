@@ -19,13 +19,10 @@ export default function VideoChat() {
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
-
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const roleRef = useRef(null);
-
   const audioStreamRef = useRef(null);
-
   const iceQueueRef = useRef([]);
   const subtitleTimerRef = useRef(null);
   const languageRestartTimerRef = useRef(null);
@@ -42,21 +39,16 @@ export default function VideoChat() {
   const [showChat, setShowChat] = useState(false);
   const recognitionRef = useRef(null);
   const [typing, setTyping] = useState(false);
-
   const [unreadCount, setUnreadCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-
   const [isMobile, setIsMobile] = useState(false);
-
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
-
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
   const [language, setLanguage] = useState("en-US");
-
   const languageRef = useRef(language);
 
   useEffect(() => {

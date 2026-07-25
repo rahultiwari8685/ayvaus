@@ -153,23 +153,38 @@ io.on("connection", async (socket) => {
 
   console.log("✅ Deepgram Ready");
 
-  dgConnection.on("message", (data) => {
+  dgConnection.on("message", async (data) => {
     if (data.type !== "Results") return;
 
     const transcript = data.channel.alternatives[0].transcript;
 
     if (!transcript) return;
 
-    console.log(transcript);
+    console.log("Original:", transcript);
 
+    // Show original subtitle to speaker
     socket.emit("voice-subtitle", {
       text: transcript,
     });
 
+    // Find stranger
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    partner?.emit("voice-subtitle", {
-      text: transcript,
+    if (!partner) return;
+
+    // Stranger selected subtitle language
+    const targetLang = (partner.language || "en-US").split("-")[0];
+
+    console.log("Target Language:", targetLang);
+
+    // Translate
+    const translated = await translateText(transcript, targetLang);
+
+    console.log("Translated:", translated);
+
+    // Send translated subtitle to stranger
+    partner.emit("voice-subtitle", {
+      text: translated,
     });
   });
 
@@ -363,19 +378,31 @@ io.on("connection", async (socket) => {
     }
   }
 
-  socket.on("join", ({ language } = {}) => {
-    socket.language = language || socket.language || "en-US";
+  // socket.on("join", ({ language } = {}) => {
+  //   socket.language = language || socket.language || "en-US";
 
-    console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
+  //   console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
 
-    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
-    if (!queue.includes(socket) && !socket.partnerId) {
-      queue.push(socket);
-    }
+  //   if (!queue.includes(socket) && !socket.partnerId) {
+  //     queue.push(socket);
+  //   }
 
-    emitOnlineCount();
-    tryMatch(socket.mode);
+  //   emitOnlineCount();
+  //   tryMatch(socket.mode);
+  // });
+
+  socket.on("update-language", (language) => {
+    socket.language = language;
+
+    console.log("🌍 Subtitle Language:", language);
+  });
+
+  socket.on("update-language", (language) => {
+    socket.language = language;
+
+    console.log("🌍 Subtitle Language Updated:", socket.id, language);
   });
 
   socket.on("ready", () => {
