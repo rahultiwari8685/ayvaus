@@ -92,6 +92,8 @@ export default function VideoChat() {
 
       const buffer = await event.data.arrayBuffer();
 
+      console.log("Audio bytes:", buffer.byteLength);
+
       socketRef.current.emit("audio-stream", buffer);
     };
 

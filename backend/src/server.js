@@ -156,11 +156,13 @@ io.on("connection", async (socket) => {
   dgConnection.on("message", async (data) => {
     if (data.type !== "Results") return;
 
-    const transcript = data.channel.alternatives[0].transcript;
+    if (!data.is_final) return;
+
+    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
     if (!transcript) return;
 
-    console.log("Original:", transcript);
+    console.log("Final:", transcript);
 
     // Show original subtitle to speaker
     socket.emit("voice-subtitle", {
@@ -398,12 +400,6 @@ io.on("connection", async (socket) => {
 
     console.log("🌍 Subtitle Language:", language);
   });
-
-  // socket.on("update-language", (language) => {
-  //   socket.language = language;
-
-  //   console.log("🌍 Subtitle Language Updated:", socket.id, language);
-  // });
 
   socket.on("ready", () => {
     const partner = io.sockets.sockets.get(socket.partnerId);
