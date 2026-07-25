@@ -143,8 +143,6 @@ io.on("connection", async (socket) => {
     model: "nova-3",
     language: "en",
     smart_format: true,
-    encoding: "opus",
-    sample_rate: 48000,
   });
 
   dgConnection.connect();
