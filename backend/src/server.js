@@ -378,20 +378,20 @@ io.on("connection", async (socket) => {
     }
   }
 
-  // socket.on("join", ({ language } = {}) => {
-  //   socket.language = language || socket.language || "en-US";
+  socket.on("join", ({ language } = {}) => {
+    socket.language = language || socket.language || "en-US";
 
-  //   console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
+    console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
 
-  //   const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
+    const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
-  //   if (!queue.includes(socket) && !socket.partnerId) {
-  //     queue.push(socket);
-  //   }
+    if (!queue.includes(socket) && !socket.partnerId) {
+      queue.push(socket);
+    }
 
-  //   emitOnlineCount();
-  //   tryMatch(socket.mode);
-  // });
+    emitOnlineCount();
+    tryMatch(socket.mode);
+  });
 
   socket.on("update-language", (language) => {
     socket.language = language;
@@ -399,11 +399,11 @@ io.on("connection", async (socket) => {
     console.log("🌍 Subtitle Language:", language);
   });
 
-  socket.on("update-language", (language) => {
-    socket.language = language;
+  // socket.on("update-language", (language) => {
+  //   socket.language = language;
 
-    console.log("🌍 Subtitle Language Updated:", socket.id, language);
-  });
+  //   console.log("🌍 Subtitle Language Updated:", socket.id, language);
+  // });
 
   socket.on("ready", () => {
     const partner = io.sockets.sockets.get(socket.partnerId);
