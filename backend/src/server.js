@@ -123,12 +123,12 @@ async function translateText(text, targetLang) {
 
 io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
-    console.log("🎤 Audio received:", audio?.byteLength || audio?.size);
+    console.log("🎤 Audio received:", audio?.byteLength);
 
-    if (dgConnection.getReadyState() === 1) {
+    try {
       dgConnection.sendMedia(audio);
-    } else {
-      console.log("❌ Deepgram not ready");
+    } catch (err) {
+      console.log("Deepgram send error:", err);
     }
   });
 
