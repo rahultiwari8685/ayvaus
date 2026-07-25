@@ -95,7 +95,7 @@ export default function VideoChat() {
       socketRef.current.emit("audio-stream", buffer);
     };
 
-    recorder.start(250);
+    recorder.start(500);
 
     console.log("🎤 Audio Streaming Started");
   }
