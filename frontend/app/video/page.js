@@ -90,7 +90,7 @@ export default function VideoChat() {
     audioStreamRef.current = stream;
 
     const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm",
+      mimeType: "audio/webm;codecs=opus",
     });
 
     mediaRecorderRef.current = recorder;
@@ -134,16 +134,6 @@ export default function VideoChat() {
 
     streamRef.current = stream;
     localVideo.current.srcObject = stream;
-  }
-
-  function stopAudioStreaming() {
-    mediaRecorderRef.current?.stop();
-
-    mediaRecorderRef.current = null;
-
-    audioStreamRef.current = null;
-
-    console.log("🛑 Audio Streaming Stopped");
   }
 
   function handleTouchStart(e) {

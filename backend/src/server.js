@@ -123,7 +123,7 @@ async function translateText(text, targetLang) {
 
 io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
-    console.log("🎤 Audio received:", audio?.byteLength || audio?.size);
+    if (!audio) return;
 
     if (!dgReady) {
       console.log("⏳ Deepgram not ready");
@@ -131,9 +131,9 @@ io.on("connection", async (socket) => {
     }
 
     try {
-      dgConnection.sendMedia(audio);
+      dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
-      console.log("Deepgram send error:", err.message);
+      console.log("❌ Deepgram send error:", err.message);
     }
   });
 
@@ -143,6 +143,8 @@ io.on("connection", async (socket) => {
     model: "nova-3",
     language: "en",
     smart_format: true,
+    encoding: "opus",
+    sample_rate: 48000,
   });
 
   dgConnection.connect();
@@ -187,28 +189,6 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("warning", (warning) => {
     console.log("⚠ Deepgram Warning", warning);
-  });
-
-  dgConnection.on("message", (data) => {
-    if (data.type !== "Results") return;
-
-    const transcript = data.channel.alternatives[0].transcript;
-
-    if (!transcript) return;
-
-    console.log("Transcript:", transcript);
-
-    socket.emit("voice-subtitle", {
-      text: transcript,
-    });
-
-    const partner = io.sockets.sockets.get(socket.partnerId);
-
-    if (partner) {
-      partner.emit("voice-subtitle", {
-        text: transcript,
-      });
-    }
   });
 
   socket.language = "en-US";
