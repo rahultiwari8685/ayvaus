@@ -313,14 +313,15 @@ io.on("connection", async (socket) => {
   );
 
   function emitOnlineCount() {
-    setTimeout(() => {
-      io.sockets.sockets.forEach((s) => {
-        s.emit(
-          "online-users",
-          s.mode === "serious" ? seriousUsers.size : randomUsers.size,
-        );
-      });
-    }, 100);
+    console.log("Random:", randomUsers.size);
+    console.log("Serious:", seriousUsers.size);
+
+    io.sockets.sockets.forEach((s) => {
+      s.emit(
+        "online-users",
+        s.mode === "serious" ? seriousUsers.size : randomUsers.size,
+      );
+    });
   }
 
   socket.partnerId = null;

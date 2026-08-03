@@ -332,6 +332,24 @@ export default function VideoChat() {
       },
     });
 
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id);
+
+      socket.emit("join", {
+        language: languageRef.current,
+      });
+
+      socket.emit("get-online-count");
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("Disconnected:", reason);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.log("Socket Error:", err.message);
+    });
+
     const socket = socketRef.current;
 
     async function start() {
