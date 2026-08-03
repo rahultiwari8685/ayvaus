@@ -163,16 +163,10 @@ io.on("connection", async (socket) => {
     endpointing: 300,
   });
 
-  let dgReady = false;
-
   dgConnection.on("open", () => {
     dgReady = true;
     console.log("✅ Deepgram Connected");
   });
-
-  dgReady = true;
-
-  console.log("✅ Deepgram Ready");
 
   dgConnection.on("message", async (data) => {
     if (data.type !== "Results") return;
@@ -219,7 +213,7 @@ io.on("connection", async (socket) => {
     // Translate only for partner
     const translated = await translateText(transcript, targetLang);
 
-    partner.emit({
+    partner.emit("voice-subtitle", {
       text: translated,
     });
   });
@@ -229,6 +223,7 @@ io.on("connection", async (socket) => {
   });
 
   dgConnection.on("close", (event) => {
+    dgReady = false;
     console.log("🔴 Deepgram Closed", event);
   });
 
