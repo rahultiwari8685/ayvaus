@@ -154,18 +154,20 @@ io.on("connection", async (socket) => {
 
   let dgReady = false;
 
-  const dgConnection = deepgram.listen.v1.connect({
+  const dgConnection = await deepgram.listen.v1.connect({
     model: "nova-3",
     language: "multi",
     smart_format: true,
-    interim_results: false,
     punctuate: true,
-    endpointing: 300,
+    interim_results: false,
   });
 
-  console.log("dgConnection =", dgConnection);
-  console.log("typeof dgConnection =", typeof dgConnection);
-  console.log("Keys =", Object.keys(dgConnection));
+  console.log("DG Connected");
+  console.log(Object.keys(dgConnection));
+
+  // console.log("dgConnection =", dgConnection);
+  // console.log("typeof dgConnection =", typeof dgConnection);
+  // console.log("Keys =", Object.keys(dgConnection));
 
   dgConnection.on("open", () => {
     dgReady = true;
