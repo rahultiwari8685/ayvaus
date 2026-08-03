@@ -75,32 +75,72 @@ export default function VideoChat() {
 
     const audioTrack = streamRef.current.getAudioTracks()[0];
 
-    if (!audioTrack) return;
-
     const stream = new MediaStream([audioTrack]);
 
-    audioStreamRef.current = stream;
-
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm;codecs=opus",
+    const audioContext = new AudioContext({
+      sampleRate: 48000,
     });
 
-    mediaRecorderRef.current = recorder;
+    const source = audioContext.createMediaStreamSource(stream);
 
-    recorder.ondataavailable = async (event) => {
-      if (!event.data || event.data.size === 0) return;
+    const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-      const buffer = await event.data.arrayBuffer();
+    source.connect(processor);
 
-      console.log("Audio bytes:", buffer.byteLength);
+    processor.connect(audioContext.destination);
+
+    processor.onaudioprocess = (e) => {
+      const input = e.inputBuffer.getChannelData(0);
+
+      const buffer = convertFloat32ToInt16(input);
 
       socketRef.current.emit("audio-stream", buffer);
     };
-
-    recorder.start(500);
-
-    console.log("🎤 Audio Streaming Started");
   }
+
+  function convertFloat32ToInt16(buffer) {
+    let l = buffer.length;
+
+    const result = new Int16Array(l);
+
+    while (l--) {
+      result[l] = Math.min(1, buffer[l]) * 0x7fff;
+    }
+
+    return result.buffer;
+  }
+
+  //   async function startAudioStreaming() {
+  //     if (!streamRef.current) return;
+
+  //     const audioTrack = streamRef.current.getAudioTracks()[0];
+
+  //     if (!audioTrack) return;
+
+  //     const stream = new MediaStream([audioTrack]);
+
+  //     audioStreamRef.current = stream;
+
+  //     const recorder = new MediaRecorder(stream, {
+  //       mimeType: "audio/webm;codecs=opus",
+  //     });
+
+  //     mediaRecorderRef.current = recorder;
+
+  //     recorder.ondataavailable = async (event) => {
+  //       if (!event.data || event.data.size === 0) return;
+
+  //    const buffer = await event.data.arrayBuffer();
+
+  // if (buffer.byteLength < 1000) return;
+
+  // socketRef.current.emit("audio-stream", buffer);
+  //     };
+
+  //   recorder.start(1200);
+
+  //     console.log("🎤 Audio Streaming Started");
+  //   }
 
   function stopAudioStreaming() {
     if (mediaRecorderRef.current) {
@@ -118,11 +158,14 @@ export default function VideoChat() {
 
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
-      // audio: true,
+
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
+        channelCount: 1,
+        sampleRate: 48000,
+        sampleSize: 16,
       },
     });
 
@@ -412,9 +455,15 @@ export default function VideoChat() {
         clearTimeout(subtitleTimerRef.current);
       }
 
+      // subtitleTimerRef.current = setTimeout(() => {
+      //   setVoiceSubtitle(null);
+      // }, 5000);
+
+      clearTimeout(subtitleTimerRef.current);
+
       subtitleTimerRef.current = setTimeout(() => {
         setVoiceSubtitle(null);
-      }, 5000);
+      }, 7000);
     });
 
     return () => {

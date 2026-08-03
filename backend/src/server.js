@@ -125,13 +125,14 @@ io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
-    if (!dgReady) {
-      console.log("⏳ Deepgram not ready");
-      return;
-    }
+ if (!dgConnection) return;
+
+if (!dgReady) return;
+
+dgConnection.sendMedia(Buffer.from(audio));
 
     try {
-      dgConnection.sendMedia(Buffer.from(audio));
+   dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
       console.log("❌ Deepgram send error:", err.message);
     }
@@ -139,11 +140,14 @@ io.on("connection", async (socket) => {
 
   let dgReady = false;
 
-  const dgConnection = await deepgram.listen.v1.connect({
-    model: "nova-3",
-    language: "en",
-    smart_format: true,
-  });
+const dgConnection = await deepgram.listen.v1.connect({
+  model: "nova-3",
+  language: "multi",
+  smart_format: true,
+  interim_results: false,
+  punctuate: true,
+  endpointing: 300,
+});
 
   dgConnection.connect();
 
@@ -160,7 +164,7 @@ io.on("connection", async (socket) => {
 
     const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
-    if (!transcript) return;
+   if (!transcript || transcript.length < 2) return;
 
     console.log("Final:", transcript);
 
