@@ -146,6 +146,8 @@ io.on("connection", async (socket) => {
     if (!dgConnection) return;
 
     try {
+      console.log("Audio bytes:", audio.byteLength);
+
       dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
       console.log("Deepgram Error:", err.message);
@@ -162,6 +164,8 @@ io.on("connection", async (socket) => {
     interim_results: false,
   });
 
+  console.log("Deepgram connection created");
+
   console.log("DG Connected");
   console.log(Object.keys(dgConnection));
 
@@ -175,6 +179,7 @@ io.on("connection", async (socket) => {
   });
 
   dgConnection.on("message", async (data) => {
+    console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
 
     if (!data.is_final) return;
@@ -188,6 +193,8 @@ io.on("connection", async (socket) => {
     console.log("Final:", transcript);
 
     // Show original subtitle to speaker
+    console.log("Speaker Subtitle:", transcript);
+
     socket.emit("voice-subtitle", {
       text: transcript,
     });
@@ -218,6 +225,8 @@ io.on("connection", async (socket) => {
 
     // Translate only for partner
     const translated = await translateText(transcript, targetLang);
+
+    console.log("Partner Subtitle:", translated);
 
     partner.emit("voice-subtitle", {
       text: translated,

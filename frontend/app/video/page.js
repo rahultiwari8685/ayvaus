@@ -101,7 +101,7 @@ export default function VideoChat() {
 
     sourceRef.current = source;
 
-    const processor = audioContext.createScriptProcessor(4096, 1, 1);
+    const processor = audioContext.createScriptProcessor(2048, 1, 1);
 
     processorRef.current = processor;
 
@@ -109,28 +109,14 @@ export default function VideoChat() {
 
     processor.connect(audioContext.destination);
 
-    // processor.onaudioprocess = (e) => {
-    //   const input = e.inputBuffer.getChannelData(0);
-
-    //   const buffer = convertFloat32ToInt16(input);
-
-    //   socketRef.current.emit("audio-stream", buffer);
-    // };
-
     processor.onaudioprocess = (e) => {
+      if (!socketRef.current?.connected) return;
+
       const input = e.inputBuffer.getChannelData(0);
-
-      let volume = 0;
-
-      for (let i = 0; i < input.length; i++) {
-        volume = Math.max(volume, Math.abs(input[i]));
-      }
-
-      if (volume < 0.003) return;
 
       const buffer = convertFloat32ToInt16(input);
 
-      if (buffer.byteLength === 0) return;
+      if (!buffer || buffer.byteLength === 0) return;
 
       socketRef.current.emit("audio-stream", buffer);
     };
@@ -528,30 +514,14 @@ export default function VideoChat() {
     });
 
     socket.on("voice-subtitle", (data) => {
-      console.log("📥 SUBTITLE RECEIVED:", data);
-
-      console.log("Subtitle:", data.text);
-
-      // setVoiceSubtitle(data);
-
-      // if (subtitleTimerRef.current) {
-      //   clearTimeout(subtitleTimerRef.current);
-      // }
-
-      // clearTimeout(subtitleTimerRef.current);
-
-      // subtitleTimerRef.current = setTimeout(() => {
-      //   setVoiceSubtitle(null);
-      // }, 7000);
+      console.log("Subtitle received", data);
 
       setVoiceSubtitle(data);
 
       clearTimeout(subtitleTimerRef.current);
 
       subtitleTimerRef.current = setTimeout(() => {
-        if (voiceSubtitle?.text === data.text) {
-          setVoiceSubtitle(null);
-        }
+        setVoiceSubtitle(null);
       }, 4000);
     });
 
