@@ -259,6 +259,8 @@ io.on("connection", async (socket) => {
         gender: user.gender,
       });
 
+      emitOnlineCount();
+
       emitSeriousUsers();
 
       console.log("🟢 User online:", user._id.toString());
@@ -278,6 +280,8 @@ io.on("connection", async (socket) => {
 
   if (socket.mode === "random") {
     randomUsers.add(socket.id);
+
+    emitOnlineCount();
 
     console.log("🎉 Random User:", socket.id);
 
@@ -760,7 +764,7 @@ io.on("connection", async (socket) => {
 
     if (socket.mode === "serious" && socket.user?._id) {
       seriousUsers.delete(socket.user._id.toString());
-
+      emitOnlineCount();
       emitSeriousUsers();
 
       console.log("⚫ User offline:", socket.user._id.toString());

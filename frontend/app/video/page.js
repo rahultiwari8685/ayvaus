@@ -349,6 +349,9 @@ export default function VideoChat() {
     socket.on("online-users", (count) => {
       setOnlineCount(count);
     });
+    socket.on("connect", () => {
+      socket.emit("get-online-count");
+    });
 
     start();
 
