@@ -126,7 +126,7 @@ export default function VideoChat() {
         volume = Math.max(volume, Math.abs(input[i]));
       }
 
-      if (volume < 0.01) return;
+      if (volume < 0.003) return;
 
       const buffer = convertFloat32ToInt16(input);
 
@@ -507,21 +507,27 @@ export default function VideoChat() {
 
       console.log("Subtitle:", data.text);
 
-      setVoiceSubtitle(data);
+      // setVoiceSubtitle(data);
 
-      if (subtitleTimerRef.current) {
-        clearTimeout(subtitleTimerRef.current);
-      }
+      // if (subtitleTimerRef.current) {
+      //   clearTimeout(subtitleTimerRef.current);
+      // }
+
+      // clearTimeout(subtitleTimerRef.current);
 
       // subtitleTimerRef.current = setTimeout(() => {
       //   setVoiceSubtitle(null);
-      // }, 5000);
+      // }, 7000);
+
+      setVoiceSubtitle(data);
 
       clearTimeout(subtitleTimerRef.current);
 
       subtitleTimerRef.current = setTimeout(() => {
-        setVoiceSubtitle(null);
-      }, 7000);
+        if (voiceSubtitle?.text === data.text) {
+          setVoiceSubtitle(null);
+        }
+      }, 4000);
     });
 
     return () => {

@@ -163,7 +163,12 @@ io.on("connection", async (socket) => {
     endpointing: 300,
   });
 
-  await dgConnection.waitForOpen();
+  let dgReady = false;
+
+  dgConnection.on("open", () => {
+    dgReady = true;
+    console.log("✅ Deepgram Connected");
+  });
 
   dgReady = true;
 
@@ -198,12 +203,23 @@ io.on("connection", async (socket) => {
     console.log("Target Language:", targetLang);
 
     // Translate
+    // const translated = await translateText(transcript, targetLang);
+
+    // console.log("Translated:", translated);
+
+    // // Send translated subtitle to stranger
+    // partner.emit("voice-subtitle", {
+    //   text: translated,
+    // });
+
+    socket.emit("voice-subtitle", {
+      text: transcript,
+    });
+
+    // Translate only for partner
     const translated = await translateText(transcript, targetLang);
 
-    console.log("Translated:", translated);
-
-    // Send translated subtitle to stranger
-    partner.emit("voice-subtitle", {
+    partner.emit({
       text: translated,
     });
   });
@@ -271,11 +287,15 @@ io.on("connection", async (socket) => {
     }
   }
 
+  // socket.on("get-online-count", () => {
+  //   socket.emit(
+  //     "online-users",
+  //     socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
+  //   );
+  // });
+
   socket.on("get-online-count", () => {
-    socket.emit(
-      "online-users",
-      socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-    );
+    emitOnlineCount();
   });
 
   if (socket.mode === "random") {
@@ -770,6 +790,7 @@ io.on("connection", async (socket) => {
       console.log("⚫ User offline:", socket.user._id.toString());
     } else {
       randomUsers.delete(socket.id);
+      emitOnlineCount();
     }
 
     if (socket.connectionId) {
