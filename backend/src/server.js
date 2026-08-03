@@ -122,34 +122,46 @@ async function translateText(text, targetLang) {
 }
 
 io.on("connection", async (socket) => {
+  //   socket.on("audio-stream", (audio) => {
+  //     if (!audio) return;
+
+  //  if (!dgConnection) return;
+
+  // if (!dgReady) return;
+
+  // dgConnection.sendMedia(Buffer.from(audio));
+
+  //     try {
+  //    dgConnection.sendMedia(Buffer.from(audio));
+  //     } catch (err) {
+  //       console.log("❌ Deepgram send error:", err.message);
+  //     }
+  //   });
+
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
- if (!dgConnection) return;
+    if (!dgReady) return;
 
-if (!dgReady) return;
-
-dgConnection.sendMedia(Buffer.from(audio));
+    if (!dgConnection) return;
 
     try {
-   dgConnection.sendMedia(Buffer.from(audio));
+      dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
-      console.log("❌ Deepgram send error:", err.message);
+      console.log("Deepgram Error:", err.message);
     }
   });
 
   let dgReady = false;
 
-const dgConnection = await deepgram.listen.v1.connect({
-  model: "nova-3",
-  language: "multi",
-  smart_format: true,
-  interim_results: false,
-  punctuate: true,
-  endpointing: 300,
-});
-
-  dgConnection.connect();
+  const dgConnection = deepgram.listen.v1.connect({
+    model: "nova-3",
+    language: "multi",
+    smart_format: true,
+    interim_results: false,
+    punctuate: true,
+    endpointing: 300,
+  });
 
   await dgConnection.waitForOpen();
 
@@ -164,7 +176,9 @@ const dgConnection = await deepgram.listen.v1.connect({
 
     const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
-   if (!transcript || transcript.length < 2) return;
+    console.log("Transcript:", transcript);
+
+    if (!transcript || transcript.length < 2) return;
 
     console.log("Final:", transcript);
 

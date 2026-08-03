@@ -23,6 +23,11 @@ export default function VideoChat() {
   const streamRef = useRef(null);
   const roleRef = useRef(null);
   const audioStreamRef = useRef(null);
+
+  const audioContextRef = useRef(null);
+  const processorRef = useRef(null);
+  const sourceRef = useRef(null);
+
   const iceQueueRef = useRef([]);
   const subtitleTimerRef = useRef(null);
   const languageRestartTimerRef = useRef(null);
@@ -71,6 +76,11 @@ export default function VideoChat() {
   }, []);
 
   async function startAudioStreaming() {
+    if (audioContextRef.current) {
+      console.log("Audio already streaming");
+      return;
+    }
+
     if (!streamRef.current) return;
 
     const audioTrack = streamRef.current.getAudioTracks()[0];
@@ -81,18 +91,46 @@ export default function VideoChat() {
       sampleRate: 48000,
     });
 
+    audioContextRef.current = audioContext;
+
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
     const source = audioContext.createMediaStreamSource(stream);
 
+    sourceRef.current = source;
+
     const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+    processorRef.current = processor;
 
     source.connect(processor);
 
     processor.connect(audioContext.destination);
 
+    // processor.onaudioprocess = (e) => {
+    //   const input = e.inputBuffer.getChannelData(0);
+
+    //   const buffer = convertFloat32ToInt16(input);
+
+    //   socketRef.current.emit("audio-stream", buffer);
+    // };
+
     processor.onaudioprocess = (e) => {
       const input = e.inputBuffer.getChannelData(0);
 
+      let volume = 0;
+
+      for (let i = 0; i < input.length; i++) {
+        volume = Math.max(volume, Math.abs(input[i]));
+      }
+
+      if (volume < 0.01) return;
+
       const buffer = convertFloat32ToInt16(input);
+
+      if (buffer.byteLength === 0) return;
 
       socketRef.current.emit("audio-stream", buffer);
     };
@@ -142,15 +180,30 @@ export default function VideoChat() {
   //     console.log("🎤 Audio Streaming Started");
   //   }
 
+  // function stopAudioStreaming() {
+  //   if (mediaRecorderRef.current) {
+  //     mediaRecorderRef.current.stop();
+  //     mediaRecorderRef.current = null;
+  //   }
+
+  //   audioStreamRef.current = null;
+
+  //   console.log("🛑 Audio Streaming Stopped");
+  // }
+
   function stopAudioStreaming() {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current = null;
+    processorRef.current?.disconnect();
+    sourceRef.current?.disconnect();
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
     }
 
-    audioStreamRef.current = null;
+    processorRef.current = null;
+    sourceRef.current = null;
+    audioContextRef.current = null;
 
-    console.log("🛑 Audio Streaming Stopped");
+    console.log("Audio Streaming Stopped");
   }
 
   async function initCamera() {
@@ -247,9 +300,9 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        setTimeout(() => {
+        if (!audioContextRef.current) {
           startAudioStreaming();
-        }, 1000);
+        }
       }
 
       if (
@@ -448,6 +501,8 @@ export default function VideoChat() {
 
     socket.on("voice-subtitle", (data) => {
       console.log("📥 SUBTITLE RECEIVED:", data);
+
+      console.log("Subtitle:", data.text);
 
       setVoiceSubtitle(data);
 
