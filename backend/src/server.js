@@ -163,6 +163,10 @@ io.on("connection", async (socket) => {
     endpointing: 300,
   });
 
+  console.log("dgConnection =", dgConnection);
+  console.log("typeof dgConnection =", typeof dgConnection);
+  console.log("Keys =", Object.keys(dgConnection));
+
   dgConnection.on("open", () => {
     dgReady = true;
     console.log("✅ Deepgram Connected");
