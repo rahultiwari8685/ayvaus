@@ -332,6 +332,15 @@ export default function VideoChat() {
       },
     });
 
+    socketRef.current = io("https://api.flirtaus.com", {
+      transports: ["websocket", "polling"],
+      auth: {
+        mode: "random",
+      },
+    });
+
+    const socket = socketRef.current;
+
     socket.on("connect", () => {
       console.log("Connected:", socket.id);
 
@@ -350,8 +359,6 @@ export default function VideoChat() {
       console.log("Socket Error:", err.message);
     });
 
-    const socket = socketRef.current;
-
     async function start() {
       await initCamera();
       if (!mounted) return;
@@ -367,9 +374,9 @@ export default function VideoChat() {
     socket.on("online-users", (count) => {
       setOnlineCount(count);
     });
-    socket.on("connect", () => {
-      socket.emit("get-online-count");
-    });
+    // socket.on("connect", () => {
+    //   socket.emit("get-online-count");
+    // });
 
     start();
 
