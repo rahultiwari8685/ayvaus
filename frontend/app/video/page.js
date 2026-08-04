@@ -103,7 +103,7 @@ export default function VideoChat() {
 
     sourceRef.current = source;
 
-    const processor = audioContext.createScriptProcessor(4096, 1, 1);
+    const processor = audioContext.createScriptProcessor(1024, 1, 1);
 
     processorRef.current = processor;
 
