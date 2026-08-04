@@ -94,6 +94,7 @@ export default function VideoChat() {
     console.log("AudioContext State:", audioContext.state);
 
     await audioContext.resume();
+    console.log("AudioContext:", audioContext.state);
 
     console.log("AudioContext State:", audioContext.state);
 
@@ -139,20 +140,22 @@ export default function VideoChat() {
 
       const pcm = convertFloat32ToInt16(event.data);
 
+      console.log("PCM Size", pcm.byteLength);
+
       socketRef.current.emit("audio-stream", pcm);
     };
   }
 
   function convertFloat32ToInt16(buffer) {
-    let l = buffer.length;
+    const out = new Int16Array(buffer.length);
 
-    const result = new Int16Array(l);
+    for (let i = 0; i < buffer.length; i++) {
+      let sample = Math.max(-1, Math.min(1, buffer[i]));
 
-    while (l--) {
-      result[l] = Math.min(1, buffer[l]) * 0x7fff;
+      out[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
     }
 
-    return result.buffer;
+    return out.buffer;
   }
 
   async function initCamera() {

@@ -1,4 +1,9 @@
 class AudioProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.buffer = [];
+  }
+
   process(inputs) {
     const input = inputs[0];
 
@@ -6,7 +11,15 @@ class AudioProcessor extends AudioWorkletProcessor {
       return true;
     }
 
-    this.port.postMessage(input[0]);
+    const channel = input[0];
+
+    this.buffer.push(...channel);
+
+    // Send larger chunks to Deepgram
+    if (this.buffer.length >= 4096) {
+      this.port.postMessage(new Float32Array(this.buffer));
+      this.buffer = [];
+    }
 
     return true;
   }

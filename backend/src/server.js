@@ -125,22 +125,12 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
-    console.log(
-      "Audio received:",
-      audio ? Buffer.byteLength(Buffer.from(audio)) : 0,
-    );
     if (!audio) return;
 
-    if (!dgConnection) return;
+    console.log("PCM Bytes:", Buffer.byteLength(Buffer.from(audio)));
 
     if (!dgReady) {
       socket.audioQueue.push(audio);
-      return;
-    }
-
-    if (!dgReady) {
-      socket.audioQueue.push(audio);
-
       return;
     }
 
@@ -155,16 +145,26 @@ io.on("connection", async (socket) => {
 
   const dgConnection = await deepgram.listen.v1.connect({
     model: "nova-3",
+
     language: "multi",
+
     encoding: "linear16",
+
     sample_rate: 48000,
+
     channels: 1,
+
     smart_format: true,
+
     punctuate: true,
+
     interim_results: true,
 
-    endpointing: 300,
-    utterance_end_ms: 1000,
+    vad_events: true,
+
+    endpointing: 100,
+
+    utterance_end_ms: 500,
   });
 
   dgConnection.on("open", () => {
@@ -205,63 +205,89 @@ io.on("connection", async (socket) => {
   });
 
   dgConnection.on("message", async (data) => {
-    console.log("Deepgram Event:", data.type);
-    console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
-    if (!data.is_final) return;
-    if (
-      !data.channel ||
-      !data.channel.alternatives ||
-      !data.channel.alternatives.length
-    )
-      return;
 
-    const transcript = data.channel.alternatives?.[0]?.transcript?.trim();
+    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
     if (!transcript) return;
 
-    if (socket.lastTranscript === transcript) return;
-
-    socket.lastTranscript = transcript;
-
-    setTimeout(() => {
-      socket.lastTranscript = null;
-    }, 1000);
-
     console.log("Transcript:", transcript);
 
-    if (!transcript || transcript.length < 4) return;
+    socket.emit("voice-subtitle", {
+      text: transcript,
+    });
 
-    console.log("Final:", transcript);
-
-    // Show original subtitle to speaker
-    console.log("Speaker Subtitle:", transcript);
-
-    if (transcript) {
-      socket.emit("voice-subtitle", {
-        text: transcript,
-      });
-    }
-
-    // Find stranger
     const partner = io.sockets.sockets.get(socket.partnerId);
 
     if (!partner) return;
 
-    // Stranger selected subtitle language
     const targetLang = (partner.language || "en-US").split("-")[0];
 
-    console.log("Target Language:", targetLang);
-
-    // Translate only for partner
     const translated = await translateText(transcript, targetLang);
-
-    console.log("Partner Subtitle:", translated);
 
     partner.emit("voice-subtitle", {
       text: translated,
     });
   });
+
+  // dgConnection.on("message", async (data) => {
+  //   console.log("Deepgram Event:", data.type);
+  //   console.log(JSON.stringify(data, null, 2));
+  //   if (data.type !== "Results") return;
+  //   if (!data.is_final) return;
+  //   if (
+  //     !data.channel ||
+  //     !data.channel.alternatives ||
+  //     !data.channel.alternatives.length
+  //   )
+  //     return;
+
+  //   const transcript = data.channel.alternatives?.[0]?.transcript?.trim();
+
+  //   if (!transcript) return;
+
+  //   if (socket.lastTranscript === transcript) return;
+
+  //   socket.lastTranscript = transcript;
+
+  //   setTimeout(() => {
+  //     socket.lastTranscript = null;
+  //   }, 1000);
+
+  //   console.log("Transcript:", transcript);
+
+  //   if (!transcript || transcript.length < 4) return;
+
+  //   console.log("Final:", transcript);
+
+  //   // Show original subtitle to speaker
+  //   console.log("Speaker Subtitle:", transcript);
+
+  //   if (transcript) {
+  //     socket.emit("voice-subtitle", {
+  //       text: transcript,
+  //     });
+  //   }
+
+  //   // Find stranger
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   if (!partner) return;
+
+  //   // Stranger selected subtitle language
+  //   const targetLang = (partner.language || "en-US").split("-")[0];
+
+  //   console.log("Target Language:", targetLang);
+
+  //   // Translate only for partner
+  //   const translated = await translateText(transcript, targetLang);
+
+  //   console.log("Partner Subtitle:", translated);
+
+  //   partner.emit("voice-subtitle", {
+  //     text: translated,
+  //   });
+  // });
 
   dgConnection.on("close", (event) => {
     dgReady = false;
