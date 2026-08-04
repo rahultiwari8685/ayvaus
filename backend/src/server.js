@@ -125,23 +125,31 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
-    if (!audio) return;
+    console.log("===== NEW AUDIO HANDLER =====");
 
     const pcm = Buffer.from(audio);
 
-    console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
-
-    if (!dgReady) {
-      socket.audioQueue.push(pcm);
-      return;
-    }
-
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(socket.audioQueue.shift());
-    }
-
-    dgConnection.sendMedia(pcm);
+    console.log("Length:", pcm.length);
   });
+
+  // socket.on("audio-stream", (audio) => {
+  //   if (!audio) return;
+
+  //   const pcm = Buffer.from(audio);
+
+  //   console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(pcm);
+  //     return;
+  //   }
+
+  //   while (socket.audioQueue.length) {
+  //     dgConnection.sendMedia(socket.audioQueue.shift());
+  //   }
+
+  //   dgConnection.sendMedia(pcm);
+  // });
 
   let dgReady = false;
 
