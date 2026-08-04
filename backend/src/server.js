@@ -131,7 +131,10 @@ io.on("connection", async (socket) => {
     );
     if (!audio) return;
 
-    if (!dgConnection) return;
+    if (!dgConnection || !dgReady) {
+      console.log("Deepgram not ready");
+      return;
+    }
 
     if (!dgReady) {
       socket.audioQueue.push(audio);
@@ -182,13 +185,17 @@ io.on("connection", async (socket) => {
   dgConnection.on("open", () => {
     dgReady = true;
 
+    while (socket.audioQueue.length) {
+      dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
+    }
+
     console.log("✅ Deepgram Connected");
 
     const keepAlive = setInterval(() => {
       if (dgReady) {
         dgConnection.keepAlive();
       }
-    }, 10000);
+    }, 5000);
 
     socket.on("disconnect", () => {
       clearInterval(keepAlive);
@@ -211,9 +218,13 @@ io.on("connection", async (socket) => {
 
     if (!transcript) return;
 
-    if (socket.lastTranscript === transcript) {
-      return;
-    }
+    if (socket.lastTranscript === transcript) return;
+
+    socket.lastTranscript = transcript;
+
+    setTimeout(() => {
+      socket.lastTranscript = null;
+    }, 1000);
 
     socket.lastTranscript = transcript;
 

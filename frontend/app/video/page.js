@@ -134,6 +134,18 @@ export default function VideoChat() {
     };
 
     console.log("✅ AudioWorklet Started");
+
+    worklet.port.onmessage = (event) => {
+      if (audioContext.state !== "running") {
+        audioContext.resume();
+      }
+
+      if (!socketRef.current?.connected) return;
+
+      const pcm = convertFloat32ToInt16(event.data);
+
+      socketRef.current.emit("audio-stream", pcm);
+    };
   }
 
   function convertFloat32ToInt16(buffer) {
@@ -265,12 +277,21 @@ export default function VideoChat() {
         }
       }
 
+      if (pc.iceConnectionState === "disconnected") {
+        console.log("ICE disconnected, waiting...");
+
+        setTimeout(() => {
+          if (pc.iceConnectionState === "disconnected") {
+            socketRef.current.emit("next");
+          }
+        }, 5000);
+      }
+
       if (
-        pc.iceConnectionState === "disconnected" ||
         pc.iceConnectionState === "failed" ||
         pc.iceConnectionState === "closed"
       ) {
-        setStatus("Looking for someone...");
+        socketRef.current.emit("next");
       }
 
       if (pc.iceConnectionState === "failed") {
