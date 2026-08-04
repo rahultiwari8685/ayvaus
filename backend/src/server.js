@@ -166,6 +166,18 @@ io.on("connection", async (socket) => {
     interim_results: true,
   });
 
+  dgConnection.on("open", () => {
+    console.log("✅ Deepgram OPEN");
+  });
+
+  dgConnection.on("close", (e) => {
+    console.log("❌ Deepgram CLOSED", e);
+  });
+
+  dgConnection.on("error", (err) => {
+    console.log("❌ Deepgram ERROR", err);
+  });
+
   console.log("Deepgram connection created");
 
   console.log("DG Connected");
