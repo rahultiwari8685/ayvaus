@@ -42,7 +42,7 @@ export default function VideoChat() {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [showChat, setShowChat] = useState(false);
-  const recognitionRef = useRef(null);
+
   const [typing, setTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -76,8 +76,8 @@ export default function VideoChat() {
   }, []);
 
   async function startAudioStreaming() {
-    if (audioContextRef.current) {
-      console.log("Audio already streaming");
+    if (audioContextRef.current || processorRef.current || sourceRef.current) {
+      console.log("Already streaming");
       return;
     }
 
@@ -116,11 +116,19 @@ export default function VideoChat() {
 
       const input = e.inputBuffer.getChannelData(0);
 
+      let volume = 0;
+
+      for (let i = 0; i < input.length; i++) {
+        volume += Math.abs(input[i]);
+      }
+
+      volume /= input.length;
+
+      if (volume < 0.005) {
+        return;
+      }
+
       const buffer = convertFloat32ToInt16(input);
-
-      if (!buffer || buffer.byteLength === 0) return;
-
-      console.log("Sending Audio:", buffer.byteLength);
 
       socketRef.current.emit("audio-stream", buffer);
     };
@@ -138,19 +146,23 @@ export default function VideoChat() {
     return result.buffer;
   }
 
-  function stopAudioStreaming() {
-    processorRef.current?.disconnect();
-    sourceRef.current?.disconnect();
+  async function stopAudioStreaming() {
+    try {
+      processorRef.current?.disconnect();
+      sourceRef.current?.disconnect();
 
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
+      if (audioContextRef.current) {
+        await audioContextRef.current.close();
+      }
+
+      processorRef.current = null;
+      sourceRef.current = null;
+      audioContextRef.current = null;
+
+      console.log("✅ Audio Streaming Stopped");
+    } catch (err) {
+      console.log("Stop Audio Error:", err);
     }
-
-    processorRef.current = null;
-    sourceRef.current = null;
-    audioContextRef.current = null;
-
-    console.log("Audio Streaming Stopped");
   }
 
   async function initCamera() {
@@ -247,7 +259,7 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        if (!audioContextRef.current) {
+        if (!audioContextRef.current && !processorRef.current) {
           startAudioStreaming();
         }
       }
@@ -608,36 +620,21 @@ export default function VideoChat() {
   function toggleMute() {
     if (!streamRef.current) return;
 
-    const audioTrack = streamRef.current
-      .getTracks()
-      .find((track) => track.kind === "audio");
+    const track = streamRef.current.getAudioTracks()[0];
 
-    if (audioTrack) {
-      audioTrack.enabled = !audioTrack.enabled;
+    if (!track) return;
 
-      const muted = !audioTrack.enabled;
+    track.enabled = !track.enabled;
 
-      setIsMuted(muted);
+    const muted = !track.enabled;
 
-      // STOP speech recognition when muted
-      if (muted) {
-        shouldRestartRecognitionRef.current = false;
+    setIsMuted(muted);
 
-        stopAudioStreaming();
-        recognitionRef.current = null;
-
-        console.log("🎤 Speech recognition stopped");
-      } else {
-        // RESTART speech recognition when unmuted
-        shouldRestartRecognitionRef.current = true;
-
-        setTimeout(() => {
-          if (!recognitionRef.current) {
-            startAudioStreaming();
-          }
-        }, 500);
-
-        console.log("🎤 Speech recognition restarted");
+    if (muted) {
+      stopAudioStreaming();
+    } else {
+      if (!audioContextRef.current) {
+        startAudioStreaming();
       }
     }
   }

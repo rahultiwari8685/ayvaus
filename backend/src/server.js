@@ -150,20 +150,16 @@ io.on("connection", async (socket) => {
 
   const dgConnection = await deepgram.listen.v1.connect({
     model: "nova-3",
-
     language: "multi",
-
     encoding: "linear16",
-
     sample_rate: 48000,
-
     channels: 1,
-
     smart_format: true,
-
     punctuate: true,
-
     interim_results: true,
+
+    endpointing: 300,
+    utterance_end_ms: 1000,
   });
 
   dgConnection.on("open", () => {
@@ -203,7 +199,7 @@ io.on("connection", async (socket) => {
     console.log("Deepgram Event:", data.type);
     console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
-
+    if (!data.is_final) return;
     if (
       !data.channel ||
       !data.channel.alternatives ||
@@ -211,11 +207,19 @@ io.on("connection", async (socket) => {
     )
       return;
 
-    const transcript = data.channel.alternatives[0].transcript?.trim();
+    const transcript = data.channel.alternatives?.[0]?.transcript?.trim();
+
+    if (!transcript) return;
+
+    if (socket.lastTranscript === transcript) {
+      return;
+    }
+
+    socket.lastTranscript = transcript;
 
     console.log("Transcript:", transcript);
 
-    if (!transcript || transcript.length < 2) return;
+    if (!transcript || transcript.length < 4) return;
 
     console.log("Final:", transcript);
 
