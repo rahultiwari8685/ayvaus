@@ -122,46 +122,44 @@ async function translateText(text, targetLang) {
 }
 
 io.on("connection", async (socket) => {
-  //   socket.on("audio-stream", (audio) => {
-  //     if (!audio) return;
-
-  //  if (!dgConnection) return;
-
-  // if (!dgReady) return;
-
-  // dgConnection.sendMedia(Buffer.from(audio));
-
-  //     try {
-  //    dgConnection.sendMedia(Buffer.from(audio));
-  //     } catch (err) {
-  //       console.log("❌ Deepgram send error:", err.message);
-  //     }
-  //   });
+  socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
-    if (!dgReady) return;
-
     if (!dgConnection) return;
 
-    try {
-      console.log("Audio bytes:", audio.byteLength);
+    if (!dgReady) {
+      socket.audioQueue.push(audio);
 
-      dgConnection.sendMedia(Buffer.from(audio));
-    } catch (err) {
-      console.log("Deepgram Error:", err.message);
+      return;
     }
+
+    while (socket.audioQueue.length) {
+      dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
+    }
+
+    dgConnection.sendMedia(Buffer.from(audio));
   });
 
   let dgReady = false;
 
   const dgConnection = await deepgram.listen.v1.connect({
     model: "nova-3",
+
     language: "multi",
+
+    encoding: "linear16",
+
+    sample_rate: 48000,
+
+    channels: 1,
+
     smart_format: true,
+
     punctuate: true,
-    interim_results: false,
+
+    interim_results: true,
   });
 
   console.log("Deepgram connection created");
@@ -169,22 +167,34 @@ io.on("connection", async (socket) => {
   console.log("DG Connected");
   console.log(Object.keys(dgConnection));
 
-  // console.log("dgConnection =", dgConnection);
-  // console.log("typeof dgConnection =", typeof dgConnection);
-  // console.log("Keys =", Object.keys(dgConnection));
-
   dgConnection.on("open", () => {
     dgReady = true;
+
     console.log("✅ Deepgram Connected");
+
+    const keepAlive = setInterval(() => {
+      if (dgReady) {
+        dgConnection.keepAlive();
+      }
+    }, 10000);
+
+    socket.on("disconnect", () => {
+      clearInterval(keepAlive);
+    });
   });
 
   dgConnection.on("message", async (data) => {
     console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
 
-    if (!data.is_final) return;
+    if (
+      !data.channel ||
+      !data.channel.alternatives ||
+      !data.channel.alternatives.length
+    )
+      return;
 
-    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
+    const transcript = data.channel.alternatives[0].transcript?.trim();
 
     console.log("Transcript:", transcript);
 
@@ -195,9 +205,11 @@ io.on("connection", async (socket) => {
     // Show original subtitle to speaker
     console.log("Speaker Subtitle:", transcript);
 
-    socket.emit("voice-subtitle", {
-      text: transcript,
-    });
+    if (transcript) {
+      socket.emit("voice-subtitle", {
+        text: transcript,
+      });
+    }
 
     // Find stranger
     const partner = io.sockets.sockets.get(socket.partnerId);
@@ -209,20 +221,6 @@ io.on("connection", async (socket) => {
 
     console.log("Target Language:", targetLang);
 
-    // Translate
-    // const translated = await translateText(transcript, targetLang);
-
-    // console.log("Translated:", translated);
-
-    // // Send translated subtitle to stranger
-    // partner.emit("voice-subtitle", {
-    //   text: translated,
-    // });
-
-    socket.emit("voice-subtitle", {
-      text: transcript,
-    });
-
     // Translate only for partner
     const translated = await translateText(transcript, targetLang);
 
@@ -231,10 +229,6 @@ io.on("connection", async (socket) => {
     partner.emit("voice-subtitle", {
       text: translated,
     });
-  });
-
-  dgConnection.on("open", () => {
-    console.log("✅ Deepgram Connected");
   });
 
   dgConnection.on("close", (event) => {
@@ -297,13 +291,6 @@ io.on("connection", async (socket) => {
     }
   }
 
-  // socket.on("get-online-count", () => {
-  //   socket.emit(
-  //     "online-users",
-  //     socket.mode === "serious" ? seriousUsers.size : randomUsers.size,
-  //   );
-  // });
-
   socket.on("get-online-count", () => {
     emitOnlineCount();
   });
@@ -314,8 +301,6 @@ io.on("connection", async (socket) => {
     emitOnlineCount();
 
     console.log("🎉 Random User:", socket.id);
-
-    emitOnlineCount();
   }
 
   console.log(

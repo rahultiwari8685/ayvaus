@@ -101,7 +101,7 @@ export default function VideoChat() {
 
     sourceRef.current = source;
 
-    const processor = audioContext.createScriptProcessor(2048, 1, 1);
+    const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
     processorRef.current = processor;
 
@@ -133,49 +133,6 @@ export default function VideoChat() {
 
     return result.buffer;
   }
-
-  //   async function startAudioStreaming() {
-  //     if (!streamRef.current) return;
-
-  //     const audioTrack = streamRef.current.getAudioTracks()[0];
-
-  //     if (!audioTrack) return;
-
-  //     const stream = new MediaStream([audioTrack]);
-
-  //     audioStreamRef.current = stream;
-
-  //     const recorder = new MediaRecorder(stream, {
-  //       mimeType: "audio/webm;codecs=opus",
-  //     });
-
-  //     mediaRecorderRef.current = recorder;
-
-  //     recorder.ondataavailable = async (event) => {
-  //       if (!event.data || event.data.size === 0) return;
-
-  //    const buffer = await event.data.arrayBuffer();
-
-  // if (buffer.byteLength < 1000) return;
-
-  // socketRef.current.emit("audio-stream", buffer);
-  //     };
-
-  //   recorder.start(1200);
-
-  //     console.log("🎤 Audio Streaming Started");
-  //   }
-
-  // function stopAudioStreaming() {
-  //   if (mediaRecorderRef.current) {
-  //     mediaRecorderRef.current.stop();
-  //     mediaRecorderRef.current = null;
-  //   }
-
-  //   audioStreamRef.current = null;
-
-  //   console.log("🛑 Audio Streaming Stopped");
-  // }
 
   function stopAudioStreaming() {
     processorRef.current?.disconnect();
@@ -318,13 +275,6 @@ export default function VideoChat() {
       },
     });
 
-    socketRef.current = io("https://api.flirtaus.com", {
-      transports: ["websocket", "polling"],
-      auth: {
-        mode: "random",
-      },
-    });
-
     const socket = socketRef.current;
 
     socket.on("connect", () => {
@@ -360,9 +310,6 @@ export default function VideoChat() {
     socket.on("online-users", (count) => {
       setOnlineCount(count);
     });
-    // socket.on("connect", () => {
-    //   socket.emit("get-online-count");
-    // });
 
     start();
 
