@@ -138,11 +138,25 @@ export default function VideoChat() {
 
       if (!socketRef.current?.connected) return;
 
+      // const pcm = convertFloat32ToInt16(event.data);
+
+      // console.log("PCM Size:", pcm.byteLength, "Samples:", pcm.byteLength / 2);
+
+      // socketRef.current.emit("audio-stream", pcm);
+
       const pcm = convertFloat32ToInt16(event.data);
 
-      console.log("PCM Size:", pcm.byteLength, "Samples:", pcm.byteLength / 2);
+      // Convert ArrayBuffer to Uint8Array
+      const audioData = new Uint8Array(pcm);
 
-      socketRef.current.emit("audio-stream", pcm);
+      console.log(
+        "PCM Size:",
+        audioData.byteLength,
+        "Type:",
+        audioData.constructor.name,
+      );
+
+      socketRef.current.emit("audio-stream", audioData);
     };
   }
 
