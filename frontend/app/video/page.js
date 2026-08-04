@@ -155,24 +155,6 @@ export default function VideoChat() {
     return result.buffer;
   }
 
-  worklet.port.onmessage = async (event) => {
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
-
-    if (audioContext.state === "closed") {
-      return;
-    }
-
-    if (!socketRef.current?.connected) {
-      return;
-    }
-
-    const pcm = convertFloat32ToInt16(event.data);
-
-    socketRef.current.emit("audio-stream", pcm);
-  };
-
   async function initCamera() {
     if (streamRef.current) return;
 
