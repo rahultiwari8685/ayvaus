@@ -131,8 +131,10 @@ io.on("connection", async (socket) => {
     );
     if (!audio) return;
 
-    if (!dgConnection || !dgReady) {
-      console.log("Deepgram not ready");
+    if (!dgConnection) return;
+
+    if (!dgReady) {
+      socket.audioQueue.push(audio);
       return;
     }
 
@@ -226,8 +228,6 @@ io.on("connection", async (socket) => {
       socket.lastTranscript = null;
     }, 1000);
 
-    socket.lastTranscript = transcript;
-
     console.log("Transcript:", transcript);
 
     if (!transcript || transcript.length < 4) return;
@@ -265,7 +265,10 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("close", (event) => {
     dgReady = false;
+
     console.log("🔴 Deepgram Closed", event);
+
+    socket.emit("deepgram-reconnect");
   });
 
   dgConnection.on("error", (err) => {

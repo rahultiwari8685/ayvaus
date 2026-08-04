@@ -124,20 +124,15 @@ export default function VideoChat() {
     worklet.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    worklet.port.onmessage = (event) => {
-      console.log("Audio Chunk:", event.data.length);
-      if (!socketRef.current?.connected) return;
+    worklet.port.onmessage = async (event) => {
+      if (audioContext.state === "closed") return;
 
-      const pcm = convertFloat32ToInt16(event.data);
-
-      socketRef.current.emit("audio-stream", pcm);
-    };
-
-    console.log("✅ AudioWorklet Started");
-
-    worklet.port.onmessage = (event) => {
-      if (audioContext.state !== "running") {
-        audioContext.resume();
+      if (audioContext.state === "suspended") {
+        try {
+          await audioContext.resume();
+        } catch {
+          return;
+        }
       }
 
       if (!socketRef.current?.connected) return;
@@ -160,23 +155,23 @@ export default function VideoChat() {
     return result.buffer;
   }
 
-  async function stopAudioStreaming() {
-    workletNodeRef.current?.disconnect();
-
-    sourceRef.current?.disconnect();
-
-    if (audioContextRef.current) {
-      await audioContextRef.current.close();
+  worklet.port.onmessage = async (event) => {
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
     }
 
-    workletNodeRef.current = null;
+    if (audioContext.state === "closed") {
+      return;
+    }
 
-    sourceRef.current = null;
+    if (!socketRef.current?.connected) {
+      return;
+    }
 
-    audioContextRef.current = null;
+    const pcm = convertFloat32ToInt16(event.data);
 
-    console.log("AudioWorklet Stopped");
-  }
+    socketRef.current.emit("audio-stream", pcm);
+  };
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -307,7 +302,13 @@ export default function VideoChat() {
     let mounted = true;
 
     socketRef.current = io("https://api.flirtaus.com", {
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
+
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+
       auth: {
         mode: "random",
       },
@@ -327,6 +328,12 @@ export default function VideoChat() {
 
     socket.on("disconnect", (reason) => {
       console.log("Disconnected:", reason);
+
+      if (reason === "ping timeout") {
+        console.log("Reconnecting...");
+
+        socket.connect();
+      }
     });
 
     socket.on("connect_error", (err) => {
