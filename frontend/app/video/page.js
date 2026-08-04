@@ -25,7 +25,8 @@ export default function VideoChat() {
   const audioStreamRef = useRef(null);
 
   const audioContextRef = useRef(null);
-  const processorRef = useRef(null);
+
+  const workletNodeRef = useRef(null);
   const sourceRef = useRef(null);
 
   const iceQueueRef = useRef([]);
@@ -75,64 +76,52 @@ export default function VideoChat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  async function startAudioStreaming() {
-    if (audioContextRef.current || processorRef.current || sourceRef.current) {
-      console.log("Already streaming");
-      return;
-    }
+async function startAudioStreaming() {
+  if (audioContextRef.current) return;
 
-    if (!streamRef.current) return;
+  if (!streamRef.current) return;
 
-    const audioTrack = streamRef.current.getAudioTracks()[0];
+  const audioTrack = streamRef.current.getAudioTracks()[0];
 
-    const stream = new MediaStream([audioTrack]);
+  if (!audioTrack) return;
 
-    const audioContext = new AudioContext({
-      sampleRate: 48000,
-    });
+  const stream = new MediaStream([audioTrack]);
 
-    console.log("Actual Sample Rate:", audioContext.sampleRate);
+  const audioContext = new AudioContext({
+    sampleRate: 48000,
+  });
 
-    audioContextRef.current = audioContext;
+  await audioContext.audioWorklet.addModule("/audio-worklet.js");
 
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
+  audioContextRef.current = audioContext;
 
-    const source = audioContext.createMediaStreamSource(stream);
+  const source = audioContext.createMediaStreamSource(stream);
 
-    sourceRef.current = source;
+  sourceRef.current = source;
 
-    const processor = audioContext.createScriptProcessor(1024, 1, 1);
+  const worklet = new AudioWorkletNode(
+    audioContext,
+    "audio-processor"
+  );
 
-    processorRef.current = processor;
+  workletNodeRef.current = worklet;
 
-    source.connect(processor);
+  source.connect(worklet);
 
-    processor.connect(audioContext.destination);
+  worklet.port.onmessage = (event) => {
 
-    processor.onaudioprocess = (e) => {
-      if (!socketRef.current?.connected) return;
+    if (!socketRef.current?.connected) return;
 
-      const input = e.inputBuffer.getChannelData(0);
+    const input = event.data;
 
-      let volume = 0;
+    const pcm = convertFloat32ToInt16(input);
 
-      for (let i = 0; i < input.length; i++) {
-        volume += Math.abs(input[i]);
-      }
+    socketRef.current.emit("audio-stream", pcm);
 
-      volume /= input.length;
+  };
 
-      if (volume < 0.005) {
-        return;
-      }
-
-      const buffer = convertFloat32ToInt16(input);
-
-      socketRef.current.emit("audio-stream", buffer);
-    };
-  }
+  console.log("✅ AudioWorklet Started");
+}
 
   function convertFloat32ToInt16(buffer) {
     let l = buffer.length;
@@ -146,24 +135,24 @@ export default function VideoChat() {
     return result.buffer;
   }
 
-  async function stopAudioStreaming() {
-    try {
-      processorRef.current?.disconnect();
-      sourceRef.current?.disconnect();
+async function stopAudioStreaming() {
 
-      if (audioContextRef.current) {
+    workletNodeRef.current?.disconnect();
+
+    sourceRef.current?.disconnect();
+
+    if (audioContextRef.current) {
         await audioContextRef.current.close();
-      }
-
-      processorRef.current = null;
-      sourceRef.current = null;
-      audioContextRef.current = null;
-
-      console.log("✅ Audio Streaming Stopped");
-    } catch (err) {
-      console.log("Stop Audio Error:", err);
     }
-  }
+
+    workletNodeRef.current = null;
+
+    sourceRef.current = null;
+
+    audioContextRef.current = null;
+
+    console.log("AudioWorklet Stopped");
+}
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -259,7 +248,10 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        if (!audioContextRef.current && !processorRef.current) {
+    if (
+    !audioContextRef.current &&
+    !workletNodeRef.current
+)
           startAudioStreaming();
         }
       }
