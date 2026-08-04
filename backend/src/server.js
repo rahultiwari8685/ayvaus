@@ -125,6 +125,10 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
+    console.log(
+      "Audio received:",
+      audio ? Buffer.byteLength(Buffer.from(audio)) : 0,
+    );
     if (!audio) return;
 
     if (!dgConnection) return;
@@ -184,6 +188,7 @@ io.on("connection", async (socket) => {
   });
 
   dgConnection.on("message", async (data) => {
+    console.log("Deepgram Event:", data.type);
     console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
 

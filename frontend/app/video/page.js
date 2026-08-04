@@ -91,6 +91,8 @@ export default function VideoChat() {
       sampleRate: 48000,
     });
 
+    console.log("Actual Sample Rate:", audioContext.sampleRate);
+
     audioContextRef.current = audioContext;
 
     if (audioContext.state === "suspended") {
@@ -117,6 +119,8 @@ export default function VideoChat() {
       const buffer = convertFloat32ToInt16(input);
 
       if (!buffer || buffer.byteLength === 0) return;
+
+      console.log("Sending Audio:", buffer.byteLength);
 
       socketRef.current.emit("audio-stream", buffer);
     };
