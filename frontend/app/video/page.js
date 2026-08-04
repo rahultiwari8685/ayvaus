@@ -140,10 +140,27 @@ export default function VideoChat() {
 
       const pcm = convertFloat32ToInt16(event.data);
 
-      console.log("PCM Size", pcm.byteLength);
+      console.log("PCM Size:", pcm.byteLength, "Samples:", pcm.byteLength / 2);
 
       socketRef.current.emit("audio-stream", pcm);
     };
+  }
+
+  function stopAudioStreaming() {
+    try {
+      workletNodeRef.current?.disconnect();
+      sourceRef.current?.disconnect();
+
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+
+      workletNodeRef.current = null;
+      sourceRef.current = null;
+      audioContextRef.current = null;
+    } catch (err) {
+      console.log("Stop Audio Error:", err);
+    }
   }
 
   function convertFloat32ToInt16(buffer) {

@@ -127,18 +127,20 @@ io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
-    console.log("PCM Bytes:", Buffer.byteLength(Buffer.from(audio)));
+    const pcm = Buffer.from(audio);
+
+    console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
 
     if (!dgReady) {
-      socket.audioQueue.push(audio);
+      socket.audioQueue.push(pcm);
       return;
     }
 
     while (socket.audioQueue.length) {
-      dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
+      dgConnection.sendMedia(socket.audioQueue.shift());
     }
 
-    dgConnection.sendMedia(Buffer.from(audio));
+    dgConnection.sendMedia(pcm);
   });
 
   let dgReady = false;
