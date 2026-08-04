@@ -76,52 +76,61 @@ export default function VideoChat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-async function startAudioStreaming() {
-  if (audioContextRef.current) return;
+  async function startAudioStreaming() {
+    if (audioContextRef.current) return;
 
-  if (!streamRef.current) return;
+    if (!streamRef.current) return;
 
-  const audioTrack = streamRef.current.getAudioTracks()[0];
+    const audioTrack = streamRef.current.getAudioTracks()[0];
 
-  if (!audioTrack) return;
+    if (!audioTrack) return;
 
-  const stream = new MediaStream([audioTrack]);
+    const stream = new MediaStream([audioTrack]);
 
-  const audioContext = new AudioContext({
-    sampleRate: 48000,
-  });
+    const audioContext = new AudioContext({
+      sampleRate: 48000,
+    });
 
-  await audioContext.audioWorklet.addModule("/audio-worklet.js");
+    console.log("AudioContext State:", audioContext.state);
 
-  audioContextRef.current = audioContext;
+    await audioContext.resume();
 
-  const source = audioContext.createMediaStreamSource(stream);
+    console.log("AudioContext State:", audioContext.state);
 
-  sourceRef.current = source;
+    try {
+      await audioContext.audioWorklet.addModule("/audio-worklet.js");
+    } catch (err) {
+      console.error("AudioWorklet Load Error:", err);
 
-  const worklet = new AudioWorkletNode(
-    audioContext,
-    "audio-processor"
-  );
+      return;
+    }
 
-  workletNodeRef.current = worklet;
+    audioContextRef.current = audioContext;
 
-  source.connect(worklet);
+    const source = audioContext.createMediaStreamSource(stream);
 
-  worklet.port.onmessage = (event) => {
+    sourceRef.current = source;
 
-    if (!socketRef.current?.connected) return;
+    const worklet = new AudioWorkletNode(audioContext, "audio-processor");
 
-    const input = event.data;
+    workletNodeRef.current = worklet;
 
-    const pcm = convertFloat32ToInt16(input);
+    source.connect(worklet);
 
-    socketRef.current.emit("audio-stream", pcm);
+    // IMPORTANT
+    worklet.connect(audioContext.destination);
 
-  };
+    worklet.port.onmessage = (event) => {
+      console.log("Audio Chunk:", event.data.length);
+      if (!socketRef.current?.connected) return;
 
-  console.log("✅ AudioWorklet Started");
-}
+      const pcm = convertFloat32ToInt16(event.data);
+
+      socketRef.current.emit("audio-stream", pcm);
+    };
+
+    console.log("✅ AudioWorklet Started");
+  }
 
   function convertFloat32ToInt16(buffer) {
     let l = buffer.length;
@@ -135,14 +144,13 @@ async function startAudioStreaming() {
     return result.buffer;
   }
 
-async function stopAudioStreaming() {
-
+  async function stopAudioStreaming() {
     workletNodeRef.current?.disconnect();
 
     sourceRef.current?.disconnect();
 
     if (audioContextRef.current) {
-        await audioContextRef.current.close();
+      await audioContextRef.current.close();
     }
 
     workletNodeRef.current = null;
@@ -152,7 +160,7 @@ async function stopAudioStreaming() {
     audioContextRef.current = null;
 
     console.log("AudioWorklet Stopped");
-}
+  }
 
   async function initCamera() {
     if (streamRef.current) return;
@@ -248,29 +256,24 @@ async function stopAudioStreaming() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-    if (
-    !audioContextRef.current &&
-    !workletNodeRef.current
-)
+        if (!audioContextRef.current && !workletNodeRef.current) {
           startAudioStreaming();
         }
       }
-
-      if (
-        pc.iceConnectionState === "disconnected" ||
-        pc.iceConnectionState === "failed" ||
-        pc.iceConnectionState === "closed"
-      ) {
-        setStatus("Looking for someone...");
-      }
-
-      if (pc.iceConnectionState === "failed") {
-        console.log("ICE failed, retrying...");
-        socketRef.current.emit("next");
-      }
     };
 
-    pcRef.current = pc;
+    if (
+      pc.iceConnectionState === "disconnected" ||
+      pc.iceConnectionState === "failed" ||
+      pc.iceConnectionState === "closed"
+    ) {
+      setStatus("Looking for someone...");
+    }
+
+    if (pc.iceConnectionState === "failed") {
+      console.log("ICE failed, retrying...");
+      socketRef.current.emit("next");
+    }
   }
 
   useEffect(() => {
