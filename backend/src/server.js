@@ -135,8 +135,6 @@ io.on("connection", async (socket) => {
 
     if (!audio) return;
 
-    const pcm = Buffer.from(audio);
-
     console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
 
     if (!dgReady) {
