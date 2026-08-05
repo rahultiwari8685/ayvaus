@@ -207,7 +207,7 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("open", () => {
     dgReady = true;
-
+console.log("Sending PCM:", Buffer.from(audio).length);
     while (socket.audioQueue.length) {
       dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
     }
@@ -225,31 +225,44 @@ io.on("connection", async (socket) => {
     });
   });
 
-  dgConnection.on("message", async (data) => {
-    if (data.type !== "Results") return;
+  dgConnection.on("message", (data) => {
+    console.log("==============");
+    console.log("TYPE:", data.type);
 
-    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
+    if (data.channel?.alternatives?.length) {
+        console.log("Transcript:", data.channel.alternatives[0].transcript);
+        console.log("Final:", data.is_final);
+        console.log("Speech Final:", data.speech_final);
+    }
 
-    if (!transcript) return;
+    console.log(JSON.stringify(data, null, 2));
+});
 
-    console.log("Transcript:", transcript);
+  // dgConnection.on("message", async (data) => {
+  //   if (data.type !== "Results") return;
 
-    socket.emit("voice-subtitle", {
-      text: transcript,
-    });
+  //   const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
-    const partner = io.sockets.sockets.get(socket.partnerId);
+  //   if (!transcript) return;
 
-    if (!partner) return;
+  //   console.log("Transcript:", transcript);
 
-    const targetLang = (partner.language || "en-US").split("-")[0];
+  //   socket.emit("voice-subtitle", {
+  //     text: transcript,
+  //   });
 
-    const translated = await translateText(transcript, targetLang);
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
 
-    partner.emit("voice-subtitle", {
-      text: translated,
-    });
-  });
+  //   if (!partner) return;
+
+  //   const targetLang = (partner.language || "en-US").split("-")[0];
+
+  //   const translated = await translateText(transcript, targetLang);
+
+  //   partner.emit("voice-subtitle", {
+  //     text: translated,
+  //   });
+  // });
 
   // dgConnection.on("message", async (data) => {
   //   console.log("Deepgram Event:", data.type);
