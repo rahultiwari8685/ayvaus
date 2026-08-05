@@ -123,18 +123,21 @@ async function translateText(text, targetLang) {
 
 io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
-
   socket.on("audio-stream", (audio) => {
-    console.log("--------------------");
-    console.log("typeof:", typeof audio);
-    console.log("constructor:", audio?.constructor?.name);
-    console.log("isBuffer:", Buffer.isBuffer(audio));
-    console.log("keys:", Object.keys(audio));
-    console.log("audio:", audio);
+    if (!audio) return;
 
     const pcm = Buffer.from(audio);
 
-    console.log("Buffer Length:", pcm.length);
+    if (!dgReady) {
+      socket.audioQueue.push(pcm);
+      return;
+    }
+
+    while (socket.audioQueue.length) {
+      dgConnection.sendMedia(socket.audioQueue.shift());
+    }
+
+    dgConnection.sendMedia(pcm);
   });
 
   // socket.on("audio-stream", (audio) => {
@@ -207,7 +210,7 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("open", () => {
     dgReady = true;
-console.log("Sending PCM:", Buffer.from(audio).length);
+    console.log("Sending PCM:", Buffer.from(audio).length);
     while (socket.audioQueue.length) {
       dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
     }
@@ -226,17 +229,30 @@ console.log("Sending PCM:", Buffer.from(audio).length);
   });
 
   dgConnection.on("message", (data) => {
-    console.log("==============");
+    console.log("=================================");
     console.log("TYPE:", data.type);
 
     if (data.channel?.alternatives?.length) {
-        console.log("Transcript:", data.channel.alternatives[0].transcript);
-        console.log("Final:", data.is_final);
-        console.log("Speech Final:", data.speech_final);
+      console.log("Transcript:", data.channel.alternatives[0].transcript);
+      console.log("is_final:", data.is_final);
+      console.log("speech_final:", data.speech_final);
     }
 
     console.log(JSON.stringify(data, null, 2));
-});
+  });
+
+  //   dgConnection.on("message", (data) => {
+  //     console.log("==============");
+  //     console.log("TYPE:", data.type);
+
+  //     if (data.channel?.alternatives?.length) {
+  //         console.log("Transcript:", data.channel.alternatives[0].transcript);
+  //         console.log("Final:", data.is_final);
+  //         console.log("Speech Final:", data.speech_final);
+  //     }
+
+  //     console.log(JSON.stringify(data, null, 2));
+  // });
 
   // dgConnection.on("message", async (data) => {
   //   if (data.type !== "Results") return;
