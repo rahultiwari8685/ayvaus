@@ -16,7 +16,7 @@ class AudioProcessor extends AudioWorkletProcessor {
     this.buffer.push(...channel);
 
     // Send larger chunks to Deepgram
-    if (this.buffer.length >= 4096) {
+    if (this.buffer.length >= 9600) {
       const chunk = this.buffer.slice(0, 4096);
 
       this.buffer = this.buffer.slice(4096);

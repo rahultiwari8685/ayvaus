@@ -125,21 +125,40 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
-    if (!audio) return;
+    console.log("Audio packet:", audio?.length);
 
     const pcm = Buffer.from(audio);
+
+    console.log("PCM:", pcm.length);
+
+    console.log("Ready:", dgReady);
 
     if (!dgReady) {
       socket.audioQueue.push(pcm);
       return;
     }
 
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(socket.audioQueue.shift());
-    }
+    console.log("Sending to Deepgram...");
 
     dgConnection.sendMedia(pcm);
   });
+
+  // socket.on("audio-stream", (audio) => {
+  //   if (!audio) return;
+
+  //   const pcm = Buffer.from(audio);
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(pcm);
+  //     return;
+  //   }
+
+  //   while (socket.audioQueue.length) {
+  //     dgConnection.sendMedia(socket.audioQueue.shift());
+  //   }
+
+  //   dgConnection.sendMedia(pcm);
+  // });
 
   // socket.on("audio-stream", (audio) => {
   //   console.log("AUDIO RECEIVED");
@@ -214,6 +233,17 @@ io.on("connection", async (socket) => {
     utterance_end_ms: 500,
   });
 
+  dgReady = true;
+
+  console.log("==============");
+  console.log("DG METHODS");
+  console.log(typeof dgConnection.send);
+  console.log(typeof dgConnection.sendMedia);
+  console.log(typeof dgConnection.keepAlive);
+  console.log(typeof dgConnection.finish);
+  console.log(typeof dgConnection.requestClose);
+  console.log("==============");
+
   console.log("Deepgram connection created");
 
   console.log("DG Connected");
@@ -260,6 +290,8 @@ io.on("connection", async (socket) => {
   // });
 
   dgConnection.on("message", async (data) => {
+    console.log("DG EVENT");
+    console.log(JSON.stringify(data, null, 2));
     if (data.type !== "Results") return;
 
     if (!data.is_final) return;
