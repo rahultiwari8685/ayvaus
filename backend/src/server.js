@@ -125,29 +125,42 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.on("audio-stream", (audio) => {
-    if (!audio) return;
-
-    console.log("Constructor:", audio.constructor.name);
+    console.log("--------------------");
+    console.log("typeof:", typeof audio);
+    console.log("constructor:", audio?.constructor?.name);
+    console.log("isBuffer:", Buffer.isBuffer(audio));
+    console.log("keys:", Object.keys(audio));
+    console.log("audio:", audio);
 
     const pcm = Buffer.from(audio);
 
-    console.log("PCM Length:", pcm.length);
-
-    if (!audio) return;
-
-    console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
-
-    if (!dgReady) {
-      socket.audioQueue.push(pcm);
-      return;
-    }
-
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(socket.audioQueue.shift());
-    }
-
-    dgConnection.sendMedia(pcm);
+    console.log("Buffer Length:", pcm.length);
   });
+
+  // socket.on("audio-stream", (audio) => {
+  //   if (!audio) return;
+
+  //   console.log("Constructor:", audio.constructor.name);
+
+  //   const pcm = Buffer.from(audio);
+
+  //   console.log("PCM Length:", pcm.length);
+
+  //   if (!audio) return;
+
+  //   console.log("PCM Bytes:", pcm.length, "Samples:", pcm.length / 2);
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(pcm);
+  //     return;
+  //   }
+
+  //   while (socket.audioQueue.length) {
+  //     dgConnection.sendMedia(socket.audioQueue.shift());
+  //   }
+
+  //   dgConnection.sendMedia(pcm);
+  // });
 
   let dgReady = false;
 

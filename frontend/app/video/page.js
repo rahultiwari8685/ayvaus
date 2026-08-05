@@ -125,39 +125,43 @@ export default function VideoChat() {
     worklet.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    worklet.port.onmessage = async (event) => {
-      if (audioContext.state === "closed") return;
-
-      if (audioContext.state === "suspended") {
-        try {
-          await audioContext.resume();
-        } catch {
-          return;
-        }
-      }
-
-      if (!socketRef.current?.connected) return;
-
-      // const pcm = convertFloat32ToInt16(event.data);
-
-      // console.log("PCM Size:", pcm.byteLength, "Samples:", pcm.byteLength / 2);
-
-      // socketRef.current.emit("audio-stream", pcm);
-
+    worklet.port.onmessage = (event) => {
       const pcm = convertFloat32ToInt16(event.data);
 
-      // Convert ArrayBuffer to Uint8Array
-      const audioData = new Uint8Array(pcm);
+      console.log("PCM Buffer:", pcm);
+      console.log("PCM Constructor:", pcm.constructor.name);
+      console.log("PCM ByteLength:", pcm.byteLength);
 
-      console.log(
-        "PCM Size:",
-        audioData.byteLength,
-        "Type:",
-        audioData.constructor.name,
-      );
-
-      socketRef.current.emit("audio-stream", audioData);
+      socketRef.current.emit("audio-stream", pcm);
     };
+
+    // worklet.port.onmessage = async (event) => {
+    //   if (audioContext.state === "closed") return;
+
+    //   if (audioContext.state === "suspended") {
+    //     try {
+    //       await audioContext.resume();
+    //     } catch {
+    //       return;
+    //     }
+    //   }
+
+    //   if (!socketRef.current?.connected) return;
+
+    //   const pcm = convertFloat32ToInt16(event.data);
+
+    //   // Convert ArrayBuffer to Uint8Array
+    //   const audioData = new Uint8Array(pcm);
+
+    //   console.log(
+    //     "PCM Size:",
+    //     audioData.byteLength,
+    //     "Type:",
+    //     audioData.constructor.name,
+    //   );
+
+    //   socketRef.current.emit("audio-stream", audioData);
+    // };
   }
 
   function stopAudioStreaming() {
