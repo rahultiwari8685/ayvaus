@@ -210,12 +210,12 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("open", () => {
     dgReady = true;
-    console.log("Sending PCM:", Buffer.from(audio).length);
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(Buffer.from(socket.audioQueue.shift()));
-    }
 
     console.log("✅ Deepgram Connected");
+
+    while (socket.audioQueue.length) {
+      dgConnection.sendMedia(socket.audioQueue.shift());
+    }
 
     const keepAlive = setInterval(() => {
       if (dgReady) {
@@ -228,18 +228,46 @@ io.on("connection", async (socket) => {
     });
   });
 
-  dgConnection.on("message", (data) => {
-    console.log("=================================");
-    console.log("TYPE:", data.type);
+  dgConnection.on("message", async (data) => {
+    if (data.type !== "Results") return;
 
-    if (data.channel?.alternatives?.length) {
-      console.log("Transcript:", data.channel.alternatives[0].transcript);
-      console.log("is_final:", data.is_final);
-      console.log("speech_final:", data.speech_final);
-    }
+    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
-    console.log(JSON.stringify(data, null, 2));
+    if (!transcript) return;
+
+    console.log("Transcript:", transcript);
+
+    // Show original subtitle
+    socket.emit("voice-subtitle", {
+      text: transcript,
+    });
+
+    // Send translated subtitle to partner
+    const partner = io.sockets.sockets.get(socket.partnerId);
+
+    if (!partner) return;
+
+    const targetLang = (partner.language || "en").split("-")[0];
+
+    const translated = await translateText(transcript, targetLang);
+
+    partner.emit("voice-subtitle", {
+      text: translated,
+    });
   });
+
+  // dgConnection.on("message", (data) => {
+  //   console.log("=================================");
+  //   console.log("TYPE:", data.type);
+
+  //   if (data.channel?.alternatives?.length) {
+  //     console.log("Transcript:", data.channel.alternatives[0].transcript);
+  //     console.log("is_final:", data.is_final);
+  //     console.log("speech_final:", data.speech_final);
+  //   }
+
+  //   console.log(JSON.stringify(data, null, 2));
+  // });
 
   //   dgConnection.on("message", (data) => {
   //     console.log("==============");
