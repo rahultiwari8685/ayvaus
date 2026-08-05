@@ -124,25 +124,6 @@ async function translateText(text, targetLang) {
 io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
-  socket.on("audio-stream", (audio) => {
-    console.log("Audio packet:", audio?.length);
-
-    const pcm = Buffer.from(audio);
-
-    console.log("PCM:", pcm.length);
-
-    console.log("Ready:", dgReady);
-
-    if (!dgReady) {
-      socket.audioQueue.push(pcm);
-      return;
-    }
-
-    console.log("Sending to Deepgram...");
-
-    dgConnection.sendMedia(pcm);
-  });
-
   // socket.on("audio-stream", (audio) => {
   //   if (!audio) return;
 
@@ -233,8 +214,6 @@ io.on("connection", async (socket) => {
     utterance_end_ms: 500,
   });
 
-  dgReady = true;
-
   console.log("==============");
   console.log("DG METHODS");
   console.log(typeof dgConnection.send);
@@ -249,30 +228,10 @@ io.on("connection", async (socket) => {
   console.log("DG Connected");
   console.log(Object.keys(dgConnection));
 
-  dgConnection.on("open", () => {
-    console.log("✅ Deepgram OPEN");
-
-    dgReady = true;
-
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(socket.audioQueue.shift());
-    }
-
-    const keepAlive = setInterval(() => {
-      if (dgReady) {
-        dgConnection.keepAlive();
-      }
-    }, 5000);
-
-    socket.on("disconnect", () => {
-      clearInterval(keepAlive);
-    });
-  });
-
   // dgConnection.on("open", () => {
-  //   dgReady = true;
+  //   console.log("✅ Deepgram OPEN");
 
-  //   console.log("✅ Deepgram Connected");
+  //   dgReady = true;
 
   //   while (socket.audioQueue.length) {
   //     dgConnection.sendMedia(socket.audioQueue.shift());
@@ -289,12 +248,18 @@ io.on("connection", async (socket) => {
   //   });
   // });
 
-  dgConnection.on("message", async (data) => {
-    console.log("DG EVENT");
-    console.log(JSON.stringify(data, null, 2));
-    if (data.type !== "Results") return;
+  dgConnection.on("open", () => {
+    console.log("✅ Deepgram OPEN");
 
-    if (!data.is_final) return;
+    dgReady = true;
+
+    while (socket.audioQueue.length) {
+      dgConnection.sendMedia(socket.audioQueue.shift());
+    }
+  });
+
+  dgConnection.on("message", async (data) => {
+    if (data.type !== "Results") return;
 
     const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
@@ -322,7 +287,11 @@ io.on("connection", async (socket) => {
   });
 
   // dgConnection.on("message", async (data) => {
+  //   console.log("DG EVENT");
+  //   console.log(JSON.stringify(data, null, 2));
   //   if (data.type !== "Results") return;
+
+  //   if (!data.is_final) return;
 
   //   const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
 
@@ -330,12 +299,12 @@ io.on("connection", async (socket) => {
 
   //   console.log("Transcript:", transcript);
 
-  //   // Show original subtitle
   //   socket.emit("voice-subtitle", {
   //     text: transcript,
   //   });
 
-  //   // Send translated subtitle to partner
+  //   if (!socket.partnerId) return;
+
   //   const partner = io.sockets.sockets.get(socket.partnerId);
 
   //   if (!partner) return;
@@ -349,128 +318,64 @@ io.on("connection", async (socket) => {
   //   });
   // });
 
-  // dgConnection.on("message", (data) => {
-  //   console.log("=================================");
-  //   console.log("TYPE:", data.type);
+  // dgConnection.on("close", (event) => {
+  //   dgReady = false;
 
-  //   if (data.channel?.alternatives?.length) {
-  //     console.log("Transcript:", data.channel.alternatives[0].transcript);
-  //     console.log("is_final:", data.is_final);
-  //     console.log("speech_final:", data.speech_final);
-  //   }
+  //   console.log("🔴 Deepgram Closed", event);
 
-  //   console.log(JSON.stringify(data, null, 2));
-  // });
-
-  //   dgConnection.on("message", (data) => {
-  //     console.log("==============");
-  //     console.log("TYPE:", data.type);
-
-  //     if (data.channel?.alternatives?.length) {
-  //         console.log("Transcript:", data.channel.alternatives[0].transcript);
-  //         console.log("Final:", data.is_final);
-  //         console.log("Speech Final:", data.speech_final);
-  //     }
-
-  //     console.log(JSON.stringify(data, null, 2));
-  // });
-
-  // dgConnection.on("message", async (data) => {
-  //   if (data.type !== "Results") return;
-
-  //   const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
-
-  //   if (!transcript) return;
-
-  //   console.log("Transcript:", transcript);
-
-  //   socket.emit("voice-subtitle", {
-  //     text: transcript,
-  //   });
-
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   if (!partner) return;
-
-  //   const targetLang = (partner.language || "en-US").split("-")[0];
-
-  //   const translated = await translateText(transcript, targetLang);
-
-  //   partner.emit("voice-subtitle", {
-  //     text: translated,
-  //   });
-  // });
-
-  // dgConnection.on("message", async (data) => {
-  //   console.log("Deepgram Event:", data.type);
-  //   console.log(JSON.stringify(data, null, 2));
-  //   if (data.type !== "Results") return;
-  //   if (!data.is_final) return;
-  //   if (
-  //     !data.channel ||
-  //     !data.channel.alternatives ||
-  //     !data.channel.alternatives.length
-  //   )
-  //     return;
-
-  //   const transcript = data.channel.alternatives?.[0]?.transcript?.trim();
-
-  //   if (!transcript) return;
-
-  //   if (socket.lastTranscript === transcript) return;
-
-  //   socket.lastTranscript = transcript;
-
-  //   setTimeout(() => {
-  //     socket.lastTranscript = null;
-  //   }, 1000);
-
-  //   console.log("Transcript:", transcript);
-
-  //   if (!transcript || transcript.length < 4) return;
-
-  //   console.log("Final:", transcript);
-
-  //   // Show original subtitle to speaker
-  //   console.log("Speaker Subtitle:", transcript);
-
-  //   if (transcript) {
-  //     socket.emit("voice-subtitle", {
-  //       text: transcript,
-  //     });
-  //   }
-
-  //   // Find stranger
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   if (!partner) return;
-
-  //   // Stranger selected subtitle language
-  //   const targetLang = (partner.language || "en-US").split("-")[0];
-
-  //   console.log("Target Language:", targetLang);
-
-  //   // Translate only for partner
-  //   const translated = await translateText(transcript, targetLang);
-
-  //   console.log("Partner Subtitle:", translated);
-
-  //   partner.emit("voice-subtitle", {
-  //     text: translated,
-  //   });
+  //   socket.emit("deepgram-reconnect");
   // });
 
   dgConnection.on("close", (event) => {
     dgReady = false;
 
     console.log("🔴 Deepgram Closed", event);
-
-    socket.emit("deepgram-reconnect");
   });
 
   dgConnection.on("error", (err) => {
     console.log("❌ Deepgram Error", err);
   });
+
+  socket.on("audio-stream", (audio) => {
+    if (!audio) return;
+
+    const pcm = Buffer.from(audio);
+
+    if (!dgReady) {
+      socket.audioQueue.push(pcm);
+      return;
+    }
+
+    try {
+      while (socket.audioQueue.length) {
+        dgConnection.sendMedia(socket.audioQueue.shift());
+      }
+
+      dgConnection.sendMedia(pcm);
+    } catch (err) {
+      console.log("Deepgram Send Error:", err.message);
+      socket.audioQueue.push(pcm);
+    }
+  });
+
+  // socket.on("audio-stream", (audio) => {
+  //   console.log("Audio packet:", audio?.length);
+
+  //   const pcm = Buffer.from(audio);
+
+  //   console.log("PCM:", pcm.length);
+
+  //   console.log("Ready:", dgReady);
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(pcm);
+  //     return;
+  //   }
+
+  //   console.log("Sending to Deepgram...");
+
+  //   dgConnection.sendMedia(pcm);
+  // });
 
   dgConnection.on("warning", (warning) => {
     console.log("⚠ Deepgram Warning", warning);
@@ -1002,9 +907,10 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    if (dgConnection?.close) {
-      dgConnection.close();
-    }
+    try {
+      dgConnection.removeAllListeners?.();
+    } catch (e) {}
+
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
       return;
