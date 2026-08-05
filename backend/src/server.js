@@ -188,6 +188,78 @@ io.on("connection", async (socket) => {
   //   dgConnection.sendMedia(pcm);
   // });
 
+  dgConnection.on("warning", (warning) => {
+    console.log("⚠ Deepgram Warning", warning);
+  });
+
+  socket.language = "en-US";
+  console.log("VERIFY SECRET:", process.env.JWT_SECRET);
+  const { token, mode } = socket.handshake.auth;
+  console.log("TOKEN RECEIVED:", token?.slice(0, 20));
+
+  if (token) {
+    socket.mode = "serious";
+  } else {
+    socket.mode = "random";
+  }
+
+  console.log("FINAL MODE:", socket.mode);
+
+  if (socket.mode === "serious") {
+    if (!token) return socket.disconnect();
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const user = await User.findById(decoded.id);
+
+      if (!user || !user.is_serious_profile) {
+        return socket.disconnect();
+      }
+
+      socket.user = user;
+
+      seriousUsers.set(user._id.toString(), {
+        socketId: socket.id,
+        userId: user._id.toString(),
+        name: user.name,
+        age: user.age,
+        gender: user.gender,
+      });
+
+      emitOnlineCount();
+
+      emitSeriousUsers();
+
+      console.log("🟢 User online:", user._id.toString());
+      console.log("❤️ Serious User:", user.name);
+    } catch (err) {
+      console.log("❌ Invalid token:", err.message);
+      return socket.disconnect();
+    }
+  }
+
+  socket.on("get-online-count", () => {
+    emitOnlineCount();
+  });
+
+  if (socket.mode === "random") {
+    randomUsers.add(socket.id);
+
+    emitOnlineCount();
+
+    console.log("🎉 Random User:", socket.id);
+  }
+
+  console.log(
+    "🟢 Connected:",
+    socket.id,
+    "| Mode:",
+    socket.mode,
+    "| User:",
+    socket.user ? socket.user.name : "Anonymous",
+  );
+
   let dgReady = false;
 
   const dgConnection = await deepgram.listen.v1.connect({
@@ -250,7 +322,7 @@ io.on("connection", async (socket) => {
 
   dgConnection.on("open", () => {
     console.log("✅ Deepgram OPEN");
-
+    console.log("Deepgram websocket opened");
     dgReady = true;
 
     while (socket.audioQueue.length) {
@@ -339,10 +411,8 @@ io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
-    const pcm = Buffer.from(audio);
-
     if (!dgReady) {
-      socket.audioQueue.push(pcm);
+      socket.audioQueue.push(Buffer.from(audio));
       return;
     }
 
@@ -351,12 +421,35 @@ io.on("connection", async (socket) => {
         dgConnection.sendMedia(socket.audioQueue.shift());
       }
 
-      dgConnection.sendMedia(pcm);
+      dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
-      console.log("Deepgram Send Error:", err.message);
-      socket.audioQueue.push(pcm);
+      console.log("Deepgram send:", err.message);
+
+      socket.audioQueue.push(Buffer.from(audio));
     }
   });
+
+  // socket.on("audio-stream", (audio) => {
+  //   if (!audio) return;
+
+  //   const pcm = Buffer.from(audio);
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(pcm);
+  //     return;
+  //   }
+
+  //   try {
+  //     while (socket.audioQueue.length) {
+  //       dgConnection.sendMedia(socket.audioQueue.shift());
+  //     }
+
+  //     dgConnection.sendMedia(pcm);
+  //   } catch (err) {
+  //     console.log("Deepgram Send Error:", err.message);
+  //     socket.audioQueue.push(pcm);
+  //   }
+  // });
 
   // socket.on("audio-stream", (audio) => {
   //   console.log("Audio packet:", audio?.length);
@@ -376,78 +469,6 @@ io.on("connection", async (socket) => {
 
   //   dgConnection.sendMedia(pcm);
   // });
-
-  dgConnection.on("warning", (warning) => {
-    console.log("⚠ Deepgram Warning", warning);
-  });
-
-  socket.language = "en-US";
-  console.log("VERIFY SECRET:", process.env.JWT_SECRET);
-  const { token, mode } = socket.handshake.auth;
-  console.log("TOKEN RECEIVED:", token?.slice(0, 20));
-
-  if (token) {
-    socket.mode = "serious";
-  } else {
-    socket.mode = "random";
-  }
-
-  console.log("FINAL MODE:", socket.mode);
-
-  if (socket.mode === "serious") {
-    if (!token) return socket.disconnect();
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      const user = await User.findById(decoded.id);
-
-      if (!user || !user.is_serious_profile) {
-        return socket.disconnect();
-      }
-
-      socket.user = user;
-
-      seriousUsers.set(user._id.toString(), {
-        socketId: socket.id,
-        userId: user._id.toString(),
-        name: user.name,
-        age: user.age,
-        gender: user.gender,
-      });
-
-      emitOnlineCount();
-
-      emitSeriousUsers();
-
-      console.log("🟢 User online:", user._id.toString());
-      console.log("❤️ Serious User:", user.name);
-    } catch (err) {
-      console.log("❌ Invalid token:", err.message);
-      return socket.disconnect();
-    }
-  }
-
-  socket.on("get-online-count", () => {
-    emitOnlineCount();
-  });
-
-  if (socket.mode === "random") {
-    randomUsers.add(socket.id);
-
-    emitOnlineCount();
-
-    console.log("🎉 Random User:", socket.id);
-  }
-
-  console.log(
-    "🟢 Connected:",
-    socket.id,
-    "| Mode:",
-    socket.mode,
-    "| User:",
-    socket.user ? socket.user.name : "Anonymous",
-  );
 
   function emitOnlineCount() {
     console.log("Random:", randomUsers.size);
