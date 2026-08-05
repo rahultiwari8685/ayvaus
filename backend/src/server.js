@@ -124,6 +124,8 @@ async function translateText(text, targetLang) {
 io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
   socket.on("audio-stream", (audio) => {
+    console.log("AUDIO RECEIVED");
+    console.log(audio?.byteLength || audio?.length);
     if (!audio) return;
 
     const pcm = Buffer.from(audio);
