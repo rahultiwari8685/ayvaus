@@ -286,6 +286,14 @@ io.on("connection", async (socket) => {
     console.log("⚠ Deepgram Warning", warning);
   });
 
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
+
+  dgReady = true;
+
+  console.log("Deepgram Ready");
+
   console.log("==============");
   console.log("DG METHODS");
   console.log(typeof dgConnection.send);
@@ -320,41 +328,55 @@ io.on("connection", async (socket) => {
   //   });
   // });
 
-  dgConnection.on("open", () => {
-    console.log("✅ Deepgram OPEN");
-    console.log("Deepgram websocket opened");
-    dgReady = true;
+  // dgConnection.on("open", () => {
+  //   console.log("✅ Deepgram OPEN");
+  //   console.log("Deepgram websocket opened");
+  //   dgReady = true;
 
-    while (socket.audioQueue.length) {
-      dgConnection.sendMedia(socket.audioQueue.shift());
-    }
-  });
+  //   while (socket.audioQueue.length) {
+  //     dgConnection.sendMedia(socket.audioQueue.shift());
+  //   }
+  // });
 
-  dgConnection.on("message", async (data) => {
+  // dgConnection.on("message", async (data) => {
+  //   if (data.type !== "Results") return;
+
+  //   const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
+
+  //   if (!transcript) return;
+
+  //   console.log("Transcript:", transcript);
+
+  //   socket.emit("voice-subtitle", {
+  //     text: transcript,
+  //   });
+
+  //   if (!socket.partnerId) return;
+
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   if (!partner) return;
+
+  //   const targetLang = (partner.language || "en").split("-")[0];
+
+  //   const translated = await translateText(transcript, targetLang);
+
+  //   partner.emit("voice-subtitle", {
+  //     text: translated,
+  //   });
+  // });
+
+  dgConnection.on("message", (data) => {
+    console.log(JSON.stringify(data, null, 2));
+
     if (data.type !== "Results") return;
 
-    const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
+    const transcript = data.channel?.alternatives?.[0]?.transcript;
 
     if (!transcript) return;
 
-    console.log("Transcript:", transcript);
-
     socket.emit("voice-subtitle", {
       text: transcript,
-    });
-
-    if (!socket.partnerId) return;
-
-    const partner = io.sockets.sockets.get(socket.partnerId);
-
-    if (!partner) return;
-
-    const targetLang = (partner.language || "en").split("-")[0];
-
-    const translated = await translateText(transcript, targetLang);
-
-    partner.emit("voice-subtitle", {
-      text: translated,
     });
   });
 
@@ -411,23 +433,33 @@ io.on("connection", async (socket) => {
   socket.on("audio-stream", (audio) => {
     if (!audio) return;
 
-    if (!dgReady) {
-      socket.audioQueue.push(Buffer.from(audio));
-      return;
-    }
-
     try {
-      while (socket.audioQueue.length) {
-        dgConnection.sendMedia(socket.audioQueue.shift());
-      }
-
       dgConnection.sendMedia(Buffer.from(audio));
     } catch (err) {
-      console.log("Deepgram send:", err.message);
-
-      socket.audioQueue.push(Buffer.from(audio));
+      console.log(err.message);
     }
   });
+
+  // socket.on("audio-stream", (audio) => {
+  //   if (!audio) return;
+
+  //   if (!dgReady) {
+  //     socket.audioQueue.push(Buffer.from(audio));
+  //     return;
+  //   }
+
+  //   try {
+  //     while (socket.audioQueue.length) {
+  //       dgConnection.sendMedia(socket.audioQueue.shift());
+  //     }
+
+  //     dgConnection.sendMedia(Buffer.from(audio));
+  //   } catch (err) {
+  //     console.log("Deepgram send:", err.message);
+
+  //     socket.audioQueue.push(Buffer.from(audio));
+  //   }
+  // });
 
   // socket.on("audio-stream", (audio) => {
   //   if (!audio) return;

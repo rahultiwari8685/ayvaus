@@ -7,20 +7,12 @@ class AudioProcessor extends AudioWorkletProcessor {
   process(inputs) {
     const input = inputs[0];
 
-    if (!input || !input[0]) {
-      return true;
-    }
+    if (!input || !input[0]) return true;
 
-    const channel = input[0];
+    this.buffer.push(...input[0]);
 
-    this.buffer.push(...channel);
-
-    // Send larger chunks to Deepgram
-    if (this.buffer.length >= 9600) {
-      const chunk = this.buffer.slice(0, 4096);
-
-      this.buffer = this.buffer.slice(4096);
-
+    while (this.buffer.length >= 4096) {
+      const chunk = this.buffer.splice(0, 4096);
       this.port.postMessage(new Float32Array(chunk));
     }
 
