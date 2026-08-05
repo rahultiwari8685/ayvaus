@@ -188,10 +188,6 @@ io.on("connection", async (socket) => {
   //   dgConnection.sendMedia(pcm);
   // });
 
-  dgConnection.on("warning", (warning) => {
-    console.log("⚠ Deepgram Warning", warning);
-  });
-
   socket.language = "en-US";
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
@@ -284,6 +280,10 @@ io.on("connection", async (socket) => {
     endpointing: 100,
 
     utterance_end_ms: 500,
+  });
+
+  dgConnection.on("warning", (warning) => {
+    console.log("⚠ Deepgram Warning", warning);
   });
 
   console.log("==============");
