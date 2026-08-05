@@ -1,7 +1,5 @@
-import { DeepgramClient } from "@deepgram/sdk";
+import { createClient } from "@deepgram/sdk";
 
-const deepgram = new DeepgramClient({
-  apiKey: process.env.DEEPGRAM_API_KEY,
-});
+const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 
 export default deepgram;

@@ -128,11 +128,7 @@ export default function VideoChat() {
     worklet.port.onmessage = (event) => {
       const pcm = convertFloat32ToInt16(event.data);
 
-      console.log("PCM Buffer:", pcm);
-      console.log("PCM Constructor:", pcm.constructor.name);
-      console.log("PCM ByteLength:", pcm.byteLength);
-
-      socketRef.current.emit("audio-stream", pcm);
+      socketRef.current.emit("audio-stream", new Uint8Array(pcm));
     };
 
     // worklet.port.onmessage = async (event) => {
