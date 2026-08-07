@@ -76,39 +76,27 @@ export default function VideoChat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  async function startAudioStreaming() {
+  async function startRemoteSubtitle(remoteStream) {
     if (audioContextRef.current) return;
 
-    if (!streamRef.current) return;
-
-    const audioTrack = streamRef.current.getAudioTracks()[0];
-
-    if (!audioTrack) return;
-
-    const stream = new MediaStream([audioTrack]);
+    if (!remoteStream) return;
 
     const audioContext = new AudioContext({
       sampleRate: 48000,
     });
 
-    console.log("AudioContext State:", audioContext.state);
-
     await audioContext.resume();
-    console.log("AudioContext:", audioContext.state);
-
-    console.log("AudioContext State:", audioContext.state);
 
     try {
       await audioContext.audioWorklet.addModule("/audio-worklet.js");
     } catch (err) {
-      console.error("AudioWorklet Load Error:", err);
-
+      console.error(err);
       return;
     }
 
     audioContextRef.current = audioContext;
 
-    const source = audioContext.createMediaStreamSource(stream);
+    const source = audioContext.createMediaStreamSource(remoteStream);
 
     sourceRef.current = source;
 
@@ -118,7 +106,6 @@ export default function VideoChat() {
 
     source.connect(worklet);
 
-    // IMPORTANT
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0;
 
@@ -130,34 +117,6 @@ export default function VideoChat() {
 
       socketRef.current.emit("audio-stream", new Uint8Array(pcm));
     };
-
-    // worklet.port.onmessage = async (event) => {
-    //   if (audioContext.state === "closed") return;
-
-    //   if (audioContext.state === "suspended") {
-    //     try {
-    //       await audioContext.resume();
-    //     } catch {
-    //       return;
-    //     }
-    //   }
-
-    //   if (!socketRef.current?.connected) return;
-
-    //   const pcm = convertFloat32ToInt16(event.data);
-
-    //   // Convert ArrayBuffer to Uint8Array
-    //   const audioData = new Uint8Array(pcm);
-
-    //   console.log(
-    //     "PCM Size:",
-    //     audioData.byteLength,
-    //     "Type:",
-    //     audioData.constructor.name,
-    //   );
-
-    //   socketRef.current.emit("audio-stream", audioData);
-    // };
   }
 
   function stopAudioStreaming() {
@@ -259,12 +218,24 @@ export default function VideoChat() {
       pc.addTrack(track, streamRef.current);
     });
 
-    pc.ontrack = (event) => {
+    // pc.ontrack = (event) => {
+    //   if (!remoteVideo.current.srcObject) {
+    //     remoteVideo.current.srcObject = new MediaStream();
+    //   }
+
+    //   remoteVideo.current.srcObject.addTrack(event.track);
+    // };
+
+    pc.ontrack = async (event) => {
       if (!remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = new MediaStream();
       }
 
       remoteVideo.current.srcObject.addTrack(event.track);
+
+      if (event.track.kind === "audio" && !audioContextRef.current) {
+        await startRemoteSubtitle(remoteVideo.current.srcObject);
+      }
     };
 
     pc.onicecandidate = (e) => {
@@ -283,8 +254,14 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        if (!audioContextRef.current && !workletNodeRef.current) {
-          startAudioStreaming();
+        // if (!audioContextRef.current && !workletNodeRef.current) {
+        //   startAudioStreaming();
+        // }
+
+        if (pc.iceConnectionState === "connected") {
+          setStatus("Connected");
+
+          // Remote subtitle will start automatically
         }
       }
 
@@ -678,8 +655,8 @@ export default function VideoChat() {
     if (muted) {
       stopAudioStreaming();
     } else {
-      if (!audioContextRef.current) {
-        startAudioStreaming();
+      if (!audioContextRef.current && remoteVideo.current?.srcObject) {
+        startRemoteSubtitle(remoteVideo.current.srcObject);
       }
     }
   }

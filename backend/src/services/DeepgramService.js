@@ -52,9 +52,15 @@ class DeepgramService {
 
         if (!transcript.trim()) return;
 
-        this.socket.emit("voice-subtitle", {
-          text: transcript,
-        });
+        // this.socket.emit("voice-subtitle", {
+        //   text: transcript,
+        // });
+
+        // if (this.socket.partnerId) {
+        //   this.socket.to(this.socket.partnerId).emit("voice-subtitle", {
+        //     text: transcript,
+        //   });
+        // }
 
         if (this.socket.partnerId) {
           this.socket.to(this.socket.partnerId).emit("voice-subtitle", {
