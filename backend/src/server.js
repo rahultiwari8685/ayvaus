@@ -658,9 +658,15 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
+    // try {
+    //   dgConnection.removeAllListeners?.();
+    // } catch (e) {}
+
     try {
-      dgConnection.removeAllListeners?.();
-    } catch (e) {}
+      dg?.close?.();
+    } catch (e) {
+      console.log(e);
+    }
 
     if (socket.reconnecting) {
       console.log("🔁 Skipping disconnect cleanup during reconnect");
