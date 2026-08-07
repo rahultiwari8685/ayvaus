@@ -658,10 +658,6 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    // try {
-    //   dgConnection.removeAllListeners?.();
-    // } catch (e) {}
-
     try {
       dg?.close?.();
     } catch (e) {
