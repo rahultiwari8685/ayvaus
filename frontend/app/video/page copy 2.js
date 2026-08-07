@@ -57,8 +57,6 @@ export default function VideoChat() {
   const [language, setLanguage] = useState("en-US");
   const languageRef = useRef(language);
 
-  const deepgramReadyRef = useRef(false);
-
   useEffect(() => {
     languageRef.current = language;
   }, [language]);
@@ -118,16 +116,8 @@ export default function VideoChat() {
     worklet.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // worklet.port.onmessage = (event) => {
-    //   console.log("PCM", event.data.length);
-    //   const pcm = convertFloat32ToInt16(event.data);
-
-    //   socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-    // };
-
     worklet.port.onmessage = (event) => {
-      if (!deepgramReadyRef.current) return;
-
+      console.log("PCM", event.data.length);
       const pcm = convertFloat32ToInt16(event.data);
 
       socketRef.current.emit("audio-stream", new Uint8Array(pcm));
@@ -253,14 +243,10 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.addTrack(event.track);
 
       if (event.track.kind === "audio" && !audioContextRef.current) {
-        await startRemoteSubtitle(event.streams[0]);
+        if (event.track.kind === "audio" && !audioContextRef.current) {
+          await startRemoteSubtitle(event.streams[0]);
+        }
       }
-
-      // if (event.track.kind === "audio" && !audioContextRef.current) {
-      //   if (event.track.kind === "audio" && !audioContextRef.current) {
-      //     await startRemoteSubtitle(event.streams[0]);
-      //   }
-      // }
     };
 
     pc.onicecandidate = (e) => {
@@ -358,20 +344,14 @@ export default function VideoChat() {
       console.log("Socket Error:", err.message);
     });
 
-    socket.on("deepgram-ready", () => {
-      console.log("✅ Deepgram Ready");
-
-      deepgramReadyRef.current = true;
-    });
-
     async function start() {
       await initCamera();
       if (!mounted) return;
 
       await createPeer();
-      // socketRef.current.emit("join", {
-      //   language: languageRef.current,
-      // });
+      socketRef.current.emit("join", {
+        language: languageRef.current,
+      });
 
       console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
@@ -383,7 +363,6 @@ export default function VideoChat() {
     start();
 
     socket.on("matched", async ({ role }) => {
-      deepgramReadyRef.current = false;
       if (!pcRef.current) {
         await createPeer();
       }
@@ -495,7 +474,6 @@ export default function VideoChat() {
     });
 
     socket.on("partner-left", () => {
-      deepgramReadyRef.current = false;
       setStatus("Looking for someone...");
       setMessages([]);
 
@@ -611,7 +589,6 @@ export default function VideoChat() {
     }
     await createPeer();
 
-    deepgramReadyRef.current = false;
     socketRef.current.emit("next");
   }
 
@@ -1083,22 +1060,9 @@ export default function VideoChat() {
 
                 setLanguage(newLang);
 
-                languageRef.current = newLang;
-
                 localStorage.setItem("subtitle_language", newLang);
-
-                deepgramReadyRef.current = false;
-
                 socketRef.current.emit("update-language", newLang);
               }}
-              // onChange={(e) => {
-              //   const newLang = e.target.value;
-
-              //   setLanguage(newLang);
-
-              //   localStorage.setItem("subtitle_language", newLang);
-              //   socketRef.current.emit("update-language", newLang);
-              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               <option value="en-US">English</option>

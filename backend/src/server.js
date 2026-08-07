@@ -128,14 +128,22 @@ io.on("connection", async (socket) => {
   // Deepgram Service
   // const dg = new DeepgramService(socket, socket.language);
 
-  const dg = new DeepgramService(socket, socket.language, translateText);
+  // const dg = new DeepgramService(socket, socket.language, translateText);
 
-  socket.dg = dg;
+  // socket.dg = dg;
 
-  dg.connect();
+  // dg.connect();
+
+  // socket.on("audio-stream", (audio) => {
+  //   dg.sendAudio(audio);
+  // });
+
+  socket.dg = null;
 
   socket.on("audio-stream", (audio) => {
-    dg.sendAudio(audio);
+    if (!socket.dg) return;
+
+    socket.dg.sendAudio(audio);
   });
 
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
@@ -244,6 +252,18 @@ io.on("connection", async (socket) => {
         s1.partnerId = s2.id;
         s2.partnerId = s1.id;
 
+        if (s1.dg) s1.dg.close();
+
+        s1.dg = new DeepgramService(s1, s1.language, translateText);
+
+        s1.dg.connect();
+
+        if (s2.dg) s2.dg.close();
+
+        s2.dg = new DeepgramService(s2, s2.language, translateText);
+
+        s2.dg.connect();
+
         if (mode === "serious") {
           try {
             // const connection = await Connection.create({
@@ -316,9 +336,9 @@ io.on("connection", async (socket) => {
   socket.on("join", ({ language } = {}) => {
     socket.language = language || socket.language || "en-US";
 
-    if (socket.dg) {
-      socket.dg.language = socket.language;
-    }
+    // if (socket.dg) {
+    //   socket.dg.language = socket.language;
+    // }
 
     console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
 
@@ -338,13 +358,33 @@ io.on("connection", async (socket) => {
   //   console.log("🌍 Subtitle Language:", language);
   // });
 
+  // socket.on("update-language", (language) => {
+  //   socket.language = language;
+
+  //   console.log("🌍 Subtitle Language:", language);
+
+  //   if (socket.dg) {
+  //     socket.dg.language = language;
+  //   }
+  // });
+
   socket.on("update-language", (language) => {
     socket.language = language;
 
-    console.log("🌍 Subtitle Language:", language);
+    console.log("Subtitle Language", language);
 
     if (socket.dg) {
-      socket.dg.language = language;
+      socket.dg.close();
+
+      socket.dg = new DeepgramService(
+        socket,
+
+        language,
+
+        translateText,
+      );
+
+      socket.dg.connect();
     }
   });
 
@@ -435,6 +475,14 @@ io.on("connection", async (socket) => {
 
         oldPartner.partnerId = null;
         socket.partnerId = null;
+
+        socket.dg?.close();
+
+        socket.dg = null;
+
+        oldPartner.dg?.close();
+
+        oldPartner.dg = null;
 
         oldPartner.emit("partner-left");
 
@@ -678,9 +726,19 @@ io.on("connection", async (socket) => {
     }
   });
 
+  // socket.on("disconnect", async () => {
+  //   try {
+  //     dg?.close?.();
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+
   socket.on("disconnect", async () => {
+    socket.dg?.close();
+
+    socket.dg = null;
+
     try {
-      dg?.close?.();
     } catch (e) {
       console.log(e);
     }
@@ -839,6 +897,9 @@ io.on("connection", async (socket) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
 
     if (partner) {
+      partner.dg?.close();
+
+      partner.dg = null;
       partner.emit("partner-left");
 
       if (partner.connectionId) {
@@ -917,6 +978,22 @@ io.on("connection", async (socket) => {
 
       socket.partnerId = partnerSocket.id;
       partnerSocket.partnerId = socket.id;
+
+      socket.dg?.close();
+
+      socket.dg = new DeepgramService(socket, socket.language, translateText);
+
+      socket.dg.connect();
+
+      partnerSocket.dg?.close();
+
+      partnerSocket.dg = new DeepgramService(
+        partnerSocket,
+        partnerSocket.language,
+        translateText,
+      );
+
+      partnerSocket.dg.connect();
 
       const connection = await Connection.create({
         user1: user._id,

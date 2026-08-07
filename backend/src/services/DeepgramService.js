@@ -42,10 +42,25 @@ class DeepgramService {
       },
     );
 
+    // this.ws.on("open", () => {
+    //   console.log("✅ Deepgram Connected");
+
+    //   this.ready = true;
+
+    //   this.keepAlive = setInterval(() => {
+    //     if (this.ws.readyState === WebSocket.OPEN) {
+    //       this.ws.send(JSON.stringify({ type: "KeepAlive" }));
+    //     }
+    //   }, 8000);
+    // });
+
     this.ws.on("open", () => {
       console.log("✅ Deepgram Connected");
 
       this.ready = true;
+
+      // Notify frontend that Deepgram is ready
+      this.socket.emit("deepgram-ready");
 
       this.keepAlive = setInterval(() => {
         if (this.ws.readyState === WebSocket.OPEN) {
@@ -61,6 +76,13 @@ class DeepgramService {
         const transcript = data.channel?.alternatives?.[0]?.transcript || "";
 
         if (!transcript.trim()) return;
+
+        // Debug
+        console.log("🎤", this.socket.id, transcript);
+
+        // const transcript = data.channel?.alternatives?.[0]?.transcript || "";
+
+        // if (!transcript.trim()) return;
 
         // this.socket.emit("voice-subtitle", {
         //   text: transcript,
@@ -78,13 +100,27 @@ class DeepgramService {
         //   });
         // }
 
-        if (!this.socket.partnerId) return;
+        // if (!this.socket.partnerId) return;
+
+        // const partnerSocket = this.socket.nsp.sockets.get(
+        //   this.socket.partnerId,
+        // );
+
+        // if (!partnerSocket) return;
+
+        if (!this.socket.partnerId) {
+          console.log("❌ No Partner");
+          return;
+        }
 
         const partnerSocket = this.socket.nsp.sockets.get(
           this.socket.partnerId,
         );
 
-        if (!partnerSocket) return;
+        if (!partnerSocket) {
+          console.log("❌ Partner Socket Missing");
+          return;
+        }
 
         let finalText = transcript;
 
@@ -94,17 +130,37 @@ class DeepgramService {
           finalText = await this.translate(transcript, targetLang);
         }
 
+        console.log(
+          "📤 Subtitle",
+          this.socket.id,
+          "->",
+          partnerSocket.id,
+          finalText,
+        );
+
         partnerSocket.emit("voice-subtitle", {
           text: finalText,
         });
+
+        // partnerSocket.emit("voice-subtitle", {
+        //   text: finalText,
+        // });
       } catch (err) {
         console.log("Deepgram Parse Error", err);
       }
     });
 
+    // this.ws.on("close", () => {
+    //   console.log("🔴 Deepgram Closed");
+    //   this.ready = false;
+    // });
+
     this.ws.on("close", () => {
       console.log("🔴 Deepgram Closed");
+
       this.ready = false;
+
+      clearInterval(this.keepAlive);
     });
 
     this.ws.on("error", (err) => {
@@ -112,10 +168,24 @@ class DeepgramService {
     });
   }
 
-  sendAudio(audio) {
-    if (!this.ready) return;
+  // sendAudio(audio) {
+  //   if (!this.ready) return;
 
-    if (this.ws.readyState !== WebSocket.OPEN) return;
+  //   if (this.ws.readyState !== WebSocket.OPEN) return;
+
+  //   this.ws.send(Buffer.from(audio));
+  // }
+
+  sendAudio(audio) {
+    if (!this.ready) {
+      console.log("❌ Deepgram Not Ready");
+      return;
+    }
+
+    if (this.ws.readyState !== WebSocket.OPEN) {
+      console.log("❌ Socket Closed");
+      return;
+    }
 
     this.ws.send(Buffer.from(audio));
   }
@@ -123,12 +193,28 @@ class DeepgramService {
   close() {
     clearInterval(this.keepAlive);
 
-    if (this.ws) {
+    this.ready = false;
+
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
       this.ws.close();
     }
 
-    this.ready = false;
+    this.ws = null;
   }
+
+  // close() {
+  //   clearInterval(this.keepAlive);
+
+  //   if (this.ws) {
+  //     this.ws.close();
+  //   }
+
+  //   this.ready = false;
+  // }
 }
 
 export default DeepgramService;
