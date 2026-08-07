@@ -125,6 +125,12 @@ io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
   socket.language = "en-US";
+
+  // Deepgram Service
+  const dg = new DeepgramService(socket, socket.language);
+
+  await dg.connect();
+
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;
   console.log("TOKEN RECEIVED:", token?.slice(0, 20));
