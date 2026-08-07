@@ -129,7 +129,11 @@ io.on("connection", async (socket) => {
   // Deepgram Service
   const dg = new DeepgramService(socket, socket.language);
 
-  await dg.connect();
+  dg.connect();
+
+  socket.on("audio-stream", (audio) => {
+    dg.sendAudio(audio);
+  });
 
   console.log("VERIFY SECRET:", process.env.JWT_SECRET);
   const { token, mode } = socket.handshake.auth;

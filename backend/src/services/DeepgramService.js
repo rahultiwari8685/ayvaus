@@ -1,60 +1,97 @@
-import deepgram from "../deepgram.js";
+import WebSocket from "ws";
 
 class DeepgramService {
-  constructor(socket, language = "multi") {
+  constructor(socket, language = "en-US") {
     this.socket = socket;
     this.language = language;
 
-    this.dgConnection = null;
-    this.audioQueue = [];
+    this.ws = null;
     this.ready = false;
+    this.keepAlive = null;
   }
 
-  // async connect() {
-  //   console.log("🎤 Creating Deepgram Connection...");
-
-  //   this.dgConnection = await deepgram.listen.v1.connect({
-  //     model: "nova-3",
-  //     language: this.language,
-  //     encoding: "linear16",
-  //     sample_rate: 48000,
-  //     channels: 1,
-  //     interim_results: true,
-  //     smart_format: true,
-  //     punctuate: true,
-  //     vad_events: true,
-  //     endpointing: 300,
-  //   });
-
-  //   console.log("✅ Deepgram Connection Created");
-
-  //   console.log(this.dgConnection);
-  // }
-
-  async connect() {
-    console.log("🎤 Creating Deepgram Connection...");
-
-    this.dgConnection = await deepgram.listen.v1.connect({
+  connect() {
+    const params = new URLSearchParams({
       model: "nova-3",
       language: this.language,
       encoding: "linear16",
-      sample_rate: 48000,
-      channels: 1,
-      interim_results: true,
-      smart_format: true,
-      punctuate: true,
+      sample_rate: "48000",
+      channels: "1",
+      interim_results: "true",
+      punctuate: "true",
+      smart_format: "true",
+      endpointing: "300",
     });
 
-    console.log("✅ Deepgram Connection Created");
-    console.log(this.dgConnection);
+    this.ws = new WebSocket(
+      `wss://api.deepgram.com/v1/listen?${params.toString()}`,
+      {
+        headers: {
+          Authorization: `Token ${process.env.DEEPGRAM_API_KEY}`,
+        },
+      },
+    );
+
+    this.ws.on("open", () => {
+      console.log("✅ Deepgram Connected");
+
+      this.ready = true;
+
+      this.keepAlive = setInterval(() => {
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: "KeepAlive" }));
+        }
+      }, 8000);
+    });
+
+    this.ws.on("message", async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+
+        const transcript = data.channel?.alternatives?.[0]?.transcript || "";
+
+        if (!transcript.trim()) return;
+
+        this.socket.emit("voice-subtitle", {
+          text: transcript,
+        });
+
+        if (this.socket.partnerId) {
+          this.socket.to(this.socket.partnerId).emit("voice-subtitle", {
+            text: transcript,
+          });
+        }
+      } catch (err) {
+        console.log("Deepgram Parse Error", err);
+      }
+    });
+
+    this.ws.on("close", () => {
+      console.log("🔴 Deepgram Closed");
+      this.ready = false;
+    });
+
+    this.ws.on("error", (err) => {
+      console.log("Deepgram Error", err.message);
+    });
   }
 
   sendAudio(audio) {
-    console.log("Audio Received:", audio.length);
+    if (!this.ready) return;
+
+    if (this.ws.readyState !== WebSocket.OPEN) return;
+
+    this.ws.send(Buffer.from(audio));
   }
 
   close() {
-    console.log("Deepgram Closed");
+    clearInterval(this.keepAlive);
+
+    if (this.ws) {
+      this.ws.close();
+    }
+
+    this.ready = false;
   }
 }
 
