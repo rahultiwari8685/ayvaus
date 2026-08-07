@@ -77,6 +77,10 @@ export default function VideoChat() {
   }, []);
 
   async function startRemoteSubtitle(remoteStream) {
+    console.log(remoteStream.getAudioTracks());
+
+    console.log(remoteStream.getVideoTracks());
+
     if (audioContextRef.current) return;
 
     if (!remoteStream) return;
@@ -113,6 +117,7 @@ export default function VideoChat() {
     gainNode.connect(audioContext.destination);
 
     worklet.port.onmessage = (event) => {
+      console.log("PCM", event.data.length);
       const pcm = convertFloat32ToInt16(event.data);
 
       socketRef.current.emit("audio-stream", new Uint8Array(pcm));
@@ -227,6 +232,10 @@ export default function VideoChat() {
     // };
 
     pc.ontrack = async (event) => {
+      console.log("Track Kind:", event.track.kind);
+      console.log("Track ID:", event.track.id);
+      console.log("Track Label:", event.track.label);
+
       if (!remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = new MediaStream();
       }
@@ -234,7 +243,7 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.addTrack(event.track);
 
       if (event.track.kind === "audio" && !audioContextRef.current) {
-        await startRemoteSubtitle(remoteVideo.current.srcObject);
+        await startRemoteSubtitle(new MediaStream([event.track]));
       }
     };
 
