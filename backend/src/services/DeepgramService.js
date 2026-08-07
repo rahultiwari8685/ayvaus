@@ -73,7 +73,17 @@ class DeepgramService {
       try {
         const data = JSON.parse(message.toString());
 
-        const transcript = data.channel?.alternatives?.[0]?.transcript || "";
+        // const transcript = data.channel?.alternatives?.[0]?.transcript || "";
+
+        const alternative = data.channel?.alternatives?.[0];
+
+        if (!alternative) return;
+
+        const transcript = alternative.transcript;
+
+        if (!transcript) return;
+
+        if (!data.is_final) return;
 
         if (!transcript.trim()) return;
 

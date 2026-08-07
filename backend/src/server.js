@@ -371,21 +371,7 @@ io.on("connection", async (socket) => {
   socket.on("update-language", (language) => {
     socket.language = language;
 
-    console.log("Subtitle Language", language);
-
-    if (socket.dg) {
-      socket.dg.close();
-
-      socket.dg = new DeepgramService(
-        socket,
-
-        language,
-
-        translateText,
-      );
-
-      socket.dg.connect();
-    }
+    console.log("🌍", socket.id, "Subtitle Language:", socket.language);
   });
 
   socket.on("ready", () => {
