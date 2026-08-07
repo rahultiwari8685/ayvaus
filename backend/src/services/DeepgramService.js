@@ -1,9 +1,19 @@
 import WebSocket from "ws";
 
 class DeepgramService {
-  constructor(socket, language = "en-US") {
+  // constructor(socket, language = "en-US") {
+  //   this.socket = socket;
+  //   this.language = language;
+
+  //   this.ws = null;
+  //   this.ready = false;
+  //   this.keepAlive = null;
+  // }
+
+  constructor(socket, language = "en-US", translate = null) {
     this.socket = socket;
     this.language = language;
+    this.translate = translate;
 
     this.ws = null;
     this.ready = false;
@@ -62,11 +72,31 @@ class DeepgramService {
         //   });
         // }
 
-        if (this.socket.partnerId) {
-          this.socket.to(this.socket.partnerId).emit("voice-subtitle", {
-            text: transcript,
-          });
+        // if (this.socket.partnerId) {
+        //   this.socket.to(this.socket.partnerId).emit("voice-subtitle", {
+        //     text: transcript,
+        //   });
+        // }
+
+        if (!this.socket.partnerId) return;
+
+        const partnerSocket = this.socket.nsp.sockets.get(
+          this.socket.partnerId,
+        );
+
+        if (!partnerSocket) return;
+
+        let finalText = transcript;
+
+        if (this.translate) {
+          const targetLang = (partnerSocket.language || "en-US").split("-")[0];
+
+          finalText = await this.translate(transcript, targetLang);
         }
+
+        partnerSocket.emit("voice-subtitle", {
+          text: finalText,
+        });
       } catch (err) {
         console.log("Deepgram Parse Error", err);
       }

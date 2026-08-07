@@ -243,7 +243,9 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.addTrack(event.track);
 
       if (event.track.kind === "audio" && !audioContextRef.current) {
-        await startRemoteSubtitle(new MediaStream([event.track]));
+        if (event.track.kind === "audio" && !audioContextRef.current) {
+          await startRemoteSubtitle(event.streams[0]);
+        }
       }
     };
 

@@ -126,7 +126,11 @@ io.on("connection", async (socket) => {
   socket.language = "en-US";
 
   // Deepgram Service
-  const dg = new DeepgramService(socket, socket.language);
+  // const dg = new DeepgramService(socket, socket.language);
+
+  const dg = new DeepgramService(socket, socket.language, translateText);
+
+  socket.dg = dg;
 
   dg.connect();
 
@@ -312,6 +316,10 @@ io.on("connection", async (socket) => {
   socket.on("join", ({ language } = {}) => {
     socket.language = language || socket.language || "en-US";
 
+    if (socket.dg) {
+      socket.dg.language = socket.language;
+    }
+
     console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
 
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
@@ -324,10 +332,20 @@ io.on("connection", async (socket) => {
     tryMatch(socket.mode);
   });
 
+  // socket.on("update-language", (language) => {
+  //   socket.language = language;
+
+  //   console.log("🌍 Subtitle Language:", language);
+  // });
+
   socket.on("update-language", (language) => {
     socket.language = language;
 
     console.log("🌍 Subtitle Language:", language);
+
+    if (socket.dg) {
+      socket.dg.language = language;
+    }
   });
 
   socket.on("ready", () => {
