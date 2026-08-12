@@ -777,6 +777,28 @@ export default function VideoChat() {
     setIsRecording(false);
   }
 
+  // function toggleMute() {
+  //   if (!streamRef.current) return;
+
+  //   const track = streamRef.current.getAudioTracks()[0];
+
+  //   if (!track) return;
+
+  //   track.enabled = !track.enabled;
+
+  //   const muted = !track.enabled;
+
+  //   setIsMuted(muted);
+
+  //   if (muted) {
+  //     stopAudioStreaming();
+  //   } else {
+  //     if (!audioContextRef.current && remoteVideo.current?.srcObject) {
+  //       startRemoteSubtitle(remoteVideo.current.srcObject);
+  //     }
+  //   }
+  // }
+
   function toggleMute() {
     if (!streamRef.current) return;
 
@@ -790,13 +812,21 @@ export default function VideoChat() {
 
     setIsMuted(muted);
 
-    if (muted) {
-      stopAudioStreaming();
-    } else {
-      if (!audioContextRef.current && remoteVideo.current?.srcObject) {
-        startRemoteSubtitle(remoteVideo.current.srcObject);
-      }
-    }
+    /*
+     * IMPORTANT:
+     *
+     * This is YOUR microphone.
+     *
+     * It must NOT stop the remote subtitle
+     * AudioContext.
+     *
+     * Deepgram subtitle audio comes from
+     * the REMOTE track.
+     */
+
+    console.log(
+      muted ? "🔇 Local microphone muted" : "🎤 Local microphone enabled",
+    );
   }
 
   function toggleVideo() {
