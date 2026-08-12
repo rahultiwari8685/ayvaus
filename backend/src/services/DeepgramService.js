@@ -134,7 +134,43 @@ class DeepgramService {
          *
          * targetLang = hi
          */
-        const targetLang = (partnerSocket.language || "en-US").split("-")[0];
+        // const targetLang = (partnerSocket.language || "en-US").split("-")[0];
+
+        // let finalText = transcript;
+
+        // if (this.translate) {
+        //   try {
+        //     finalText = await this.translate(transcript, targetLang);
+        //   } catch (translateError) {
+        //     console.log("❌ Translation failed:", translateError.message);
+        //     finalText = transcript;
+        //   }
+        // }
+
+        // console.log("📤 SUBTITLE:", {
+        //   from: this.socket.id,
+        //   fromLanguage: "auto/multi",
+        //   to: partnerSocket.id,
+        //   targetLanguage: targetLang,
+        //   original: transcript,
+        //   translated: finalText,
+        // });
+
+        // console.log("📤 SUBTITLE ROUTING:", {
+        //   speaker: this.socket.id,
+        //   receiver: partnerSocket.id,
+        //   targetLanguage: targetLang,
+        //   original: transcript,
+        //   translated: finalText,
+        // });
+
+        // partnerSocket.emit("voice-subtitle", {
+        //   text: finalText,
+        //   originalText: transcript,
+        //   language: targetLang,
+        // });
+
+        const targetLang = (this.socket.language || "en-US").split("-")[0];
 
         let finalText = transcript;
 
@@ -144,40 +180,23 @@ class DeepgramService {
           } catch (translateError) {
             console.log("❌ Translation failed:", translateError.message);
 
-            // If translation fails, show original transcript
-            // instead of completely losing the subtitle.
             finalText = transcript;
           }
         }
 
         console.log("📤 SUBTITLE:", {
-          from: this.socket.id,
-          fromLanguage: "auto/multi",
-          to: partnerSocket.id,
+          speaker: this.socket.partnerId,
+          receiver: this.socket.id,
           targetLanguage: targetLang,
           original: transcript,
           translated: finalText,
         });
 
-        console.log("📤 SUBTITLE ROUTING:", {
-          speaker: this.socket.id,
-          receiver: partnerSocket.id,
-          targetLanguage: targetLang,
-          original: transcript,
-          translated: finalText,
-        });
-
-        partnerSocket.emit("voice-subtitle", {
+        this.socket.emit("voice-subtitle", {
           text: finalText,
           originalText: transcript,
           language: targetLang,
         });
-
-        // partnerSocket.emit("voice-subtitle", {
-        //   text: finalText,
-        //   originalText: transcript,
-        //   language: targetLang,
-        // });
       } catch (err) {
         console.log("❌ Deepgram Parse Error:", err);
       }
