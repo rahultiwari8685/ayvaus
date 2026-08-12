@@ -78,60 +78,142 @@ export default function VideoChat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  async function startRemoteSubtitle(remoteStream) {
-    console.log(remoteStream.getAudioTracks());
+  // async function startRemoteSubtitle(remoteStream) {
+  //   console.log(remoteStream.getAudioTracks());
 
-    console.log(remoteStream.getVideoTracks());
+  //   console.log(remoteStream.getVideoTracks());
 
-    if (audioContextRef.current) return;
+  //   if (audioContextRef.current) return;
 
-    if (!remoteStream) return;
+  //   if (!remoteStream) return;
 
-    const audioContext = new AudioContext({
-      sampleRate: 48000,
-    });
+  //   const audioContext = new AudioContext({
+  //     sampleRate: 48000,
+  //   });
 
-    await audioContext.resume();
+  //   await audioContext.resume();
 
-    try {
-      await audioContext.audioWorklet.addModule("/audio-worklet.js");
-    } catch (err) {
-      console.error(err);
+  //   try {
+  //     await audioContext.audioWorklet.addModule("/audio-worklet.js");
+  //   } catch (err) {
+  //     console.error(err);
+  //     return;
+  //   }
+
+  //   audioContextRef.current = audioContext;
+
+  //   const source = audioContext.createMediaStreamSource(remoteStream);
+
+  //   sourceRef.current = source;
+
+  //   const worklet = new AudioWorkletNode(audioContext, "audio-processor");
+
+  //   workletNodeRef.current = worklet;
+
+  //   source.connect(worklet);
+
+  //   const gainNode = audioContext.createGain();
+  //   gainNode.gain.value = 0;
+
+  //   worklet.connect(gainNode);
+  //   gainNode.connect(audioContext.destination);
+
+  //   // worklet.port.onmessage = (event) => {
+  //   //   console.log("PCM", event.data.length);
+  //   //   const pcm = convertFloat32ToInt16(event.data);
+
+  //   //   socketRef.current.emit("audio-stream", new Uint8Array(pcm));
+  //   // };
+
+  //   worklet.port.onmessage = (event) => {
+  //     if (!deepgramReadyRef.current) return;
+
+  //     const pcm = convertFloat32ToInt16(event.data);
+
+  //     socketRef.current.emit("audio-stream", new Uint8Array(pcm));
+  //   };
+  // }
+
+  async function startRemoteSubtitle(remoteAudioTrack) {
+    if (!remoteAudioTrack) {
+      console.log("❌ No remote audio track");
       return;
     }
 
-    audioContextRef.current = audioContext;
+    if (remoteAudioTrack.kind !== "audio") {
+      console.log("❌ Track is not audio:", remoteAudioTrack.kind);
+      return;
+    }
 
-    const source = audioContext.createMediaStreamSource(remoteStream);
+    // Don't create multiple AudioContexts for the same call
+    if (audioContextRef.current) {
+      console.log("⚠️ Remote subtitle audio already started");
+      return;
+    }
 
-    sourceRef.current = source;
+    console.log("🎧 Starting REMOTE audio subtitle:", {
+      trackId: remoteAudioTrack.id,
+      label: remoteAudioTrack.label,
+    });
 
-    const worklet = new AudioWorkletNode(audioContext, "audio-processor");
+    try {
+      const audioContext = new AudioContext({
+        sampleRate: 48000,
+      });
 
-    workletNodeRef.current = worklet;
+      await audioContext.resume();
 
-    source.connect(worklet);
+      await audioContext.audioWorklet.addModule("/audio-worklet.js");
 
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 0;
+      audioContextRef.current = audioContext;
 
-    worklet.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+      // IMPORTANT:
+      // Only use the REMOTE audio track.
+      // Never use the local microphone stream here.
+      const remoteAudioStream = new MediaStream([remoteAudioTrack]);
 
-    // worklet.port.onmessage = (event) => {
-    //   console.log("PCM", event.data.length);
-    //   const pcm = convertFloat32ToInt16(event.data);
+      const source = audioContext.createMediaStreamSource(remoteAudioStream);
 
-    //   socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-    // };
+      sourceRef.current = source;
 
-    worklet.port.onmessage = (event) => {
-      if (!deepgramReadyRef.current) return;
+      const worklet = new AudioWorkletNode(audioContext, "audio-processor");
 
-      const pcm = convertFloat32ToInt16(event.data);
+      workletNodeRef.current = worklet;
 
-      socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-    };
+      // Remote audio -> Worklet -> Deepgram
+      source.connect(worklet);
+
+      // Also play remote audio through AudioContext.
+      // This allows us to mute the <video> element and avoid
+      // duplicate audio/feedback paths.
+      const gainNode = audioContext.createGain();
+
+      gainNode.gain.value = 1;
+
+      source.connect(gainNode);
+
+      gainNode.connect(audioContext.destination);
+
+      worklet.port.onmessage = (event) => {
+        if (!deepgramReadyRef.current) {
+          return;
+        }
+
+        if (!socketRef.current?.connected) {
+          return;
+        }
+
+        const pcm = convertFloat32ToInt16(event.data);
+
+        socketRef.current.emit("audio-stream", new Uint8Array(pcm));
+      };
+
+      console.log("✅ REMOTE audio -> Deepgram started");
+    } catch (err) {
+      console.error("❌ Remote subtitle audio error:", err);
+
+      audioContextRef.current = null;
+    }
   }
 
   function stopAudioStreaming() {
@@ -241,10 +323,34 @@ export default function VideoChat() {
     //   remoteVideo.current.srcObject.addTrack(event.track);
     // };
 
+    // pc.ontrack = async (event) => {
+    //   console.log("Track Kind:", event.track.kind);
+    //   console.log("Track ID:", event.track.id);
+    //   console.log("Track Label:", event.track.label);
+
+    //   if (!remoteVideo.current.srcObject) {
+    //     remoteVideo.current.srcObject = new MediaStream();
+    //   }
+
+    //   remoteVideo.current.srcObject.addTrack(event.track);
+
+    //   if (event.track.kind === "audio" && !audioContextRef.current) {
+    //     await startRemoteSubtitle(event.streams[0]);
+    //   }
+
+    //   // if (event.track.kind === "audio" && !audioContextRef.current) {
+    //   //   if (event.track.kind === "audio" && !audioContextRef.current) {
+    //   //     await startRemoteSubtitle(event.streams[0]);
+    //   //   }
+    //   // }
+    // };
+
     pc.ontrack = async (event) => {
-      console.log("Track Kind:", event.track.kind);
-      console.log("Track ID:", event.track.id);
-      console.log("Track Label:", event.track.label);
+      console.log("📡 REMOTE TRACK RECEIVED:", {
+        kind: event.track.kind,
+        id: event.track.id,
+        label: event.track.label,
+      });
 
       if (!remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = new MediaStream();
@@ -252,15 +358,13 @@ export default function VideoChat() {
 
       remoteVideo.current.srcObject.addTrack(event.track);
 
+      // VERY IMPORTANT:
+      // Subtitle ONLY from remote audio track.
       if (event.track.kind === "audio" && !audioContextRef.current) {
-        await startRemoteSubtitle(event.streams[0]);
-      }
+        console.log("🎧 Starting subtitle from REMOTE audio track");
 
-      // if (event.track.kind === "audio" && !audioContextRef.current) {
-      //   if (event.track.kind === "audio" && !audioContextRef.current) {
-      //     await startRemoteSubtitle(event.streams[0]);
-      //   }
-      // }
+        await startRemoteSubtitle(event.track);
+      }
     };
 
     pc.onicecandidate = (e) => {
@@ -798,6 +902,7 @@ export default function VideoChat() {
           ref={remoteVideo}
           autoPlay
           playsInline
+          muted
           onClick={() => {
             if (isMobile && showChat) {
               setIsExpanded((prev) => !prev);
@@ -1081,13 +1186,21 @@ export default function VideoChat() {
               onChange={(e) => {
                 const newLang = e.target.value;
 
+                // setLanguage(newLang);
+
+                // languageRef.current = newLang;
+
+                // localStorage.setItem("subtitle_language", newLang);
+
+                // deepgramReadyRef.current = false;
+
+                // socketRef.current.emit("update-language", newLang);
+
                 setLanguage(newLang);
 
                 languageRef.current = newLang;
 
                 localStorage.setItem("subtitle_language", newLang);
-
-                deepgramReadyRef.current = false;
 
                 socketRef.current.emit("update-language", newLang);
               }}

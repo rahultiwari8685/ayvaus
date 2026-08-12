@@ -159,11 +159,25 @@ class DeepgramService {
           translated: finalText,
         });
 
+        console.log("📤 SUBTITLE ROUTING:", {
+          speaker: this.socket.id,
+          receiver: partnerSocket.id,
+          targetLanguage: targetLang,
+          original: transcript,
+          translated: finalText,
+        });
+
         partnerSocket.emit("voice-subtitle", {
           text: finalText,
           originalText: transcript,
           language: targetLang,
         });
+
+        // partnerSocket.emit("voice-subtitle", {
+        //   text: finalText,
+        //   originalText: transcript,
+        //   language: targetLang,
+        // });
       } catch (err) {
         console.log("❌ Deepgram Parse Error:", err);
       }
