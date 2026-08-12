@@ -254,13 +254,25 @@ io.on("connection", async (socket) => {
 
         if (s1.dg) s1.dg.close();
 
-        s1.dg = new DeepgramService(s1, s1.language, translateText);
+        // s1.dg = new DeepgramService(s1, s1.language, translateText);
+
+        // s1.dg.connect();
+
+        // if (s2.dg) s2.dg.close();
+
+        // s2.dg = new DeepgramService(s2, s2.language, translateText);
+
+        // s2.dg.connect();
+
+        s1.dg = new DeepgramService(s1, translateText);
 
         s1.dg.connect();
 
-        if (s2.dg) s2.dg.close();
+        if (s2.dg) {
+          s2.dg.close();
+        }
 
-        s2.dg = new DeepgramService(s2, s2.language, translateText);
+        s2.dg = new DeepgramService(s2, translateText);
 
         s2.dg.connect();
 
@@ -967,17 +979,21 @@ io.on("connection", async (socket) => {
 
       socket.dg?.close();
 
-      socket.dg = new DeepgramService(socket, socket.language, translateText);
+      // socket.dg = new DeepgramService(socket, socket.language, translateText);
+
+      socket.dg = new DeepgramService(socket, translateText);
 
       socket.dg.connect();
 
       partnerSocket.dg?.close();
 
-      partnerSocket.dg = new DeepgramService(
-        partnerSocket,
-        partnerSocket.language,
-        translateText,
-      );
+      // partnerSocket.dg = new DeepgramService(
+      //   partnerSocket,
+      //   partnerSocket.language,
+      //   translateText,
+      // );
+
+      partnerSocket.dg = new DeepgramService(partnerSocket, translateText);
 
       partnerSocket.dg.connect();
 

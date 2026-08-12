@@ -390,7 +390,7 @@ export default function VideoChat() {
 
       roleRef.current = role;
 
-      socketRef.current.emit("update-language", languageRef.current);
+      // socketRef.current.emit("update-language", languageRef.current);
 
       console.log("🌍 RESENT LANGUAGE:", languageRef.current);
       console.log("🌍 RESENT LANGUAGE:", language);
