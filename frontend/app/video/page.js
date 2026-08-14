@@ -1085,6 +1085,8 @@ export default function VideoChat() {
               }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
+              {/* Indian Languages */}
+
               <option value="hi-IN">Hindi</option>
               <option value="bn-IN">Bengali</option>
               <option value="te-IN">Telugu</option>
@@ -1103,7 +1105,7 @@ export default function VideoChat() {
               <option value="kok-IN">Konkani</option>
               <option value="sd-IN">Sindhi</option>
               <option value="doi-IN">Dogri</option>
-              <option value="mni-IN">Manipuri</option>
+              {/* <option value="mni-IN">Manipuri</option> */}
               <option value="sat-IN">Santali</option>
               <option value="ks-IN">Kashmiri</option>
               <option value="bho-IN">Bhojpuri</option>

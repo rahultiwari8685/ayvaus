@@ -572,28 +572,6 @@ export default function MatchPage() {
     }
   }
 
-  // function exitChat() {
-  //   pcRef.current?.close();
-
-  //   streamRef.current?.getTracks().forEach((t) => t.stop());
-
-  //   socketRef.current.emit("next");
-
-  //   window.location.href = "/serious/dashboard";
-  // }
-
-  // function exitChat() {
-  //   socketRef.current.emit("end-call");
-
-  //   setTimeout(() => {
-  //     pcRef.current?.close();
-
-  //     streamRef.current?.getTracks().forEach((t) => t.stop());
-
-  //     window.location.href = "/serious/dashboard";
-  //   }, 1500);
-  // }
-
   const exitChat = () => {
     socket.emit("end-call");
 
