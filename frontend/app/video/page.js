@@ -1085,18 +1085,28 @@ export default function VideoChat() {
               }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
-              <option value="en-US">English</option>
               <option value="hi-IN">Hindi</option>
               <option value="bn-IN">Bengali</option>
-              <option value="ta-IN">Tamil</option>
               <option value="te-IN">Telugu</option>
               <option value="mr-IN">Marathi</option>
+              <option value="ta-IN">Tamil</option>
+              <option value="ur-IN">Urdu</option>
               <option value="gu-IN">Gujarati</option>
               <option value="kn-IN">Kannada</option>
               <option value="ml-IN">Malayalam</option>
-              <option value="pa-IN">Punjabi</option>
-              <option value="ur-IN">Urdu</option>
               <option value="or-IN">Odia</option>
+              <option value="pa-IN">Punjabi</option>
+              <option value="as-IN">Assamese</option>
+              <option value="ma-IN">Maithili</option>
+              <option value="sa-IN">Sanskrit</option>
+              <option value="ne-IN">Nepali</option>
+              <option value="kok-IN">Konkani</option>
+              <option value="sd-IN">Sindhi</option>
+              <option value="doi-IN">Dogri</option>
+              <option value="mni-IN">Manipuri</option>
+              <option value="sat-IN">Santali</option>
+              <option value="ks-IN">Kashmiri</option>
+              <option value="bho-IN">Bhojpuri</option>
 
               {/* Foreign Languages */}
               <option value="es-ES">Spanish</option>
