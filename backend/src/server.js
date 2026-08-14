@@ -125,23 +125,18 @@ io.on("connection", async (socket) => {
 
   socket.language = "en-US";
 
-  // Deepgram Service
-  // const dg = new DeepgramService(socket, socket.language);
-
-  // const dg = new DeepgramService(socket, socket.language, translateText);
-
-  // socket.dg = dg;
-
-  // dg.connect();
+  socket.dg = null;
 
   // socket.on("audio-stream", (audio) => {
-  //   dg.sendAudio(audio);
-  // });
+  //   if (!socket.dg) return;
 
-  socket.dg = null;
+  //   socket.dg.sendAudio(audio);
+  // });
 
   socket.on("audio-stream", (audio) => {
     if (!socket.dg) return;
+
+    if (!audio) return;
 
     socket.dg.sendAudio(audio);
   });
@@ -254,16 +249,6 @@ io.on("connection", async (socket) => {
 
         if (s1.dg) s1.dg.close();
 
-        // s1.dg = new DeepgramService(s1, s1.language, translateText);
-
-        // s1.dg.connect();
-
-        // if (s2.dg) s2.dg.close();
-
-        // s2.dg = new DeepgramService(s2, s2.language, translateText);
-
-        // s2.dg.connect();
-
         s1.dg = new DeepgramService(s1, translateText);
 
         s1.dg.connect();
@@ -278,16 +263,6 @@ io.on("connection", async (socket) => {
 
         if (mode === "serious") {
           try {
-            // const connection = await Connection.create({
-            //   user1: s1.user._id,
-            //   user2: s2.user._id,
-            //   socket1: s1.id,
-            //   socket2: s2.id,
-            //   startedAt: new Date(),
-            //   status: "active",
-            //   mode: "serious",
-            // });
-
             const connection = await Connection.create({
               user1: s1.user._id,
               user2: s2.user._id,
@@ -348,10 +323,6 @@ io.on("connection", async (socket) => {
   socket.on("join", ({ language } = {}) => {
     socket.language = language || socket.language || "en-US";
 
-    // if (socket.dg) {
-    //   socket.dg.language = socket.language;
-    // }
-
     console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
 
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
@@ -363,22 +334,6 @@ io.on("connection", async (socket) => {
     emitOnlineCount();
     tryMatch(socket.mode);
   });
-
-  // socket.on("update-language", (language) => {
-  //   socket.language = language;
-
-  //   console.log("🌍 Subtitle Language:", language);
-  // });
-
-  // socket.on("update-language", (language) => {
-  //   socket.language = language;
-
-  //   console.log("🌍 Subtitle Language:", language);
-
-  //   if (socket.dg) {
-  //     socket.dg.language = language;
-  //   }
-  // });
 
   socket.on("update-language", (language) => {
     socket.language = language;
@@ -534,13 +489,6 @@ io.on("connection", async (socket) => {
       conn.status = "processing";
       await conn.save();
 
-      // lock reward calculation
-      // conn.status = "processing";
-      // await conn.save();
-
-      // conn.endedAt = new Date();
-      // conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-
       const durationMinutes = Math.floor(conn.duration / 60);
 
       if (durationMinutes < 5) {
@@ -681,8 +629,6 @@ io.on("connection", async (socket) => {
         level: user1.level,
       });
 
-      // const partner = io.sockets.sockets.get(socket.partnerId);
-
       if (partner) {
         io.to(partner.id).emit("reward-earned", {
           title: conn.isReconnect ? "Reconnect Bonus" : "Conversation Reward",
@@ -724,13 +670,6 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // socket.on("disconnect", async () => {
-  //   try {
-  //     dg?.close?.();
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-
   socket.on("disconnect", async () => {
     socket.dg?.close();
 
@@ -760,125 +699,6 @@ io.on("connection", async (socket) => {
     if (socket.connectionId) {
       try {
         const conn = await Connection.findById(socket.connectionId);
-
-        // if (conn && conn.status === "active") {
-        //   conn.endedAt = new Date();
-        //   conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-
-        //   conn.status = "ended";
-
-        //   await conn.save();
-
-        //   console.log("🔚 Connection ended:", conn._id);
-        // }
-
-        // if (conn && conn.status === "active") {
-        //   // ✅ PREVENT DOUBLE REWARDS
-        //   conn.status = "ended";
-
-        //   conn.endedAt = new Date();
-
-        //   conn.duration = Math.floor((conn.endedAt - conn.startedAt) / 1000);
-
-        //   await conn.save();
-
-        //   // 🔥 REWARD LOGIC
-        //   const durationMinutes = Math.floor(conn.duration / 60);
-
-        //   // 🚫 ANTI-FAKE LIMIT
-        //   if (durationMinutes > 60) {
-        //     console.log("⚠ Reward skipped - too long");
-        //   } else if (durationMinutes >= 5) {
-        //     const user1 = await User.findById(conn.user1);
-        //     const user2 = await User.findById(conn.user2);
-
-        //     // 🎁 REWARD CALCULATION
-        //     let xp = durationMinutes * 10;
-        //     let coins = durationMinutes * 2;
-        //     let fragments = durationMinutes >= 10 ? 2 : 1;
-
-        //     // Extra reconnect bonus
-        //     if (conn.isReconnect && durationMinutes >= 5) {
-        //       xp += 50;
-        //       coins += 20;
-        //       fragments += 5;
-        //     }
-
-        //     // 👤 USER 1 REWARD
-        //     user1.xp += xp;
-        //     user1.coins += coins;
-        //     user1.fragments += fragments;
-
-        //     // 👤 USER 2 REWARD
-        //     user2.xp += xp;
-        //     user2.coins += coins;
-        //     user2.fragments += fragments;
-
-        //     // ⭐ LEVEL SYSTEM
-        //     user1.level = Math.floor(user1.xp / 500) + 1;
-        //     user2.level = Math.floor(user2.xp / 500) + 1;
-
-        //     await user1.save();
-        //     await user2.save();
-
-        //     await Reward.create({
-        //       user: user1._id,
-        //       type: conn.isReconnect ? "reconnect" : "session",
-        //       title: conn.isReconnect
-        //         ? "Reconnect Bonus"
-        //         : "Conversation Reward",
-        //       description: `${durationMinutes} minute conversation`,
-        //       xp,
-        //       coins,
-        //       fragments,
-        //     });
-
-        //     await Reward.create({
-        //       user: user2._id,
-        //       type: conn.isReconnect ? "reconnect" : "session",
-        //       title: conn.isReconnect
-        //         ? "Reconnect Bonus"
-        //         : "Conversation Reward",
-        //       description: `${durationMinutes} minute conversation`,
-        //       xp,
-        //       coins,
-        //       fragments,
-        //     });
-
-        //     // 🔔 SEND REWARD EVENT
-        //     // io.to(socket.id).emit("reward-earned", {
-        //     //   xp,
-        //     //   coins,
-        //     //   fragments,
-        //     //   level: user1.level,
-        //     // });
-
-        //     io.to(socket.id).emit("reward-earned", {
-        //       title: conn.isReconnect
-        //         ? "Reconnect Bonus"
-        //         : "Conversation Reward",
-        //       xp,
-        //       coins,
-        //       fragments,
-        //       level: user1.level,
-        //     });
-
-        //     const partner = io.sockets.sockets.get(socket.partnerId);
-
-        //     if (partner) {
-        //       io.to(partner.id).emit("reward-earned", {
-        //         xp,
-        //         coins,
-        //         fragments,
-        //         level: user2.level,
-        //       });
-        //     }
-
-        //     console.log("🎁 Rewards given");
-        //   }
-
-        //   console.log("🔚 Connection ended:", conn._id);
-        // }
       } catch (err) {
         console.log("❌ Disconnect error:", err.message);
       }
@@ -979,19 +799,11 @@ io.on("connection", async (socket) => {
 
       socket.dg?.close();
 
-      // socket.dg = new DeepgramService(socket, socket.language, translateText);
-
       socket.dg = new DeepgramService(socket, translateText);
 
       socket.dg.connect();
 
       partnerSocket.dg?.close();
-
-      // partnerSocket.dg = new DeepgramService(
-      //   partnerSocket,
-      //   partnerSocket.language,
-      //   translateText,
-      // );
 
       partnerSocket.dg = new DeepgramService(partnerSocket, translateText);
 

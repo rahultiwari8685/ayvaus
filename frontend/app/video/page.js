@@ -78,62 +78,6 @@ export default function VideoChat() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // async function startRemoteSubtitle(remoteStream) {
-  //   console.log(remoteStream.getAudioTracks());
-
-  //   console.log(remoteStream.getVideoTracks());
-
-  //   if (audioContextRef.current) return;
-
-  //   if (!remoteStream) return;
-
-  //   const audioContext = new AudioContext({
-  //     sampleRate: 48000,
-  //   });
-
-  //   await audioContext.resume();
-
-  //   try {
-  //     await audioContext.audioWorklet.addModule("/audio-worklet.js");
-  //   } catch (err) {
-  //     console.error(err);
-  //     return;
-  //   }
-
-  //   audioContextRef.current = audioContext;
-
-  //   const source = audioContext.createMediaStreamSource(remoteStream);
-
-  //   sourceRef.current = source;
-
-  //   const worklet = new AudioWorkletNode(audioContext, "audio-processor");
-
-  //   workletNodeRef.current = worklet;
-
-  //   source.connect(worklet);
-
-  //   const gainNode = audioContext.createGain();
-  //   gainNode.gain.value = 0;
-
-  //   worklet.connect(gainNode);
-  //   gainNode.connect(audioContext.destination);
-
-  //   // worklet.port.onmessage = (event) => {
-  //   //   console.log("PCM", event.data.length);
-  //   //   const pcm = convertFloat32ToInt16(event.data);
-
-  //   //   socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-  //   // };
-
-  //   worklet.port.onmessage = (event) => {
-  //     if (!deepgramReadyRef.current) return;
-
-  //     const pcm = convertFloat32ToInt16(event.data);
-
-  //     socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-  //   };
-  // }
-
   async function startRemoteSubtitle(remoteAudioTrack) {
     if (!remoteAudioTrack) {
       console.log("❌ No remote audio track");
@@ -145,7 +89,6 @@ export default function VideoChat() {
       return;
     }
 
-    // Don't create multiple AudioContexts for the same call
     if (audioContextRef.current) {
       console.log("⚠️ Remote subtitle audio already started");
       return;
@@ -167,9 +110,6 @@ export default function VideoChat() {
 
       audioContextRef.current = audioContext;
 
-      // IMPORTANT:
-      // Only use the REMOTE audio track.
-      // Never use the local microphone stream here.
       const remoteAudioStream = new MediaStream([remoteAudioTrack]);
 
       const source = audioContext.createMediaStreamSource(remoteAudioStream);
@@ -180,12 +120,8 @@ export default function VideoChat() {
 
       workletNodeRef.current = worklet;
 
-      // Remote audio -> Worklet -> Deepgram
       source.connect(worklet);
 
-      // Also play remote audio through AudioContext.
-      // This allows us to mute the <video> element and avoid
-      // duplicate audio/feedback paths.
       const gainNode = audioContext.createGain();
 
       gainNode.gain.value = 1;
@@ -315,36 +251,6 @@ export default function VideoChat() {
       pc.addTrack(track, streamRef.current);
     });
 
-    // pc.ontrack = (event) => {
-    //   if (!remoteVideo.current.srcObject) {
-    //     remoteVideo.current.srcObject = new MediaStream();
-    //   }
-
-    //   remoteVideo.current.srcObject.addTrack(event.track);
-    // };
-
-    // pc.ontrack = async (event) => {
-    //   console.log("Track Kind:", event.track.kind);
-    //   console.log("Track ID:", event.track.id);
-    //   console.log("Track Label:", event.track.label);
-
-    //   if (!remoteVideo.current.srcObject) {
-    //     remoteVideo.current.srcObject = new MediaStream();
-    //   }
-
-    //   remoteVideo.current.srcObject.addTrack(event.track);
-
-    //   if (event.track.kind === "audio" && !audioContextRef.current) {
-    //     await startRemoteSubtitle(event.streams[0]);
-    //   }
-
-    //   // if (event.track.kind === "audio" && !audioContextRef.current) {
-    //   //   if (event.track.kind === "audio" && !audioContextRef.current) {
-    //   //     await startRemoteSubtitle(event.streams[0]);
-    //   //   }
-    //   // }
-    // };
-
     pc.ontrack = async (event) => {
       console.log("📡 REMOTE TRACK RECEIVED:", {
         kind: event.track.kind,
@@ -358,8 +264,6 @@ export default function VideoChat() {
 
       remoteVideo.current.srcObject.addTrack(event.track);
 
-      // VERY IMPORTANT:
-      // Subtitle ONLY from remote audio track.
       if (event.track.kind === "audio" && !audioContextRef.current) {
         console.log("🎧 Starting subtitle from REMOTE audio track");
 
@@ -383,14 +287,8 @@ export default function VideoChat() {
       if (pc.iceConnectionState === "connected") {
         setStatus("Connected");
 
-        // if (!audioContextRef.current && !workletNodeRef.current) {
-        //   startAudioStreaming();
-        // }
-
         if (pc.iceConnectionState === "connected") {
           setStatus("Connected");
-
-          // Remote subtitle will start automatically
         }
       }
 
@@ -473,9 +371,6 @@ export default function VideoChat() {
       if (!mounted) return;
 
       await createPeer();
-      // socketRef.current.emit("join", {
-      //   language: languageRef.current,
-      // });
 
       console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
@@ -493,8 +388,6 @@ export default function VideoChat() {
       }
 
       roleRef.current = role;
-
-      // socketRef.current.emit("update-language", languageRef.current);
 
       console.log("🌍 RESENT LANGUAGE:", languageRef.current);
       console.log("🌍 RESENT LANGUAGE:", language);
@@ -777,28 +670,6 @@ export default function VideoChat() {
     setIsRecording(false);
   }
 
-  // function toggleMute() {
-  //   if (!streamRef.current) return;
-
-  //   const track = streamRef.current.getAudioTracks()[0];
-
-  //   if (!track) return;
-
-  //   track.enabled = !track.enabled;
-
-  //   const muted = !track.enabled;
-
-  //   setIsMuted(muted);
-
-  //   if (muted) {
-  //     stopAudioStreaming();
-  //   } else {
-  //     if (!audioContextRef.current && remoteVideo.current?.srcObject) {
-  //       startRemoteSubtitle(remoteVideo.current.srcObject);
-  //     }
-  //   }
-  // }
-
   function toggleMute() {
     if (!streamRef.current) return;
 
@@ -811,18 +682,6 @@ export default function VideoChat() {
     const muted = !track.enabled;
 
     setIsMuted(muted);
-
-    /*
-     * IMPORTANT:
-     *
-     * This is YOUR microphone.
-     *
-     * It must NOT stop the remote subtitle
-     * AudioContext.
-     *
-     * Deepgram subtitle audio comes from
-     * the REMOTE track.
-     */
 
     console.log(
       muted ? "🔇 Local microphone muted" : "🎤 Local microphone enabled",
@@ -1216,16 +1075,6 @@ export default function VideoChat() {
               onChange={(e) => {
                 const newLang = e.target.value;
 
-                // setLanguage(newLang);
-
-                // languageRef.current = newLang;
-
-                // localStorage.setItem("subtitle_language", newLang);
-
-                // deepgramReadyRef.current = false;
-
-                // socketRef.current.emit("update-language", newLang);
-
                 setLanguage(newLang);
 
                 languageRef.current = newLang;
@@ -1234,14 +1083,6 @@ export default function VideoChat() {
 
                 socketRef.current.emit("update-language", newLang);
               }}
-              // onChange={(e) => {
-              //   const newLang = e.target.value;
-
-              //   setLanguage(newLang);
-
-              //   localStorage.setItem("subtitle_language", newLang);
-              //   socketRef.current.emit("update-language", newLang);
-              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               <option value="en-US">English</option>
