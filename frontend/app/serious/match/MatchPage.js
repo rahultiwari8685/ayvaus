@@ -888,18 +888,6 @@ export default function MatchPage() {
         </div>
       )}
 
-      {voiceSubtitle?.text && (
-        <div
-          key={voiceSubtitle.text}
-          className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl"
-        >
-          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-            <p className="text-center text-white font-extrabold text-lg md:text-xl leading-snug tracking-wide drop-shadow">
-              {voiceSubtitle.text}
-            </p>
-          </div>
-        </div>
-      )}
       <div className="relative w-full h-screen flex items-center justify-center">
         <video
           ref={remoteVideo}
@@ -944,6 +932,19 @@ export default function MatchPage() {
           />
         </div>
       </div>
+
+      {voiceSubtitle?.text && (
+        <div
+          key={voiceSubtitle.text}
+          className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl"
+        >
+          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+            <p className="text-center text-white font-extrabold text-lg md:text-xl leading-snug tracking-wide drop-shadow">
+              {voiceSubtitle.text}
+            </p>
+          </div>
+        </div>
+      )}
 
       {isMobile ? (
         showChat && (
