@@ -315,32 +315,12 @@ export default function MatchPage() {
       pc.addTrack(track, streamRef.current);
     });
 
-    // pc.ontrack = (event) => {
-    //   if (!remoteVideo.current.srcObject) {
-    //     remoteVideo.current.srcObject = new MediaStream();
-    //   }
-
-    //   remoteVideo.current.srcObject.addTrack(event.track);
-    // };
-
-    pc.ontrack = async (event) => {
-      console.log("📡 REMOTE TRACK RECEIVED:", {
-        kind: event.track.kind,
-        id: event.track.id,
-        label: event.track.label,
-      });
-
+    pc.ontrack = (event) => {
       if (!remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = new MediaStream();
       }
 
       remoteVideo.current.srcObject.addTrack(event.track);
-
-      if (event.track.kind === "audio" && !audioContextRef.current) {
-        console.log("🎧 Starting subtitle from REMOTE audio");
-
-        await startRemoteSubtitle(event.track);
-      }
     };
 
     pc.onicecandidate = (e) => {
@@ -390,12 +370,6 @@ export default function MatchPage() {
 
     socketRef.current = socket;
 
-    socketRef.current.on("deepgram-ready", () => {
-      console.log("✅ Serious Mode Deepgram Ready");
-
-      deepgramReadyRef.current = true;
-    });
-
     (async () => {
       console.log("✅ MatchPage initialized");
 
@@ -414,9 +388,7 @@ export default function MatchPage() {
 
           localStorage.removeItem("reconnect_partner_id");
         } else {
-          socketRef.current.emit("join", {
-            language: languageRef.current,
-          });
+          socketRef.current.emit("join");
         }
 
         socketRef.current.emit("get-online-count");
@@ -541,18 +513,6 @@ export default function MatchPage() {
       );
     });
 
-    socketRef.current.on("voice-subtitle", (data) => {
-      console.log("📝 Serious Subtitle:", data);
-
-      setVoiceSubtitle(data);
-
-      clearTimeout(subtitleTimerRef.current);
-
-      subtitleTimerRef.current = setTimeout(() => {
-        setVoiceSubtitle(null);
-      }, 4000);
-    });
-
     //     socketRef.current.on("reward-earned", (data) => {
     //       alert(`🔥 Great Session
     //            ⭐ Level ${data.level}
@@ -563,14 +523,6 @@ export default function MatchPage() {
     //     });
 
     socketRef.current.on("partner-left", () => {
-      deepgramReadyRef.current = false;
-
-      stopAudioStreaming();
-
-      clearTimeout(subtitleTimerRef.current);
-
-      setVoiceSubtitle(null);
-
       setStatus("Looking for someone...");
 
       setMessages([]);
@@ -604,14 +556,6 @@ export default function MatchPage() {
     });
 
     return () => {
-      deepgramReadyRef.current = false;
-
-      stopAudioStreaming();
-
-      clearTimeout(subtitleTimerRef.current);
-
-      setVoiceSubtitle(null);
-
       pcRef.current?.close();
       streamRef.current?.getTracks().forEach((t) => t.stop());
       socketRef.current.off("online-users");
@@ -683,14 +627,6 @@ export default function MatchPage() {
 
   async function nextChat() {
     setStatus("Looking for someone...");
-
-    deepgramReadyRef.current = false;
-
-    stopAudioStreaming();
-
-    clearTimeout(subtitleTimerRef.current);
-
-    setVoiceSubtitle(null);
     setMessages([]);
     setUnreadCount(0);
     setPartner(null);
@@ -888,18 +824,6 @@ export default function MatchPage() {
         </div>
       )}
 
-      {voiceSubtitle?.text && (
-        <div
-          key={voiceSubtitle.text}
-          className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl"
-        >
-          <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-            <p className="text-center text-white font-extrabold text-lg md:text-xl leading-snug tracking-wide drop-shadow">
-              {voiceSubtitle.text}
-            </p>
-          </div>
-        </div>
-      )}
       <div className="relative w-full h-screen flex items-center justify-center">
         <video
           ref={remoteVideo}
@@ -1182,86 +1106,6 @@ export default function MatchPage() {
           className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex justify-between items-center"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <div className="flex justify-center mb-3">
-            <select
-              value={language}
-              onChange={(e) => {
-                const newLang = e.target.value;
-
-                setLanguage(newLang);
-
-                languageRef.current = newLang;
-
-                localStorage.setItem("subtitle_language", newLang);
-
-                socketRef.current.emit("update-language", newLang);
-              }}
-              className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
-            >
-              <option value="hi-IN">Hindi — हिन्दी</option>
-
-              <option value="bn-IN">Bengali — বাংলা</option>
-
-              <option value="te-IN">Telugu — తెలుగు</option>
-
-              <option value="mr-IN">Marathi — मराठी</option>
-
-              <option value="ta-IN">Tamil — தமிழ்</option>
-
-              <option value="ur-IN">Urdu — اردو</option>
-
-              <option value="gu-IN">Gujarati — ગુજરાતી</option>
-
-              <option value="kn-IN">Kannada — ಕನ್ನಡ</option>
-
-              <option value="ml-IN">Malayalam — മലയാളം</option>
-
-              <option value="or-IN">Odia — ଓଡ଼ିଆ</option>
-
-              <option value="pa-IN">Punjabi — ਪੰਜਾਬੀ</option>
-
-              <option value="as-IN">Assamese — অসমীয়া</option>
-
-              <option value="ma-IN">Maithili — मैथिली</option>
-
-              <option value="sa-IN">Sanskrit — संस्कृतम्</option>
-
-              <option value="ne-IN">Nepali — नेपाली</option>
-
-              <option value="kok-IN">Konkani — कोंकणी</option>
-
-              <option value="sd-IN">Sindhi — سنڌي</option>
-
-              <option value="doi-IN">Dogri — डोगरी</option>
-
-              <option value="mni-IN">Manipuri — মৈতৈলোন্</option>
-
-              <option value="sat-IN">Santali — ᱥᱟᱱᱛᱟᱲᱤ</option>
-
-              <option value="ks-IN">Kashmiri — कश्मीरी</option>
-
-              <option value="bho-IN">Bhojpuri — भोजपुरी</option>
-
-              <option value="en-US">English</option>
-
-              <option value="es-ES">Spanish</option>
-
-              <option value="fr-FR">French</option>
-
-              <option value="de-DE">German</option>
-
-              <option value="it-IT">Italian</option>
-
-              <option value="ru-RU">Russian</option>
-
-              <option value="ja-JP">Japanese</option>
-
-              <option value="ko-KR">Korean</option>
-
-              <option value="zh-CN">Chinese</option>
-            </select>
-          </div>
-
           <div className="flex flex-col items-center text-xs text-white">
             <button
               onClick={exitChat}
