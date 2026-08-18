@@ -1179,6 +1179,161 @@ export default function MatchPage() {
       )}
 
       {!(isMobile && showChat) && (
+        <div
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[95%] max-w-lg bg-black/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 px-4 py-3 flex flex-col gap-3 z-50"
+          style={{
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
+        >
+          {/* LANGUAGE SELECTOR */}
+          <div className="flex justify-center">
+            <select
+              value={language}
+              onChange={(e) => {
+                const newLang = e.target.value;
+
+                setLanguage(newLang);
+
+                languageRef.current = newLang;
+
+                localStorage.setItem("subtitle_language", newLang);
+
+                socketRef.current.emit("update-language", newLang);
+              }}
+              className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
+            >
+              <option value="hi-IN">Hindi — हिन्दी</option>
+              <option value="bn-IN">Bengali — বাংলা</option>
+              <option value="te-IN">Telugu — తెలుగు</option>
+              <option value="mr-IN">Marathi — मराठी</option>
+              <option value="ta-IN">Tamil — தமிழ்</option>
+              <option value="ur-IN">Urdu — اردو</option>
+              <option value="gu-IN">Gujarati — ગુજરાતી</option>
+              <option value="kn-IN">Kannada — ಕನ್ನಡ</option>
+              <option value="ml-IN">Malayalam — മലയാളം</option>
+              <option value="or-IN">Odia — ଓଡ଼ିଆ</option>
+              <option value="pa-IN">Punjabi — ਪੰਜਾਬੀ</option>
+              <option value="as-IN">Assamese — অসমীয়া</option>
+              <option value="ma-IN">Maithili — मैथिली</option>
+              <option value="sa-IN">Sanskrit — संस्कृतम्</option>
+              <option value="ne-IN">Nepali — नेपाली</option>
+              <option value="kok-IN">Konkani — कोंकणी</option>
+              <option value="sd-IN">Sindhi — سنڌي</option>
+              <option value="doi-IN">Dogri — डोगरी</option>
+              <option value="mni-IN">Manipuri — মৈতৈলোন্</option>
+              <option value="sat-IN">Santali — ᱥᱟᱱᱛᱟᱲᱤ</option>
+              <option value="ks-IN">Kashmiri — कश्मीरी</option>
+              <option value="bho-IN">Bhojpuri — भोजपुरी</option>
+
+              <option value="en-US">English</option>
+              <option value="es-ES">Spanish</option>
+              <option value="fr-FR">French</option>
+              <option value="de-DE">German</option>
+              <option value="it-IT">Italian</option>
+              <option value="ru-RU">Russian</option>
+              <option value="ja-JP">Japanese</option>
+              <option value="ko-KR">Korean</option>
+              <option value="zh-CN">Chinese</option>
+            </select>
+          </div>
+
+          {/* BUTTONS */}
+          <div className="flex justify-between items-center w-full">
+            {/* EXIT */}
+            <div className="flex flex-col items-center text-xs text-white">
+              <button
+                onClick={exitChat}
+                className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center shadow-lg"
+              >
+                ✕
+              </button>
+
+              <span className="mt-1 text-gray-300">Exit</span>
+            </div>
+
+            {/* MUTE */}
+            <div className="flex flex-col items-center text-xs text-white">
+              <button
+                onClick={toggleMute}
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  isMuted ? "bg-red-600" : "bg-gray-700"
+                }`}
+              >
+                🎤
+              </button>
+
+              <span className="mt-1 text-gray-300">
+                {isMuted ? "Unmute" : "Mute"}
+              </span>
+            </div>
+
+            {/* VIDEO */}
+            <div className="flex flex-col items-center text-xs text-white">
+              <button
+                onClick={toggleVideo}
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  isVideoOff ? "bg-red-600" : "bg-gray-700"
+                }`}
+              >
+                📷
+              </button>
+
+              <span className="mt-1 text-gray-300">
+                {isVideoOff ? "On" : "Off"}
+              </span>
+            </div>
+
+            {/* FLIP */}
+            <div className="flex flex-col items-center text-xs text-white">
+              <button
+                onClick={switchCamera}
+                className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+              >
+                🔄
+              </button>
+
+              <span className="mt-1 text-gray-300">Flip</span>
+            </div>
+
+            {/* CHAT */}
+            <div className="flex flex-col items-center text-xs text-white relative">
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowChat(true);
+                    setUnreadCount(0);
+                  }}
+                  className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center"
+                >
+                  💬
+                </button>
+
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-2 py-0.5">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+
+              <span className="mt-1 text-gray-300">Chat</span>
+            </div>
+
+            {/* NEXT */}
+            <div className="flex flex-col items-center text-xs text-white">
+              <button
+                onClick={nextChat}
+                className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg"
+              >
+                ➤
+              </button>
+
+              <span className="mt-1 text-orange-400 font-semibold">Next</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* {!(isMobile && showChat) && (
         <>
           <div className="flex justify-center mb-3">
             <select
@@ -1344,7 +1499,7 @@ export default function MatchPage() {
             </div>
           </div>
         </>
-      )}
+      )} */}
     </div>
   );
 }
