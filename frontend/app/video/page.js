@@ -22,6 +22,11 @@ export default function VideoChat() {
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const roleRef = useRef(null);
+
+  const webrtcSessionRef = useRef(0);
+  const negotiationStartedRef = useRef(false);
+  const reconnectTimerRef = useRef(null);
+
   const audioStreamRef = useRef(null);
 
   const audioContextRef = useRef(null);
@@ -56,6 +61,35 @@ export default function VideoChat() {
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
   const [language, setLanguage] = useState("en-US");
   const languageRef = useRef(language);
+
+  const turnCredentialsRef = useRef(null);
+  const turnCredentialsExpiryRef = useRef(0);
+
+  async function getTurnCredentials() {
+    const now = Date.now();
+
+    if (turnCredentialsRef.current && now < turnCredentialsExpiryRef.current) {
+      return turnCredentialsRef.current;
+    }
+
+    const res = await fetch("https://api.flirtaus.com/turn-credentials", {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("TURN credentials failed");
+    }
+
+    const turn = await res.json();
+
+    turnCredentialsRef.current = turn;
+
+    // Backend credentials are valid for ~1 hour.
+    // Refresh slightly before expiration.
+    turnCredentialsExpiryRef.current = now + 50 * 60 * 1000;
+
+    return turn;
+  }
 
   const deepgramReadyRef = useRef(false);
 
@@ -232,8 +266,10 @@ export default function VideoChat() {
 
     iceQueueRef.current = [];
 
-    const res = await fetch("https://api.flirtaus.com/turn-credentials");
-    const turn = await res.json();
+    // const res = await fetch("https://api.flirtaus.com/turn-credentials");
+    // const turn = await res.json();
+
+    const turn = await getTurnCredentials();
 
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -271,64 +307,149 @@ export default function VideoChat() {
       }
     };
 
+    pc.onconnectionstatechange = () => {
+      console.log("🔗 WebRTC:", pc.connectionState);
+
+      if (pc.connectionState === "connected") {
+        setStatus("Connected");
+      }
+
+      if (pc.connectionState === "connecting") {
+        setStatus("Connecting...");
+      }
+
+      if (pc.connectionState === "failed") {
+        console.log("❌ WebRTC connection failed");
+
+        if (pcRef.current === pc) {
+          socketRef.current?.emit("next");
+        }
+      }
+    };
+
     // pc.onicecandidate = (e) => {
     //   if (e.candidate) {
     //     socketRef.current.emit("signal", { candidate: e.candidate });
     //   }
     // };
 
-    pc.onicecandidate = (e) => {
-      if (!e.candidate) return;
+    // pc.onicecandidate = (e) => {
+    //   if (!e.candidate) return;
+
+    //   const socket = socketRef.current;
+
+    //   if (!socket?.connected) {
+    //     console.log("⚠️ Socket not connected, ICE candidate skipped");
+    //     return;
+    //   }
+
+    //   console.log("🧊 Sending ICE candidate");
+
+    //   socket.emit("signal", {
+    //     candidate: e.candidate,
+    //   });
+    // };
+
+    pc.onicecandidate = (event) => {
+      if (!event.candidate) return;
 
       const socket = socketRef.current;
 
       if (!socket?.connected) {
-        console.log("⚠️ Socket not connected, ICE candidate skipped");
+        console.log("⚠️ Socket disconnected; ICE candidate not sent");
         return;
       }
 
-      console.log("🧊 Sending ICE candidate");
+      if (!socket.partnerId) {
+        console.log("⚠️ No partner; ICE candidate skipped");
+        return;
+      }
 
       socket.emit("signal", {
-        candidate: e.candidate,
+        candidate: event.candidate,
       });
     };
 
-    pc.oniceconnectionstatechange = () => {
-      console.log("ICE State:", pc.iceConnectionState);
+    // pc.oniceconnectionstatechange = () => {
+    //   console.log("ICE State:", pc.iceConnectionState);
 
-      if (pc.iceConnectionState === "checking") {
+    //   if (pc.iceConnectionState === "checking") {
+    //     setStatus("Connecting...");
+    //   }
+
+    //   if (pc.iceConnectionState === "connected") {
+    //     setStatus("Connected");
+
+    //     if (pc.iceConnectionState === "connected") {
+    //       setStatus("Connected");
+    //     }
+    //   }
+
+    //   if (pc.iceConnectionState === "disconnected") {
+    //     console.log("ICE disconnected, waiting...");
+
+    //     setTimeout(() => {
+    //       if (pc.iceConnectionState === "disconnected") {
+    //         socketRef.current.emit("next");
+    //       }
+    //     }, 5000);
+    //   }
+
+    //   if (
+    //     pc.iceConnectionState === "failed" ||
+    //     pc.iceConnectionState === "closed"
+    //   ) {
+    //     socketRef.current.emit("next");
+    //   }
+
+    //   if (pc.iceConnectionState === "failed") {
+    //     console.log("ICE failed, retrying...");
+    //     socketRef.current.emit("next");
+    //   }
+    // };
+
+    let iceFailureTimer = null;
+
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState;
+
+      console.log("🧊 ICE State:", state);
+
+      if (state === "checking") {
         setStatus("Connecting...");
       }
 
-      if (pc.iceConnectionState === "connected") {
+      if (state === "connected" || state === "completed") {
+        clearTimeout(iceFailureTimer);
         setStatus("Connected");
-
-        if (pc.iceConnectionState === "connected") {
-          setStatus("Connected");
-        }
       }
 
-      if (pc.iceConnectionState === "disconnected") {
-        console.log("ICE disconnected, waiting...");
+      if (state === "disconnected") {
+        console.log("⚠️ ICE disconnected");
 
-        setTimeout(() => {
-          if (pc.iceConnectionState === "disconnected") {
-            socketRef.current.emit("next");
+        clearTimeout(iceFailureTimer);
+
+        iceFailureTimer = setTimeout(() => {
+          if (
+            pcRef.current === pc &&
+            (pc.iceConnectionState === "disconnected" ||
+              pc.iceConnectionState === "failed")
+          ) {
+            console.log("❌ ICE connection lost");
+
+            socketRef.current?.emit("next");
           }
         }, 5000);
       }
 
-      if (
-        pc.iceConnectionState === "failed" ||
-        pc.iceConnectionState === "closed"
-      ) {
-        socketRef.current.emit("next");
-      }
+      if (state === "failed") {
+        clearTimeout(iceFailureTimer);
 
-      if (pc.iceConnectionState === "failed") {
-        console.log("ICE failed, retrying...");
-        socketRef.current.emit("next");
+        console.log("❌ ICE failed");
+
+        if (pcRef.current === pc) {
+          socketRef.current?.emit("next");
+        }
       }
     };
 
@@ -455,24 +576,65 @@ export default function VideoChat() {
     //   console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     // });
 
+    // socket.on("matched", async ({ role }) => {
+    //   console.log("🎯 MATCHED:", role);
+
+    //   deepgramReadyRef.current = false;
+
+    //   roleRef.current = role;
+
+    //   setStatus("Connecting...");
+
+    //   if (pcRef.current) {
+    //     console.log("♻️ Closing old PeerConnection");
+
+    //     pcRef.current.ontrack = null;
+    //     pcRef.current.onicecandidate = null;
+
+    //     pcRef.current.close();
+    //     pcRef.current = null;
+    //   }
+
+    //   if (remoteVideo.current?.srcObject) {
+    //     remoteVideo.current.srcObject
+    //       .getTracks()
+    //       .forEach((track) => track.stop());
+
+    //     remoteVideo.current.srcObject = null;
+    //   }
+
+    //   await createPeer();
+
+    //   console.log("✅ PeerConnection created:", {
+    //     socketId: socket.id,
+    //     role,
+    //   });
+
+    //   socket.emit("peer-ready");
+
+    //   console.log("📤 peer-ready sent");
+
+    //   console.log("🌍 MATCH LANGUAGE:", languageRef.current);
+    // });
+
     socket.on("matched", async ({ role }) => {
       console.log("🎯 MATCHED:", role);
 
       deepgramReadyRef.current = false;
+      negotiationStartedRef.current = false;
 
       roleRef.current = role;
 
       setStatus("Connecting...");
 
       if (pcRef.current) {
-        console.log("♻️ Closing old PeerConnection");
-
         pcRef.current.ontrack = null;
         pcRef.current.onicecandidate = null;
-
         pcRef.current.close();
         pcRef.current = null;
       }
+
+      iceQueueRef.current = [];
 
       if (remoteVideo.current?.srcObject) {
         remoteVideo.current.srcObject
@@ -482,18 +644,26 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
-      await createPeer();
+      try {
+        await createPeer();
 
-      console.log("✅ PeerConnection created:", {
-        socketId: socket.id,
-        role,
-      });
+        if (!pcRef.current) {
+          console.error("❌ PeerConnection creation failed");
+          return;
+        }
 
-      socket.emit("peer-ready");
+        console.log("✅ PeerConnection ready");
 
-      console.log("📤 peer-ready sent");
+        socket.emit("peer-ready");
 
-      console.log("🌍 MATCH LANGUAGE:", languageRef.current);
+        console.log("📤 peer-ready sent");
+      } catch (err) {
+        console.error("❌ createPeer failed:", err);
+
+        setStatus("Looking for someone...");
+
+        socket.emit("next");
+      }
     });
 
     // socket.on("ready", async () => {
@@ -654,15 +824,23 @@ export default function VideoChat() {
       //   console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
       // }, 500);
 
-      setTimeout(() => {
-        recognitionStartedOnceRef.current = false;
+      // setTimeout(() => {
+      //   recognitionStartedOnceRef.current = false;
 
+      //   socketRef.current.emit("join", {
+      //     language: languageRef.current,
+      //   });
+
+      //   console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
+      // }, 500);
+
+      recognitionStartedOnceRef.current = false;
+
+      if (socketRef.current?.connected) {
         socketRef.current.emit("join", {
           language: languageRef.current,
         });
-
-        console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
-      }, 500);
+      }
     });
 
     socket.on("next-blocked", () => {
@@ -727,7 +905,35 @@ export default function VideoChat() {
     }
   }, [showChat]);
 
-  async function nextChat() {
+  // async function nextChat() {
+  //   setStatus("Looking for someone...");
+  //   setMessages([]);
+
+  //   shouldRestartRecognitionRef.current = false;
+
+  //   stopAudioStreaming();
+  //   setVoiceSubtitle("");
+
+  //   if (pcRef.current) {
+  //     pcRef.current.ontrack = null;
+  //     pcRef.current.onicecandidate = null;
+  //     pcRef.current.close();
+  //     pcRef.current = null;
+  //   }
+
+  //   if (remoteVideo.current?.srcObject) {
+  //     remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+  //     remoteVideo.current.srcObject = null;
+  //   }
+  //   // await createPeer();
+
+  //   deepgramReadyRef.current = false;
+  //   socketRef.current.emit("next");
+  // }
+
+  function nextChat() {
+    console.log("⏭️ NEXT");
+
     setStatus("Looking for someone...");
     setMessages([]);
 
@@ -735,6 +941,11 @@ export default function VideoChat() {
 
     stopAudioStreaming();
     setVoiceSubtitle("");
+
+    deepgramReadyRef.current = false;
+    negotiationStartedRef.current = false;
+
+    iceQueueRef.current = [];
 
     if (pcRef.current) {
       pcRef.current.ontrack = null;
@@ -744,13 +955,16 @@ export default function VideoChat() {
     }
 
     if (remoteVideo.current?.srcObject) {
-      remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+      remoteVideo.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+
       remoteVideo.current.srcObject = null;
     }
-    // await createPeer();
 
-    deepgramReadyRef.current = false;
-    socketRef.current.emit("next");
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("next");
+    }
   }
 
   function sendMessage(e) {

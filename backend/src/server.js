@@ -228,6 +228,7 @@ io.on("connection", async (socket) => {
 
   // WebRTC handshake state
   socket.webrtcReady = false;
+  socket.webrtcSession = 0;
 
   async function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
@@ -252,6 +253,16 @@ io.on("connection", async (socket) => {
 
         s1.webrtcReady = false;
         s2.webrtcReady = false;
+
+        s1.webrtcSession++;
+        s2.webrtcSession++;
+
+        console.log("🎯 NEW MATCH", {
+          caller: s1.id,
+          callee: s2.id,
+          session1: s1.webrtcSession,
+          session2: s2.webrtcSession,
+        });
 
         if (s1.dg) s1.dg.close();
 
@@ -353,38 +364,91 @@ io.on("connection", async (socket) => {
   //   partner?.emit("ready");
   // });
 
+  // socket.on("peer-ready", () => {
+  //   socket.webrtcReady = true;
+
+  //   console.log("🟢 WebRTC peer ready:", socket.id);
+
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   if (!partner) {
+  //     console.log("⚠️ No partner for peer-ready:", socket.id);
+  //     return;
+  //   }
+
+  //   console.log("🤝 WebRTC ready status:", {
+  //     socket: socket.id,
+  //     socketReady: socket.webrtcReady,
+  //     partner: partner.id,
+  //     partnerReady: partner.webrtcReady,
+  //   });
+
+  //   // Both users have created their RTCPeerConnection
+  //   if (socket.webrtcReady && partner.webrtcReady) {
+  //     console.log("🚀 BOTH PEERS READY");
+
+  //     socket.emit("ready");
+  //     partner.emit("ready");
+  //   }
+  // });
+
   socket.on("peer-ready", () => {
-    socket.webrtcReady = true;
-
-    console.log("🟢 WebRTC peer ready:", socket.id);
-
     const partner = io.sockets.sockets.get(socket.partnerId);
 
     if (!partner) {
-      console.log("⚠️ No partner for peer-ready:", socket.id);
+      console.log("⚠️ peer-ready but partner missing:", socket.id);
       return;
     }
 
-    console.log("🤝 WebRTC ready status:", {
+    // Ignore stale peer-ready
+    if (socket.partnerId !== partner.id) {
+      return;
+    }
+
+    socket.webrtcReady = true;
+
+    console.log("🟢 WEBRTC READY:", {
       socket: socket.id,
-      socketReady: socket.webrtcReady,
       partner: partner.id,
+      socketReady: socket.webrtcReady,
       partnerReady: partner.webrtcReady,
     });
 
-    // Both users have created their RTCPeerConnection
     if (socket.webrtcReady && partner.webrtcReady) {
-      console.log("🚀 BOTH PEERS READY");
+      console.log("🚀 BOTH WEBRTC PEERS READY");
 
-      socket.emit("ready");
-      partner.emit("ready");
+      socket.emit("ready", {
+        session: socket.webrtcSession,
+      });
+
+      partner.emit("ready", {
+        session: partner.webrtcSession,
+      });
     }
   });
+
+  // socket.on("signal", (data) => {
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   partner?.emit("signal", data);
+  // });
 
   socket.on("signal", (data) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    partner?.emit("signal", data);
+    if (!partner) {
+      console.log("⚠️ SIGNAL: partner missing");
+      return;
+    }
+
+    if (socket.partnerId !== partner.id) {
+      return;
+    }
+
+    partner.emit("signal", {
+      ...data,
+      session: socket.webrtcSession,
+    });
   });
 
   socket.on("edit-message", (data) => {
@@ -428,6 +492,8 @@ io.on("connection", async (socket) => {
 
     socket.lastNextTime = now;
 
+    socket.webrtcReady = false;
+    socket.webrtcSession++;
     if (socket.connectionId) {
       try {
         const conn = await Connection.findById(socket.connectionId);
@@ -476,14 +542,24 @@ io.on("connection", async (socket) => {
 
         oldPartner.emit("partner-left");
 
-        if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
-          setTimeout(() => {
-            queue.push(oldPartner);
+        // if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
+        //   setTimeout(() => {
+        //     queue.push(oldPartner);
 
-            setTimeout(() => {
-              oldPartner.lastPartnerId = null;
-            }, 10000);
-          }, 300);
+        //     setTimeout(() => {
+        //       oldPartner.lastPartnerId = null;
+        //     }, 10000);
+        //   }, 300);
+        // }
+
+        if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
+          oldPartner.webrtcReady = false;
+
+          queue.push(oldPartner);
+
+          setTimeout(() => {
+            oldPartner.lastPartnerId = null;
+          }, 10000);
         }
       }
 
@@ -495,17 +571,28 @@ io.on("connection", async (socket) => {
 
     socket.partnerId = null;
 
+    // setTimeout(() => {
+    //   if (!queue.includes(socket) && !socket.partnerId) {
+    //     queue.push(socket);
+    //   }
+
+    //   setTimeout(() => {
+    //     socket.lastPartnerId = null;
+    //   }, 10000);
+
+    //   tryMatch(socket.mode);
+    // }, 300);
+
+    if (!queue.includes(socket) && !socket.partnerId) {
+      socket.webrtcReady = false;
+      queue.push(socket);
+    }
+
     setTimeout(() => {
-      if (!queue.includes(socket) && !socket.partnerId) {
-        queue.push(socket);
-      }
+      socket.lastPartnerId = null;
+    }, 10000);
 
-      setTimeout(() => {
-        socket.lastPartnerId = null;
-      }, 10000);
-
-      tryMatch(socket.mode);
-    }, 300);
+    tryMatch(socket.mode);
   });
 
   socket.on("end-call", async () => {
@@ -877,10 +964,10 @@ io.on("connection", async (socket) => {
         },
       });
 
-      setTimeout(() => {
-        socket.emit("ready");
-        partnerSocket.emit("ready");
-      }, 300);
+      // setTimeout(() => {
+      //   socket.emit("ready");
+      //   partnerSocket.emit("ready");
+      // }, 300);
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
