@@ -226,6 +226,9 @@ io.on("connection", async (socket) => {
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
+  // WebRTC handshake state
+  socket.webrtcReady = false;
+
   async function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
 
@@ -246,6 +249,9 @@ io.on("connection", async (socket) => {
 
         s1.partnerId = s2.id;
         s2.partnerId = s1.id;
+
+        s1.webrtcReady = false;
+        s2.webrtcReady = false;
 
         if (s1.dg) s1.dg.close();
 
@@ -310,10 +316,10 @@ io.on("connection", async (socket) => {
           });
         }
 
-        setTimeout(() => {
-          s1.emit("ready");
-          s2.emit("ready");
-        }, 300);
+        // setTimeout(() => {
+        //   s1.emit("ready");
+        //   s2.emit("ready");
+        // }, 300);
 
         return tryMatch(mode);
       }
@@ -341,10 +347,38 @@ io.on("connection", async (socket) => {
     console.log("🌍", socket.id, "Subtitle Language:", socket.language);
   });
 
-  socket.on("ready", () => {
+  // socket.on("ready", () => {
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   partner?.emit("ready");
+  // });
+
+  socket.on("peer-ready", () => {
+    socket.webrtcReady = true;
+
+    console.log("🟢 WebRTC peer ready:", socket.id);
+
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    partner?.emit("ready");
+    if (!partner) {
+      console.log("⚠️ No partner for peer-ready:", socket.id);
+      return;
+    }
+
+    console.log("🤝 WebRTC ready status:", {
+      socket: socket.id,
+      socketReady: socket.webrtcReady,
+      partner: partner.id,
+      partnerReady: partner.webrtcReady,
+    });
+
+    // Both users have created their RTCPeerConnection
+    if (socket.webrtcReady && partner.webrtcReady) {
+      console.log("🚀 BOTH PEERS READY");
+
+      socket.emit("ready");
+      partner.emit("ready");
+    }
   });
 
   socket.on("signal", (data) => {
@@ -428,6 +462,9 @@ io.on("connection", async (socket) => {
 
         oldPartner.partnerId = null;
         socket.partnerId = null;
+
+        oldPartner.webrtcReady = false;
+        socket.webrtcReady = false;
 
         socket.dg?.close();
 
@@ -672,7 +709,7 @@ io.on("connection", async (socket) => {
 
   socket.on("disconnect", async () => {
     socket.dg?.close();
-
+    socket.webrtcReady = false;
     socket.dg = null;
 
     try {

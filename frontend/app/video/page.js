@@ -420,6 +420,41 @@ export default function VideoChat() {
     //   setStatus("Connecting...");
     // });
 
+    // socket.on("matched", async ({ role }) => {
+    //   console.log("🎯 MATCHED:", role);
+
+    //   deepgramReadyRef.current = false;
+
+    //   roleRef.current = role;
+
+    //   setStatus("Connecting...");
+
+    //   // Close any previous WebRTC connection
+    //   if (pcRef.current) {
+    //     console.log("♻️ Closing old PeerConnection");
+
+    //     pcRef.current.ontrack = null;
+    //     pcRef.current.onicecandidate = null;
+
+    //     pcRef.current.close();
+    //     pcRef.current = null;
+    //   }
+
+    //   // Clear old remote video
+    //   if (remoteVideo.current?.srcObject) {
+    //     remoteVideo.current.srcObject
+    //       .getTracks()
+    //       .forEach((track) => track.stop());
+
+    //     remoteVideo.current.srcObject = null;
+    //   }
+
+    //   // Create NEW WebRTC connection for this stranger
+    //   await createPeer();
+
+    //   console.log("🌍 MATCH LANGUAGE:", languageRef.current);
+    // });
+
     socket.on("matched", async ({ role }) => {
       console.log("🎯 MATCHED:", role);
 
@@ -429,7 +464,6 @@ export default function VideoChat() {
 
       setStatus("Connecting...");
 
-      // Close any previous WebRTC connection
       if (pcRef.current) {
         console.log("♻️ Closing old PeerConnection");
 
@@ -440,7 +474,6 @@ export default function VideoChat() {
         pcRef.current = null;
       }
 
-      // Clear old remote video
       if (remoteVideo.current?.srcObject) {
         remoteVideo.current.srcObject
           .getTracks()
@@ -449,21 +482,59 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
-      // Create NEW WebRTC connection for this stranger
       await createPeer();
+
+      console.log("✅ PeerConnection created:", {
+        socketId: socket.id,
+        role,
+      });
+
+      socket.emit("peer-ready");
+
+      console.log("📤 peer-ready sent");
 
       console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     });
 
-    socket.on("ready", async () => {
-      if (roleRef.current !== "caller") return;
-      if (!pcRef.current) return;
+    // socket.on("ready", async () => {
+    //   if (roleRef.current !== "caller") return;
+    //   if (!pcRef.current) return;
 
-      const offer = await pcRef.current.createOffer();
-      await pcRef.current.setLocalDescription(offer);
-      socketRef.current.emit("signal", {
-        sdp: pcRef.current.localDescription,
-      });
+    //   const offer = await pcRef.current.createOffer();
+    //   await pcRef.current.setLocalDescription(offer);
+    //   socketRef.current.emit("signal", {
+    //     sdp: pcRef.current.localDescription,
+    //   });
+    // });
+
+    socket.on("ready", async () => {
+      console.log("🔥 BOTH PEERS READY");
+
+      if (roleRef.current !== "caller") {
+        console.log("ℹ️ I am callee, waiting for offer");
+        return;
+      }
+
+      if (!pcRef.current) {
+        console.error("❌ READY received but PeerConnection missing");
+        return;
+      }
+
+      try {
+        console.log("📤 Creating WebRTC offer...");
+
+        const offer = await pcRef.current.createOffer();
+
+        await pcRef.current.setLocalDescription(offer);
+
+        console.log("📤 Sending WebRTC offer");
+
+        socketRef.current.emit("signal", {
+          sdp: pcRef.current.localDescription,
+        });
+      } catch (error) {
+        console.error("❌ Offer creation error:", error);
+      }
     });
 
     socket.on("signal", async (data) => {
@@ -573,9 +644,19 @@ export default function VideoChat() {
 
       recognitionStartedOnceRef.current = false;
 
-      setTimeout(async () => {
+      // setTimeout(async () => {
+      //   recognitionStartedOnceRef.current = false;
+      //   await createPeer();
+      //   socketRef.current.emit("join", {
+      //     language: languageRef.current,
+      //   });
+
+      //   console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
+      // }, 500);
+
+      setTimeout(() => {
         recognitionStartedOnceRef.current = false;
-        await createPeer();
+
         socketRef.current.emit("join", {
           language: languageRef.current,
         });
