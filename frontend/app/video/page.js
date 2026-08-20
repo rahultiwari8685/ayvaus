@@ -271,10 +271,27 @@ export default function VideoChat() {
       }
     };
 
+    // pc.onicecandidate = (e) => {
+    //   if (e.candidate) {
+    //     socketRef.current.emit("signal", { candidate: e.candidate });
+    //   }
+    // };
+
     pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socketRef.current.emit("signal", { candidate: e.candidate });
+      if (!e.candidate) return;
+
+      const socket = socketRef.current;
+
+      if (!socket?.connected) {
+        console.log("⚠️ Socket not connected, ICE candidate skipped");
+        return;
       }
+
+      console.log("🧊 Sending ICE candidate");
+
+      socket.emit("signal", {
+        candidate: e.candidate,
+      });
     };
 
     pc.oniceconnectionstatechange = () => {
@@ -366,11 +383,19 @@ export default function VideoChat() {
       deepgramReadyRef.current = true;
     });
 
+    // async function start() {
+    //   await initCamera();
+    //   if (!mounted) return;
+
+    //   await createPeer();
+
+    //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+    // }
+
     async function start() {
       await initCamera();
-      if (!mounted) return;
 
-      await createPeer();
+      if (!mounted) return;
 
       console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
@@ -381,18 +406,53 @@ export default function VideoChat() {
 
     start();
 
+    // socket.on("matched", async ({ role }) => {
+    //   deepgramReadyRef.current = false;
+    //   if (!pcRef.current) {
+    //     await createPeer();
+    //   }
+
+    //   roleRef.current = role;
+
+    //   console.log("🌍 RESENT LANGUAGE:", languageRef.current);
+    //   console.log("🌍 RESENT LANGUAGE:", language);
+
+    //   setStatus("Connecting...");
+    // });
+
     socket.on("matched", async ({ role }) => {
+      console.log("🎯 MATCHED:", role);
+
       deepgramReadyRef.current = false;
-      if (!pcRef.current) {
-        await createPeer();
-      }
 
       roleRef.current = role;
 
-      console.log("🌍 RESENT LANGUAGE:", languageRef.current);
-      console.log("🌍 RESENT LANGUAGE:", language);
-
       setStatus("Connecting...");
+
+      // Close any previous WebRTC connection
+      if (pcRef.current) {
+        console.log("♻️ Closing old PeerConnection");
+
+        pcRef.current.ontrack = null;
+        pcRef.current.onicecandidate = null;
+
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+
+      // Clear old remote video
+      if (remoteVideo.current?.srcObject) {
+        remoteVideo.current.srcObject
+          .getTracks()
+          .forEach((track) => track.stop());
+
+        remoteVideo.current.srcObject = null;
+      }
+
+      // Create NEW WebRTC connection for this stranger
+      await createPeer();
+
+      console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     });
 
     socket.on("ready", async () => {
@@ -606,7 +666,7 @@ export default function VideoChat() {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
     }
-    await createPeer();
+    // await createPeer();
 
     deepgramReadyRef.current = false;
     socketRef.current.emit("next");
