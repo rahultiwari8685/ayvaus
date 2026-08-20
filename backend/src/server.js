@@ -226,10 +226,6 @@ io.on("connection", async (socket) => {
   socket.lastPartnerId = null;
   socket.lastNextTime = 0;
 
-  // WebRTC handshake state
-  socket.webrtcReady = false;
-  socket.webrtcSession = 0;
-
   async function tryMatch(mode) {
     const queue = mode === "serious" ? seriousQueue : randomQueue;
 
@@ -250,19 +246,6 @@ io.on("connection", async (socket) => {
 
         s1.partnerId = s2.id;
         s2.partnerId = s1.id;
-
-        s1.webrtcReady = false;
-        s2.webrtcReady = false;
-
-        s1.webrtcSession++;
-        s2.webrtcSession++;
-
-        console.log("🎯 NEW MATCH", {
-          caller: s1.id,
-          callee: s2.id,
-          session1: s1.webrtcSession,
-          session2: s2.webrtcSession,
-        });
 
         if (s1.dg) s1.dg.close();
 
@@ -327,10 +310,10 @@ io.on("connection", async (socket) => {
           });
         }
 
-        // setTimeout(() => {
-        //   s1.emit("ready");
-        //   s2.emit("ready");
-        // }, 300);
+        setTimeout(() => {
+          s1.emit("ready");
+          s2.emit("ready");
+        }, 300);
 
         return tryMatch(mode);
       }
@@ -358,97 +341,16 @@ io.on("connection", async (socket) => {
     console.log("🌍", socket.id, "Subtitle Language:", socket.language);
   });
 
-  // socket.on("ready", () => {
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   partner?.emit("ready");
-  // });
-
-  // socket.on("peer-ready", () => {
-  //   socket.webrtcReady = true;
-
-  //   console.log("🟢 WebRTC peer ready:", socket.id);
-
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   if (!partner) {
-  //     console.log("⚠️ No partner for peer-ready:", socket.id);
-  //     return;
-  //   }
-
-  //   console.log("🤝 WebRTC ready status:", {
-  //     socket: socket.id,
-  //     socketReady: socket.webrtcReady,
-  //     partner: partner.id,
-  //     partnerReady: partner.webrtcReady,
-  //   });
-
-  //   // Both users have created their RTCPeerConnection
-  //   if (socket.webrtcReady && partner.webrtcReady) {
-  //     console.log("🚀 BOTH PEERS READY");
-
-  //     socket.emit("ready");
-  //     partner.emit("ready");
-  //   }
-  // });
-
-  socket.on("peer-ready", () => {
+  socket.on("ready", () => {
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    if (!partner) {
-      console.log("⚠️ peer-ready but partner missing:", socket.id);
-      return;
-    }
-
-    // Ignore stale peer-ready
-    if (socket.partnerId !== partner.id) {
-      return;
-    }
-
-    socket.webrtcReady = true;
-
-    console.log("🟢 WEBRTC READY:", {
-      socket: socket.id,
-      partner: partner.id,
-      socketReady: socket.webrtcReady,
-      partnerReady: partner.webrtcReady,
-    });
-
-    if (socket.webrtcReady && partner.webrtcReady) {
-      console.log("🚀 BOTH WEBRTC PEERS READY");
-
-      socket.emit("ready", {
-        session: socket.webrtcSession,
-      });
-
-      partner.emit("ready", {
-        session: partner.webrtcSession,
-      });
-    }
+    partner?.emit("ready");
   });
-
-  // socket.on("signal", (data) => {
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   partner?.emit("signal", data);
-  // });
 
   socket.on("signal", (data) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    if (!partner) {
-      console.log("⚠️ SIGNAL: partner missing");
-      return;
-    }
-
-    if (socket.partnerId !== partner.id) {
-      return;
-    }
-
-    partner.emit("signal", {
-      ...data,
-      session: socket.webrtcSession,
-    });
+    partner?.emit("signal", data);
   });
 
   socket.on("edit-message", (data) => {
@@ -492,8 +394,6 @@ io.on("connection", async (socket) => {
 
     socket.lastNextTime = now;
 
-    socket.webrtcReady = false;
-    socket.webrtcSession++;
     if (socket.connectionId) {
       try {
         const conn = await Connection.findById(socket.connectionId);
@@ -529,9 +429,6 @@ io.on("connection", async (socket) => {
         oldPartner.partnerId = null;
         socket.partnerId = null;
 
-        oldPartner.webrtcReady = false;
-        socket.webrtcReady = false;
-
         socket.dg?.close();
 
         socket.dg = null;
@@ -542,24 +439,14 @@ io.on("connection", async (socket) => {
 
         oldPartner.emit("partner-left");
 
-        // if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
-        //   setTimeout(() => {
-        //     queue.push(oldPartner);
-
-        //     setTimeout(() => {
-        //       oldPartner.lastPartnerId = null;
-        //     }, 10000);
-        //   }, 300);
-        // }
-
         if (!queue.includes(oldPartner) && !oldPartner.partnerId) {
-          oldPartner.webrtcReady = false;
-
-          queue.push(oldPartner);
-
           setTimeout(() => {
-            oldPartner.lastPartnerId = null;
-          }, 10000);
+            queue.push(oldPartner);
+
+            setTimeout(() => {
+              oldPartner.lastPartnerId = null;
+            }, 10000);
+          }, 300);
         }
       }
 
@@ -571,28 +458,17 @@ io.on("connection", async (socket) => {
 
     socket.partnerId = null;
 
-    // setTimeout(() => {
-    //   if (!queue.includes(socket) && !socket.partnerId) {
-    //     queue.push(socket);
-    //   }
-
-    //   setTimeout(() => {
-    //     socket.lastPartnerId = null;
-    //   }, 10000);
-
-    //   tryMatch(socket.mode);
-    // }, 300);
-
-    if (!queue.includes(socket) && !socket.partnerId) {
-      socket.webrtcReady = false;
-      queue.push(socket);
-    }
-
     setTimeout(() => {
-      socket.lastPartnerId = null;
-    }, 10000);
+      if (!queue.includes(socket) && !socket.partnerId) {
+        queue.push(socket);
+      }
 
-    tryMatch(socket.mode);
+      setTimeout(() => {
+        socket.lastPartnerId = null;
+      }, 10000);
+
+      tryMatch(socket.mode);
+    }, 300);
   });
 
   socket.on("end-call", async () => {
@@ -796,7 +672,7 @@ io.on("connection", async (socket) => {
 
   socket.on("disconnect", async () => {
     socket.dg?.close();
-    socket.webrtcReady = false;
+
     socket.dg = null;
 
     try {
@@ -964,10 +840,10 @@ io.on("connection", async (socket) => {
         },
       });
 
-      // setTimeout(() => {
-      //   socket.emit("ready");
-      //   partnerSocket.emit("ready");
-      // }, 300);
+      setTimeout(() => {
+        socket.emit("ready");
+        partnerSocket.emit("ready");
+      }, 300);
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
