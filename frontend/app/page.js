@@ -67,7 +67,7 @@ export default function HomePage() {
             ================================================== */}
             <section>
               <div className="relative overflow-hidden rounded-[24px] border border-white/[0.10] bg-[#09090d]">
-                <div className="relative h-[300px] sm:h-[325px] lg:h-[355px]">
+                <div className="relative h-[250px] sm:h-[300px] lg:h-[300px]">
                   <img
                     src="/hero.png"
                     alt="Flirta - Meet people your way"
@@ -183,6 +183,14 @@ export default function HomePage() {
                     </div>
                   </div>
 
+                  <a
+                    href="/video"
+                    className="mt-5 w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-sm font-bold hover:opacity-90 transition"
+                  >
+                    Start Fun Mode
+                    <span className="text-lg">→</span>
+                  </a>
+
                   <div className="mt-5 pt-4 border-t border-white/[0.08] grid grid-cols-3">
                     <div className="text-center">
                       <div className="text-orange-400 text-xl">▣</div>
@@ -202,14 +210,6 @@ export default function HomePage() {
                       <p className="text-[9px] text-zinc-500">Instantly</p>
                     </div>
                   </div>
-
-                  <a
-                    href="/video"
-                    className="mt-5 w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-sm font-bold hover:opacity-90 transition"
-                  >
-                    Start Fun Mode
-                    <span className="text-lg">→</span>
-                  </a>
                 </div>
 
                 {/* SERIOUS MODE */}
@@ -232,6 +232,14 @@ export default function HomePage() {
                     </div>
                   </div>
 
+                  <a
+                    href="/serious/register"
+                    className="mt-5 w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold hover:opacity-90 transition"
+                  >
+                    Find a Connection
+                    <span className="text-lg">→</span>
+                  </a>
+
                   <div className="mt-5 pt-4 border-t border-white/[0.08] grid grid-cols-3">
                     <div className="text-center">
                       <div className="text-pink-400 text-xl">♢</div>
@@ -253,14 +261,6 @@ export default function HomePage() {
                       <p className="text-[9px] text-zinc-500">Friendship</p>
                     </div>
                   </div>
-
-                  <a
-                    href="/serious/register"
-                    className="mt-5 w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold hover:opacity-90 transition"
-                  >
-                    Find a Connection
-                    <span className="text-lg">→</span>
-                  </a>
                 </div>
               </div>
             </section>
