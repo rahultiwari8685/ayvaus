@@ -272,8 +272,72 @@ export default function HomePage() {
                 {/* SERIOUS MODE */}
                 <div className="relative overflow-hidden rounded-[22px] border border-pink-400/25 bg-gradient-to-br from-pink-500/[0.10] to-transparent p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 shrink-0 rounded-full bg-pink-400/10 border border-pink-400/30 flex items-center justify-center text-3xl"></div>
+                    <div className="w-16 h-16 shrink-0 rounded-full bg-pink-400/10 border border-pink-400/30 flex items-center justify-center">
+                      <svg
+                        width="36"
+                        height="36"
+                        viewBox="0 0 48 48"
+                        fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="text-pink-400"
+                      >
+                        {/* Left person */}
+                        <circle cx="15" cy="10" r="4" />
 
+                        <path
+                          d="M11 17
+         C8.8 17 7 18.8 7 21
+         L7 29
+         C7 30.1 7.9 31 9 31
+         C10.1 31 11 30.1 11 29
+         L11 23
+         L12 23
+         L12 38
+         C12 39.7 13 41 14.5 41
+         C16 41 17 39.7 17 38
+         L17 29
+         L18 29
+         L18 38
+         C18 39.7 19 41 20.5 41
+         C22 41 23 39.7 23 38
+         L23 23
+         L24 29
+         C24.2 30.1 25.1 31 26 31
+         C27.1 31 28 30.1 28 29
+         L27 21
+         C26.7 18.8 25 17 23 17
+         Z"
+                        />
+
+                        {/* Right person */}
+                        <circle cx="33" cy="10" r="4" />
+
+                        <path
+                          d="M29 17
+         C26.8 17 25 18.8 25 21
+         L24 29
+         C24 30.1 24.9 31 26 31
+         C27 31 27.8 30.1 28 29
+         L29 23
+         L30 23
+         L30 38
+         C30 39.7 31 41 32.5 41
+         C34 41 35 39.7 35 38
+         L35 29
+         L36 29
+         L36 38
+         C36 39.7 37 41 38.5 41
+         C40 41 41 39.7 41 38
+         L41 23
+         L42 29
+         C42.2 30.1 43.1 31 44 31
+         C45.1 31 46 30.1 46 29
+         L45 21
+         C44.7 18.8 43 17 41 17
+         Z"
+                        />
+                      </svg>
+                    </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="text-xl font-bold">Serious Mode</h4>
 
