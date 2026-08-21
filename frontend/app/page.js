@@ -106,8 +106,66 @@ export default function HomePage() {
                         Chat, date or connect with people from around the world.
                       </p>
 
+                      <section className="mt-4">
+                        <div className="rounded-[20px] border border-white/[0.08] bg-white/[0.02] px-4 py-4">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl text-blue-400">♢</span>
+                              <div>
+                                <p className="text-xs font-semibold">
+                                  Safe & Secure
+                                </p>
+                                <p className="text-[9px] text-zinc-500">
+                                  Your safety is our priority.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl text-purple-400">
+                                ♙
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold">
+                                  Private Chats
+                                </p>
+                                <p className="text-[9px] text-zinc-500">
+                                  Your privacy matters.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl text-blue-400">♧</span>
+                              <div>
+                                <p className="text-xs font-semibold">
+                                  Real People
+                                </p>
+                                <p className="text-[9px] text-zinc-500">
+                                  Verified & active users.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl text-orange-400">
+                                🎁
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold">
+                                  Fun & Rewards
+                                </p>
+                                <p className="text-[9px] text-zinc-500">
+                                  Earn rewards & unlock more.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+
                       {/* Hero stats */}
-                      <div className="mt-6 flex flex-wrap gap-2">
+                      {/* <div className="mt-6 flex flex-wrap gap-2">
                         <div className="min-w-[105px] px-3.5 py-2.5 rounded-xl bg-black/35 border border-white/10 backdrop-blur-md">
                           <div className="text-lg font-bold">1K+</div>
                           <div className="text-[9px] text-white/45">
@@ -128,7 +186,7 @@ export default function HomePage() {
                             Countries
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 
@@ -267,51 +325,6 @@ export default function HomePage() {
             {/* =================================================
                 TRUST STRIP
             ================================================== */}
-            <section className="mt-4">
-              <div className="rounded-[20px] border border-white/[0.08] bg-white/[0.02] px-4 py-4">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl text-blue-400">♢</span>
-                    <div>
-                      <p className="text-xs font-semibold">Safe & Secure</p>
-                      <p className="text-[9px] text-zinc-500">
-                        Your safety is our priority.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl text-purple-400">♙</span>
-                    <div>
-                      <p className="text-xs font-semibold">Private Chats</p>
-                      <p className="text-[9px] text-zinc-500">
-                        Your privacy matters.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl text-blue-400">♧</span>
-                    <div>
-                      <p className="text-xs font-semibold">Real People</p>
-                      <p className="text-[9px] text-zinc-500">
-                        Verified & active users.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl text-orange-400">🎁</span>
-                    <div>
-                      <p className="text-xs font-semibold">Fun & Rewards</p>
-                      <p className="text-[9px] text-zinc-500">
-                        Earn rewards & unlock more.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
           </div>
 
           {/* =================================================
@@ -346,7 +359,7 @@ export default function HomePage() {
               </div>
 
               {/* Corporate visual */}
-              <div className="relative mt-6 h-[245px] rounded-2xl overflow-hidden border border-blue-400/15 bg-[#061326]">
+              <div className="relative mt-6 h-[220px] rounded-2xl overflow-hidden border border-blue-400/15 bg-[#061326]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.22),transparent_58%)]" />
 
                 {/* Network lines */}
