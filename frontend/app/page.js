@@ -1,3 +1,5 @@
+import Footer from "@/components/Footer";
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white overflow-x-hidden">
@@ -274,67 +276,70 @@ export default function HomePage() {
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 shrink-0 rounded-full bg-pink-400/10 border border-pink-400/30 flex items-center justify-center">
                       <svg
-                        width="36"
-                        height="36"
-                        viewBox="0 0 48 48"
+                        width="38"
+                        height="38"
+                        viewBox="0 0 64 64"
                         fill="currentColor"
                         xmlns="http://www.w3.org/2000/svg"
                         className="text-pink-400"
                       >
-                        {/* Left person */}
-                        <circle cx="15" cy="10" r="4" />
+                        {/* Man head */}
+                        <circle cx="20" cy="12" r="6" />
 
+                        {/* Woman head */}
+                        <circle cx="44" cy="12" r="6" />
+
+                        {/* Man body */}
                         <path
-                          d="M11 17
-         C8.8 17 7 18.8 7 21
-         L7 29
-         C7 30.1 7.9 31 9 31
-         C10.1 31 11 30.1 11 29
-         L11 23
-         L12 23
-         L12 38
-         C12 39.7 13 41 14.5 41
-         C16 41 17 39.7 17 38
-         L17 29
-         L18 29
-         L18 38
-         C18 39.7 19 41 20.5 41
-         C22 41 23 39.7 23 38
-         L23 23
-         L24 29
-         C24.2 30.1 25.1 31 26 31
-         C27.1 31 28 30.1 28 29
-         L27 21
-         C26.7 18.8 25 17 23 17
-         Z"
+                          d="
+      M12 28
+      C12 22 15 19 20 19
+      C25 19 28 22 28 28
+      L28 38
+      L25 38
+      L25 55
+      C25 57 24 58 22 58
+      C20 58 19 57 19 55
+      L19 39
+      L17 39
+      L17 55
+      C17 57 16 58 14 58
+      C12 58 11 57 11 55
+      L11 38
+      L9 38
+      Z
+    "
                         />
 
-                        {/* Right person */}
-                        <circle cx="33" cy="10" r="4" />
-
+                        {/* Woman dress/body */}
                         <path
-                          d="M29 17
-         C26.8 17 25 18.8 25 21
-         L24 29
-         C24 30.1 24.9 31 26 31
-         C27 31 27.8 30.1 28 29
-         L29 23
-         L30 23
-         L30 38
-         C30 39.7 31 41 32.5 41
-         C34 41 35 39.7 35 38
-         L35 29
-         L36 29
-         L36 38
-         C36 39.7 37 41 38.5 41
-         C40 41 41 39.7 41 38
-         L41 23
-         L42 29
-         C42.2 30.1 43.1 31 44 31
-         C45.1 31 46 30.1 46 29
-         L45 21
-         C44.7 18.8 43 17 41 17
-         Z"
+                          d="
+      M36 20
+      C39 19 41 19 44 19
+      C49 19 52 22 52 28
+      L55 38
+      L49 38
+      L49 55
+      C49 57 48 58 46 58
+      C44 58 43 57 43 55
+      L43 40
+      L41 40
+      L41 55
+      C41 57 40 58 38 58
+      C36 58 35 57 35 55
+      L35 38
+      L29 38
+      L36 20
+      Z
+    "
+                        />
+
+                        {/* Holding hands */}
+                        <path
+                          d="M27 30 C31 32 34 32 38 30"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          strokeLinecap="round"
                         />
                       </svg>
                     </div>
@@ -532,10 +537,12 @@ export default function HomePage() {
         </div>
       </main>
 
+      <Footer />
+
       {/* =====================================================
           FOOTER
       ====================================================== */}
-      <footer className="relative z-10 border-t border-white/[0.05] py-5 px-4">
+      {/* <footer className="relative z-10 border-t border-white/[0.05] py-5 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="text-xs font-semibold text-zinc-400">Flirta</div>
 
@@ -543,7 +550,7 @@ export default function HomePage() {
             © 2026 Flirta — Meet. Connect. Repeat.
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }
