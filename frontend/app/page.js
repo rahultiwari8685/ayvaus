@@ -1,361 +1,403 @@
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#070709] text-white overflow-hidden">
-      {/* Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-pink-500/10 blur-[120px]" />
-        <div className="absolute top-[40%] -right-40 w-[500px] h-[500px] rounded-full bg-purple-500/10 blur-[120px]" />
-        <div className="absolute -bottom-40 left-[35%] w-[450px] h-[450px] rounded-full bg-blue-500/5 blur-[120px]" />
+    <div className="min-h-screen bg-[#070709] text-white overflow-x-hidden">
+      {/* =====================================================
+          BACKGROUND
+      ====================================================== */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-72 h-72 rounded-full bg-pink-500/5 blur-[90px]" />
+        <div className="absolute top-1/2 -right-32 w-72 h-72 rounded-full bg-purple-500/5 blur-[90px]" />
       </div>
 
-      {/* Navbar */}
-      <header className="relative z-20">
-        <nav className="max-w-7xl mx-auto px-5 sm:px-8 py-5 flex items-center justify-between">
+      {/* =====================================================
+          NAVBAR
+      ====================================================== */}
+      <header className="relative z-20 border-b border-white/[0.06]">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
-              <span className="text-lg">♥</span>
+          <a href="/" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+              <span className="text-base">♥</span>
             </div>
 
             <div>
-              <h1 className="text-xl font-black tracking-tight">Flirta</h1>
-              <p className="text-[10px] text-zinc-500 tracking-[0.18em] uppercase">
+              <h1 className="text-lg font-bold tracking-tight leading-none">
+                Flirta
+              </h1>
+
+              <p className="text-[8px] text-zinc-500 tracking-[0.2em] uppercase mt-1">
                 Meet. Connect.
               </p>
             </div>
-          </div>
+          </a>
 
           {/* Right */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.08]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-              <span className="text-xs text-zinc-400">People are online</span>
+              <span className="text-[11px] text-zinc-400">
+                People are online
+              </span>
             </div>
 
-            <button className="px-4 py-2.5 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-sm font-medium transition">
+            <button className="px-3.5 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-xs font-medium transition">
               Explore
             </button>
           </div>
         </nav>
       </header>
 
-      {/* Main */}
-      <main className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 pb-12">
-        {/* Hero */}
-        <section className="pt-6 md:pt-10">
-          <div className="relative overflow-hidden rounded-[30px] md:rounded-[38px] border border-white/[0.1] bg-white/[0.03] shadow-2xl">
-            {/* Hero Image */}
-            <div className="relative h-[390px] sm:h-[420px] md:h-[440px]">
+      {/* =====================================================
+          MAIN
+      ====================================================== */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        {/* =====================================================
+            COMPACT HERO
+        ====================================================== */}
+        <section className="pt-4 sm:pt-5">
+          <div className="relative overflow-hidden rounded-[24px] border border-white/[0.09]">
+            {/* Hero image */}
+            <div className="relative h-[270px] sm:h-[285px] md:h-[305px]">
               <img
                 src="/hero.png"
-                alt="Flirta - Meet new people"
+                alt="Flirta - Connect with people worldwide"
+                width="1600"
+                height="700"
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
-              {/* Image overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
+              {/* Dark overlays */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/10" />
 
-              <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
 
-              {/* Floating online badge */}
-              <div className="absolute top-5 left-5 sm:top-7 sm:left-7">
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/35 border border-white/10 backdrop-blur-xl">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {/* =================================================
+                  HERO CONTENT
+              ================================================== */}
+              <div className="relative h-full flex items-center">
+                <div className="px-5 sm:px-8 md:px-10 max-w-2xl">
+                  {/* Badge */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/35 border border-white/10 mb-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-                  <span className="text-xs sm:text-sm text-white/90">
-                    Thousands are connecting now
-                  </span>
-                </div>
-              </div>
-
-              {/* Hero Content */}
-              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 md:p-14">
-                <div className="max-w-3xl">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl mb-5">
-                    <span className="text-xs font-medium text-white/80">
-                      🌎 Connect worldwide
+                    <span className="text-[10px] sm:text-xs text-white/80">
+                      Connect with people worldwide
                     </span>
                   </div>
 
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-[-0.05em] leading-[0.92]">
-                    {" "}
+                  {/* Heading */}
+                  <h2 className="text-[32px] sm:text-[40px] md:text-[48px] font-extrabold tracking-[-0.04em] leading-[0.95]">
                     Meet someone.
                     <br />
-                    <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-orange-300 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-pink-400 to-orange-300 bg-clip-text text-transparent">
                       Start something.
                     </span>
                   </h2>
 
-                  <p className="mt-3 max-w-xl text-xs sm:text-sm md:text-base text-white/65 leading-relaxed">
-                    {" "}
-                    Discover new people, start conversations and build
-                    connections — from casual chats to meaningful relationships.
+                  {/* Description */}
+                  <p className="mt-2 max-w-lg text-[11px] sm:text-xs md:text-sm text-white/65 leading-relaxed">
+                    Random video chats, meaningful relationships and real
+                    connections — all in one place.
                   </p>
 
-                  {/* Stats */}
-                  <div className="mt-7 flex flex-wrap items-center gap-3">
-                    <div className="px-4 py-3 rounded-2xl bg-black/35 border border-white/10 backdrop-blur-xl">
-                      <div className="text-xl font-bold">1K+</div>
-                      <div className="text-[11px] text-white/45 mt-0.5">
-                        Active users
-                      </div>
+                  {/* =================================================
+                      COMPACT STATS
+                  ================================================== */}
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="px-3 py-1.5 rounded-lg bg-black/35 border border-white/10">
+                      <span className="text-sm font-bold">1K+</span>
+                      <span className="ml-1 text-[9px] text-white/45">
+                        users
+                      </span>
                     </div>
 
-                    <div className="px-4 py-3 rounded-2xl bg-black/35 border border-white/10 backdrop-blur-xl">
-                      <div className="text-xl font-bold">24/7</div>
-                      <div className="text-[11px] text-white/45 mt-0.5">
-                        Live conversations
-                      </div>
+                    <div className="px-3 py-1.5 rounded-lg bg-black/35 border border-white/10">
+                      <span className="text-sm font-bold">24/7</span>
+                      <span className="ml-1 text-[9px] text-white/45">
+                        live
+                      </span>
                     </div>
 
-                    <div className="px-4 py-3 rounded-2xl bg-black/35 border border-white/10 backdrop-blur-xl">
-                      <div className="text-xl font-bold">150+</div>
-                      <div className="text-[11px] text-white/45 mt-0.5">
-                        Countries
-                      </div>
+                    <div className="px-3 py-1.5 rounded-lg bg-black/35 border border-white/10">
+                      <span className="text-sm font-bold">150+</span>
+                      <span className="ml-1 text-[9px] text-white/45">
+                        countries
+                      </span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Small visual label on right */}
+              <div className="absolute right-5 top-5 hidden md:block">
+                <div className="px-3 py-1.5 rounded-full bg-black/30 border border-white/10 backdrop-blur-md">
+                  <span className="text-[10px] text-white/70">
+                    🌎 Live connections
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Mode Selector */}
-        <section className="pt-7 md:pt-8">
-          {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+        {/* =====================================================
+            MODE SELECTOR
+        ====================================================== */}
+        <section className="pt-6">
+          {/* Section heading */}
+          <div className="flex items-end justify-between mb-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-400 mb-2">
-                Your experience
+              <p className="text-[9px] uppercase tracking-[0.18em] text-pink-400 font-semibold">
+                Choose your experience
               </p>
 
-              <h3 className="text-3xl sm:text-4xl font-black tracking-tight">
-                Choose your mode
+              <h3 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight">
+                How do you want to connect?
               </h3>
-
-              <p className="mt-2 text-sm text-zinc-500">
-                Connect with people your way.
-              </p>
             </div>
 
-            <div className="hidden sm:block text-xs text-zinc-600">
-              Pick what feels right for you
-            </div>
+            <p className="hidden sm:block text-[10px] text-zinc-600">
+              Pick a mode
+            </p>
           </div>
 
-          {/* Mode Cards */}
-          <div className="grid lg:grid-cols-3 gap-4">
-            {/* FUN MODE */}
-            <div className="group relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-orange-500/[0.12] via-yellow-500/[0.04] to-transparent p-6 sm:p-7 transition-all duration-300 hover:-translate-y-1 hover:border-orange-400/20">
-              {/* Glow */}
-              <div className="absolute -top-20 -right-20 w-44 h-44 bg-orange-500/20 rounded-full blur-[70px]" />
-
+          {/* =================================================
+              MODE CARDS
+          ================================================== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* =================================================
+                FUN MODE
+            ================================================== */}
+            <div className="relative overflow-hidden rounded-2xl border border-orange-400/15 bg-orange-500/[0.06] p-4 sm:p-5">
               <div className="relative">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-300/10 flex items-center justify-center text-2xl">
-                    🎉
+                {/* Top */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-orange-400/10 border border-orange-300/10 flex items-center justify-center">
+                      <span className="text-lg">🎉</span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-base font-bold">Fun Mode</h4>
+
+                      <p className="text-[9px] text-orange-300/70">
+                        Instant • Random
+                      </p>
+                    </div>
                   </div>
 
-                  <span className="px-3 py-1.5 rounded-full bg-orange-400/10 border border-orange-300/10 text-[10px] uppercase tracking-wider font-bold text-orange-300">
-                    Instant
+                  <span className="text-[8px] uppercase tracking-wider font-bold text-orange-300 bg-orange-400/10 border border-orange-300/10 px-2 py-1 rounded-full">
+                    No Signup
                   </span>
                 </div>
 
-                <div className="mt-7">
-                  <h4 className="text-2xl font-bold">Fun Mode</h4>
+                {/* Description */}
+                <p className="mt-3 text-[11px] text-zinc-400 leading-relaxed">
+                  Meet someone new and start a random video conversation
+                  instantly.
+                </p>
 
-                  <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-                    Meet someone new, start a random conversation and just have
-                    fun.
-                  </p>
+                {/* Mini features */}
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
+                  <span className="text-[9px] text-zinc-400">
+                    ✓ Random video
+                  </span>
+
+                  <span className="text-[9px] text-zinc-400">✓ No signup</span>
+
+                  <span className="text-[9px] text-zinc-400">✓ Instant</span>
                 </div>
 
-                {/* Features */}
-                <div className="mt-6 space-y-2.5">
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-emerald-400">✓</span>
-                    No signup required
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-emerald-400">✓</span>
-                    Random video conversations
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-emerald-400">✓</span>
-                    Start instantly
-                  </div>
-                </div>
-
-                {/* Button */}
+                {/* CTA */}
                 <a
                   href="/video"
-                  className="mt-7 w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm shadow-lg shadow-orange-500/20 transition-all duration-300 hover:scale-[1.02]"
+                  className="mt-4 w-full h-9 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold hover:opacity-90 transition"
                 >
                   Start Fun Mode
-                  <span className="text-lg transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </a>
               </div>
             </div>
 
-            {/* SERIOUS MODE */}
-            <div className="group relative overflow-hidden rounded-[28px] border border-pink-400/[0.15] bg-gradient-to-br from-pink-500/[0.14] via-rose-500/[0.05] to-transparent p-6 sm:p-7 transition-all duration-300 hover:-translate-y-1 hover:border-pink-400/30">
-              {/* Glow */}
-              <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-pink-500/20 rounded-full blur-[75px]" />
-
+            {/* =================================================
+                SERIOUS MODE
+            ================================================== */}
+            <div className="relative overflow-hidden rounded-2xl border border-pink-400/20 bg-pink-500/[0.07] p-4 sm:p-5">
               <div className="relative">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-pink-400/10 border border-pink-300/10 flex items-center justify-center text-2xl">
-                    ❤️
+                {/* Top */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-pink-400/10 border border-pink-300/10 flex items-center justify-center">
+                      <span className="text-lg">❤️</span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-base font-bold">Serious Mode</h4>
+
+                      <p className="text-[9px] text-pink-300/70">
+                        Dating • Relationships
+                      </p>
+                    </div>
                   </div>
 
-                  <span className="px-3 py-1.5 rounded-full bg-pink-400/10 border border-pink-300/10 text-[10px] uppercase tracking-wider font-bold text-pink-300">
-                    Meaningful
+                  <span className="text-[8px] uppercase tracking-wider font-bold text-pink-300 bg-pink-400/10 border border-pink-300/10 px-2 py-1 rounded-full">
+                    Verified
                   </span>
                 </div>
 
-                <div className="mt-7">
-                  <h4 className="text-2xl font-bold">Serious Mode</h4>
+                {/* Description */}
+                <p className="mt-3 text-[11px] text-zinc-400 leading-relaxed">
+                  Looking for something real? Discover meaningful relationships
+                  and genuine connections.
+                </p>
 
-                  <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-                    Looking for something real? Connect with people who are open
-                    to meaningful relationships.
-                  </p>
+                {/* Mini features */}
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
+                  <span className="text-[9px] text-zinc-400">
+                    ♥ Verified profiles
+                  </span>
+
+                  <span className="text-[9px] text-zinc-400">♥ Dating</span>
+
+                  <span className="text-[9px] text-zinc-400">♥ Friendship</span>
                 </div>
 
-                {/* Features */}
-                <div className="mt-6 space-y-2.5">
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-pink-400">♥</span>
-                    Verified profiles
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-pink-400">♥</span>
-                    Real dating experiences
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-300">
-                    <span className="text-pink-400">♥</span>
-                    Relationships & friendship
-                  </div>
-                </div>
-
-                {/* Button */}
+                {/* CTA */}
                 <a
                   href="/serious/register"
-                  className="mt-7 w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-sm shadow-lg shadow-pink-500/20 transition-all duration-300 hover:scale-[1.02]"
+                  className="mt-4 w-full h-9 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold hover:opacity-90 transition"
                 >
                   Find a Connection
-                  <span className="text-lg transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </a>
               </div>
             </div>
 
-            {/* CORPORATE MODE */}
-            <div className="group relative overflow-hidden rounded-[28px] border border-blue-400/[0.12] bg-gradient-to-br from-blue-500/[0.10] via-indigo-500/[0.04] to-transparent p-6 sm:p-7">
-              {/* Glow */}
-              <div className="absolute top-1/2 -right-20 w-48 h-48 bg-blue-500/15 rounded-full blur-[80px]" />
-
+            {/* =================================================
+                CORPORATE MODE
+            ================================================== */}
+            <div className="relative overflow-hidden rounded-2xl border border-blue-400/15 bg-blue-500/[0.05] p-4 sm:p-5">
               <div className="relative">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-400/10 border border-blue-300/10 flex items-center justify-center text-2xl">
-                    💼
+                {/* Top */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-blue-400/10 border border-blue-300/10 flex items-center justify-center">
+                      <span className="text-lg">💼</span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-base font-bold">Corporate Mode</h4>
+
+                      <p className="text-[9px] text-blue-300/70">
+                        Network • Business
+                      </p>
+                    </div>
                   </div>
 
-                  <span className="px-3 py-1.5 rounded-full bg-blue-400/10 border border-blue-300/10 text-[10px] uppercase tracking-wider font-bold text-blue-300">
+                  <span className="text-[8px] uppercase tracking-wider font-bold text-blue-300 bg-blue-400/10 border border-blue-300/10 px-2 py-1 rounded-full">
                     Coming Soon
                   </span>
                 </div>
 
-                <div className="mt-7">
-                  <h4 className="text-2xl font-bold">Corporate Mode</h4>
+                {/* Description */}
+                <p className="mt-3 text-[11px] text-zinc-400 leading-relaxed">
+                  Build professional connections, discover opportunities and
+                  grow your business network.
+                </p>
 
-                  <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-                    Build professional connections, discover opportunities and
-                    grow your network.
-                  </p>
+                {/* Mini features */}
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
+                  <span className="text-[9px] text-zinc-400">◆ Networking</span>
+
+                  <span className="text-[9px] text-zinc-400">◆ Business</span>
+
+                  <span className="text-[9px] text-zinc-400">
+                    ◆ Opportunities
+                  </span>
                 </div>
 
-                {/* Features */}
-                <div className="mt-6 space-y-2.5">
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-                    <span className="text-blue-400">◆</span>
-                    Professional networking
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-                    <span className="text-blue-400">◆</span>
-                    Business connections
-                  </div>
-
-                  <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-                    <span className="text-blue-400">◆</span>
-                    Opportunities & collaboration
-                  </div>
-                </div>
-
-                {/* Disabled Button */}
+                {/* Disabled CTA */}
                 <button
+                  type="button"
                   disabled
-                  className="mt-7 w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-zinc-500 font-bold text-sm cursor-not-allowed"
+                  className="mt-4 w-full h-9 inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.04] border border-white/[0.07] text-zinc-600 text-xs font-bold cursor-not-allowed"
                 >
                   Coming Soon
-                  <span className="text-base">🔒</span>
+                  <span>🔒</span>
                 </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Trust / Bottom Section */}
-        <section className="mt-10 rounded-[26px] border border-white/[0.07] bg-white/[0.025] px-5 py-5 sm:px-7">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-pink-400 border-2 border-[#070709]" />
-                <div className="w-8 h-8 rounded-full bg-purple-400 border-2 border-[#070709]" />
-                <div className="w-8 h-8 rounded-full bg-orange-400 border-2 border-[#070709]" />
-                <div className="w-8 h-8 rounded-full bg-blue-400 border-2 border-[#070709]" />
+        {/* =====================================================
+            TRUST STRIP
+        ====================================================== */}
+        <section className="mt-4">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-pink-400 text-sm">🛡</span>
+
+                <div>
+                  <p className="text-[10px] font-semibold">Safe</p>
+
+                  <p className="text-[8px] text-zinc-600">
+                    Better conversations
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium">
-                  People are joining right now
-                </p>
+              <div className="flex items-center gap-2">
+                <span className="text-purple-400 text-sm">🔒</span>
 
-                <p className="text-xs text-zinc-500">
-                  Your next conversation could be one swipe away.
-                </p>
+                <div>
+                  <p className="text-[10px] font-semibold">Private</p>
+
+                  <p className="text-[8px] text-zinc-600">
+                    Your privacy matters
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
-              <span className="text-emerald-400">●</span>
-              Safe conversations
-              <span className="text-zinc-700">•</span>
-              Real connections
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400 text-sm">👥</span>
+
+                <div>
+                  <p className="text-[10px] font-semibold">Real People</p>
+
+                  <p className="text-[8px] text-zinc-600">
+                    Genuine connections
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-orange-400 text-sm">🎁</span>
+
+                <div>
+                  <p className="text-[10px] font-semibold">Fun</p>
+
+                  <p className="text-[8px] text-zinc-600">More to discover</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/[0.06] py-7 px-5">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-sm font-semibold text-zinc-300">Flirta</div>
+      {/* =====================================================
+          FOOTER
+      ====================================================== */}
+      <footer className="relative z-10 border-t border-white/[0.05] py-5 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-zinc-400">Flirta</div>
 
-          <div className="text-xs text-zinc-600">
+          <div className="text-[9px] text-zinc-600">
             © 2026 Flirta — Meet. Connect. Repeat.
           </div>
         </div>
