@@ -351,9 +351,9 @@ export default function HomePage() {
                   <span className="text-blue-400">Corporate</span> Mode
                 </h3>
 
-                <p className="mt-1 text-sm text-zinc-400">
+                {/* <p className="mt-1 text-sm text-zinc-400">
                   Professional • Network • Grow
-                </p>
+                </p> */}
               </div>
 
               {/* Corporate visual */}
