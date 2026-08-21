@@ -458,10 +458,10 @@ export default function HomePage() {
                   <span className="text-base">→</span>
                 </button>
 
-                <p className="mt-4 text-center text-[10px] leading-relaxed text-zinc-600">
+                {/* <p className="mt-4 text-center text-[10px] leading-relaxed text-zinc-600">
                   We're working hard to bring you the best professional
                   networking experience.
-                </p>
+                </p> */}
               </div>
             </div>
           </aside>
