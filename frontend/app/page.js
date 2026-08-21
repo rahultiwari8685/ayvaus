@@ -16,9 +16,9 @@ export default function HomePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+            {/* <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
               <span className="text-base">♥</span>
-            </div>
+            </div> */}
 
             <div>
               <h1 className="text-lg font-bold tracking-tight leading-none">
@@ -87,12 +87,12 @@ export default function HomePage() {
 
                   <div className="relative z-10 h-full flex items-center">
                     <div className="px-6 sm:px-8 lg:px-10 max-w-[560px]">
-                      <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/35 border border-white/10 backdrop-blur-md">
+                      {/* <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/35 border border-white/10 backdrop-blur-md">
                         <span className="text-sm">🌐</span>
                         <span className="text-[10px] sm:text-xs text-white/85">
                           Connect worldwide
                         </span>
-                      </div>
+                      </div> */}
 
                       <h2 className="mt-4 text-[38px] sm:text-[48px] lg:text-[58px] font-black tracking-[-0.05em] leading-[0.92]">
                         Meet people.
@@ -272,9 +272,7 @@ export default function HomePage() {
                 {/* SERIOUS MODE */}
                 <div className="relative overflow-hidden rounded-[22px] border border-pink-400/25 bg-gradient-to-br from-pink-500/[0.10] to-transparent p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 shrink-0 rounded-full bg-pink-400/10 border border-pink-400/30 flex items-center justify-center text-3xl">
-                      ♥
-                    </div>
+                    <div className="w-16 h-16 shrink-0 rounded-full bg-pink-400/10 border border-pink-400/30 flex items-center justify-center text-3xl"></div>
 
                     <div className="min-w-0 flex-1">
                       <h4 className="text-xl font-bold">Serious Mode</h4>
