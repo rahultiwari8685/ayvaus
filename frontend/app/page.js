@@ -337,7 +337,7 @@ export default function HomePage() {
             <div className="absolute -top-24 -right-20 w-60 h-60 rounded-full bg-blue-500/15 blur-[90px]" />
             <div className="absolute bottom-10 left-0 w-48 h-48 rounded-full bg-blue-700/10 blur-[80px]" />
 
-            <div className="relative h-full min-h-[620px] xl:min-h-0 flex flex-col">
+            <div className="relative h-full min-h-[550px] xl:min-h-0 flex flex-col">
               {/* Badge */}
               <div>
                 <span className="inline-flex px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[9px] uppercase tracking-[0.14em] font-bold text-blue-300">
