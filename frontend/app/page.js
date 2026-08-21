@@ -46,7 +46,7 @@ export default function HomePage() {
         <section className="pt-6 md:pt-10">
           <div className="relative overflow-hidden rounded-[30px] md:rounded-[38px] border border-white/[0.1] bg-white/[0.03] shadow-2xl">
             {/* Hero Image */}
-            <div className="relative h-[560px] sm:h-[620px] md:h-[650px]">
+            <div className="relative h-[390px] sm:h-[420px] md:h-[440px]">
               <img
                 src="/hero.png"
                 alt="Flirta - Meet new people"
@@ -78,7 +78,8 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  <h2 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-[-0.05em] leading-[0.9]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-[-0.05em] leading-[0.92]">
+                    {" "}
                     Meet someone.
                     <br />
                     <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-orange-300 bg-clip-text text-transparent">
@@ -86,7 +87,8 @@ export default function HomePage() {
                     </span>
                   </h2>
 
-                  <p className="mt-5 max-w-xl text-sm sm:text-base md:text-lg text-white/65 leading-relaxed">
+                  <p className="mt-3 max-w-xl text-xs sm:text-sm md:text-base text-white/65 leading-relaxed">
+                    {" "}
                     Discover new people, start conversations and build
                     connections — from casual chats to meaningful relationships.
                   </p>
@@ -121,9 +123,9 @@ export default function HomePage() {
         </section>
 
         {/* Mode Selector */}
-        <section className="pt-12 md:pt-16">
+        <section className="pt-7 md:pt-8">
           {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-pink-400 mb-2">
                 Your experience
