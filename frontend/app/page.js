@@ -177,8 +177,7 @@ export default function HomePage() {
                       </p>
 
                       <p className="mt-3 text-xs text-zinc-400 leading-relaxed">
-                        Jump into random video chats and make new friends
-                        instantly.
+                        Jump into random video and make new friends instantly.
                       </p>
                     </div>
                   </div>
