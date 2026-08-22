@@ -326,7 +326,7 @@ export default function HomePage() {
 
                       <p className="mt-1 text-[10px] font-semibold text-pink-300">
                         ❤️ Relationship • 👫 Friendship • 🤝 Networking • 🌐
-                        Community • 💬 Social
+                        Community
                       </p>
 
                       <p className="mt-3 text-xs text-zinc-400 leading-relaxed">
@@ -384,7 +384,7 @@ export default function HomePage() {
               {/* Heading */}
               <div className="mt-5">
                 <h3 className="text-[30px] sm:text-[34px] xl:text-[30px] font-bold tracking-tight">
-                  <span className="text-blue-400">Opportunity & Corporate</span>
+                  <span className="text-blue-300">Opportunity & Corporate</span>
                 </h3>
 
                 <p className="mt-1 text-sm text-zinc-400">
