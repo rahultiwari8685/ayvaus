@@ -836,12 +836,20 @@ export default function VideoChat() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className={`object-cover transition-all duration-300 ${
+          // className={`object-cover transition-all duration-300 ${
+          //   isMobile && showChat
+          //     ? isExpanded
+          //       ? "fixed inset-0 z-[999] w-full h-full"
+          //       : "fixed z-[999] w-32 h-44 rounded-xl border-2 border-white shadow-2xl"
+          //     : "w-full h-full"
+          // }`}
+
+          className={`object-contain bg-black transition-all duration-300 ${
             isMobile && showChat
               ? isExpanded
                 ? "fixed inset-0 z-[999] w-full h-full"
                 : "fixed z-[999] w-32 h-44 rounded-xl border-2 border-white shadow-2xl"
-              : "w-full h-full"
+              : "absolute inset-0 w-full h-full"
           }`}
           style={
             isMobile && showChat && !isExpanded
@@ -854,7 +862,13 @@ export default function VideoChat() {
         />
 
         <div
-          className={`absolute bottom-44 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
+          // className={`absolute bottom-44 right-6 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
+          //   isMobile && showChat ? "hidden" : "block"
+          // }`}
+
+          className={`absolute bottom-44 ${
+            !isMobile && showChat ? "right-[25rem]" : "right-6"
+          } w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white shadow-xl transition-all duration-300 ${
             isMobile && showChat ? "hidden" : "block"
           }`}
         >
