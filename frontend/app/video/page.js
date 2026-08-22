@@ -220,28 +220,131 @@ export default function VideoChat() {
     draggingRef.current = false;
   }
 
+  // async function createPeer() {
+  //   iceQueueRef.current = [];
+
+  //   if (!streamRef.current) return;
+
+  //   if (pcRef.current) {
+  //     pcRef.current.close();
+  //     pcRef.current = null;
+  //   }
+
+  //   iceQueueRef.current = [];
+
+  //   const res = await fetch("https://api.flirtaus.com/turn-credentials");
+  //   const turn = await res.json();
+
+  //   const pc = new RTCPeerConnection({
+  //     iceServers: [
+  //       { urls: "stun:stun.l.google.com:19302" },
+  //       {
+  //         urls: "turn:72.61.231.247:3478?transport=udp",
+  //         username: turn.username,
+  //         credential: turn.credential,
+  //       },
+  //     ],
+  //     iceTransportPolicy: "all",
+  //   });
+
+  //   streamRef.current.getTracks().forEach((track) => {
+  //     pc.addTrack(track, streamRef.current);
+  //   });
+
+  //   pc.ontrack = async (event) => {
+  //     console.log("📡 REMOTE TRACK RECEIVED:", {
+  //       kind: event.track.kind,
+  //       id: event.track.id,
+  //       label: event.track.label,
+  //     });
+
+  //     if (!remoteVideo.current.srcObject) {
+  //       remoteVideo.current.srcObject = new MediaStream();
+  //     }
+
+  //     remoteVideo.current.srcObject.addTrack(event.track);
+
+  //     if (event.track.kind === "audio" && !audioContextRef.current) {
+  //       console.log("🎧 Starting subtitle from REMOTE audio track");
+
+  //       await startRemoteSubtitle(event.track);
+  //     }
+  //   };
+
+  //   pc.onicecandidate = (e) => {
+  //     if (e.candidate) {
+  //       socketRef.current.emit("signal", { candidate: e.candidate });
+  //     }
+  //   };
+
+  //   pc.oniceconnectionstatechange = () => {
+  //     console.log("ICE State:", pc.iceConnectionState);
+
+  //     if (pc.iceConnectionState === "checking") {
+  //       setStatus("Connecting...");
+  //     }
+
+  //     if (pc.iceConnectionState === "connected") {
+  //       setStatus("Connected");
+
+  //       if (pc.iceConnectionState === "connected") {
+  //         setStatus("Connected");
+  //       }
+  //     }
+
+  //     if (pc.iceConnectionState === "disconnected") {
+  //       console.log("ICE disconnected, waiting...");
+
+  //       setTimeout(() => {
+  //         if (pc.iceConnectionState === "disconnected") {
+  //           socketRef.current.emit("next");
+  //         }
+  //       }, 5000);
+  //     }
+
+  //     if (
+  //       pc.iceConnectionState === "failed" ||
+  //       pc.iceConnectionState === "closed"
+  //     ) {
+  //       socketRef.current.emit("next");
+  //     }
+
+  //     if (pc.iceConnectionState === "failed") {
+  //       console.log("ICE failed, retrying...");
+  //       socketRef.current.emit("next");
+  //     }
+  //   };
+
+  //   pcRef.current = pc;
+  // }
+
   async function createPeer() {
     iceQueueRef.current = [];
 
-    if (!streamRef.current) return;
+    if (!streamRef.current) {
+      console.log("❌ Local stream not ready");
+      return null;
+    }
 
+    // Always destroy previous peer before creating a new one
     if (pcRef.current) {
+      console.log("♻️ Closing old PeerConnection");
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      pcRef.current.oniceconnectionstatechange = null;
       pcRef.current.close();
       pcRef.current = null;
     }
 
-    iceQueueRef.current = [];
-
-    const res = await fetch("https://api.flirtaus.com/turn-credentials");
-    const turn = await res.json();
-
+    /*
+     * IMPORTANT:
+     * Do not wait for TURN credentials before creating the PeerConnection.
+     * STUN can start immediately. TURN will be added when credentials arrive.
+     */
     const pc = new RTCPeerConnection({
       iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
         {
-          urls: "turn:72.61.231.247:3478?transport=udp",
-          username: turn.username,
-          credential: turn.credential,
+          urls: "stun:stun.l.google.com:19302",
         },
       ],
       iceTransportPolicy: "all",
@@ -258,11 +361,17 @@ export default function VideoChat() {
         label: event.track.label,
       });
 
+      if (!remoteVideo.current) return;
+
       if (!remoteVideo.current.srcObject) {
         remoteVideo.current.srcObject = new MediaStream();
       }
 
-      remoteVideo.current.srcObject.addTrack(event.track);
+      const remoteStream = remoteVideo.current.srcObject;
+
+      if (!remoteStream.getTracks().some((t) => t.id === event.track.id)) {
+        remoteStream.addTrack(event.track);
+      }
 
       if (event.track.kind === "audio" && !audioContextRef.current) {
         console.log("🎧 Starting subtitle from REMOTE audio track");
@@ -271,51 +380,97 @@ export default function VideoChat() {
       }
     };
 
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socketRef.current.emit("signal", { candidate: e.candidate });
-      }
+    pc.onicecandidate = (event) => {
+      if (!event.candidate) return;
+
+      if (!socketRef.current?.connected) return;
+
+      socketRef.current.emit("signal", {
+        candidate: event.candidate,
+      });
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log("ICE State:", pc.iceConnectionState);
+      const state = pc.iceConnectionState;
 
-      if (pc.iceConnectionState === "checking") {
+      console.log("🧊 ICE State:", state);
+
+      if (state === "checking") {
         setStatus("Connecting...");
       }
 
-      if (pc.iceConnectionState === "connected") {
+      if (state === "connected" || state === "completed") {
+        console.log("✅ WebRTC CONNECTED");
         setStatus("Connected");
-
-        if (pc.iceConnectionState === "connected") {
-          setStatus("Connected");
-        }
       }
 
-      if (pc.iceConnectionState === "disconnected") {
-        console.log("ICE disconnected, waiting...");
+      if (state === "disconnected") {
+        console.log("⚠️ ICE disconnected - waiting for recovery");
 
         setTimeout(() => {
-          if (pc.iceConnectionState === "disconnected") {
-            socketRef.current.emit("next");
+          if (
+            pcRef.current === pc &&
+            pc.iceConnectionState === "disconnected"
+          ) {
+            console.log("❌ ICE did not recover");
+
+            if (socketRef.current?.connected) {
+              socketRef.current.emit("next");
+            }
           }
-        }, 5000);
+        }, 3000);
       }
 
-      if (
-        pc.iceConnectionState === "failed" ||
-        pc.iceConnectionState === "closed"
-      ) {
-        socketRef.current.emit("next");
-      }
+      if (state === "failed") {
+        console.log("❌ ICE failed");
 
-      if (pc.iceConnectionState === "failed") {
-        console.log("ICE failed, retrying...");
-        socketRef.current.emit("next");
+        if (pcRef.current === pc && socketRef.current?.connected) {
+          socketRef.current.emit("next");
+        }
       }
     };
 
     pcRef.current = pc;
+
+    /*
+     * Fetch TURN credentials in the background.
+     * This no longer blocks PeerConnection creation.
+     */
+    fetch("https://api.flirtaus.com/turn-credentials")
+      .then((res) => res.json())
+      .then((turn) => {
+        if (!pcRef.current || pcRef.current !== pc) return;
+
+        console.log("✅ TURN credentials received");
+
+        /*
+         * ICE servers cannot safely be changed by replacing
+         * the RTCPeerConnection. Use setConfiguration().
+         */
+        pc.setConfiguration({
+          iceServers: [
+            {
+              urls: "stun:stun.l.google.com:19302",
+            },
+            {
+              urls: [
+                "turn:72.61.231.247:3478?transport=udp",
+                "turn:72.61.231.247:3478?transport=tcp",
+              ],
+              username: turn.username,
+              credential: turn.credential,
+            },
+          ],
+          iceTransportPolicy: "all",
+        });
+
+        console.log("🟢 TURN added to active PeerConnection");
+      })
+      .catch((err) => {
+        console.log("⚠️ TURN credentials failed, continuing with STUN:", err);
+      });
+
+    return pc;
   }
 
   useEffect(() => {
@@ -366,13 +521,25 @@ export default function VideoChat() {
       deepgramReadyRef.current = true;
     });
 
+    // async function start() {
+    //   await initCamera();
+    //   if (!mounted) return;
+
+    //   await createPeer();
+
+    //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+    // }
+
     async function start() {
       await initCamera();
+
       if (!mounted) return;
 
-      await createPeer();
-
+      console.log("🎥 Camera ready");
       console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+
+      // DO NOT createPeer() here.
+      // PeerConnection should be created only after a stranger is matched.
     }
 
     socket.on("online-users", (count) => {
@@ -381,29 +548,102 @@ export default function VideoChat() {
 
     start();
 
+    // socket.on("matched", async ({ role }) => {
+    //   deepgramReadyRef.current = false;
+    //   if (!pcRef.current) {
+    //     await createPeer();
+    //   }
+
+    //   roleRef.current = role;
+
+    //   console.log("🌍 RESENT LANGUAGE:", languageRef.current);
+    //   console.log("🌍 RESENT LANGUAGE:", language);
+
+    //   setStatus("Connecting...");
+    // });
+
     socket.on("matched", async ({ role }) => {
+      console.log("🤝 MATCHED:", role);
+
       deepgramReadyRef.current = false;
-      if (!pcRef.current) {
-        await createPeer();
-      }
 
       roleRef.current = role;
 
-      console.log("🌍 RESENT LANGUAGE:", languageRef.current);
-      console.log("🌍 RESENT LANGUAGE:", language);
-
       setStatus("Connecting...");
+
+      // Clear old remote stream
+      if (remoteVideo.current?.srcObject) {
+        remoteVideo.current.srcObject
+          .getTracks()
+          .forEach((track) => track.stop());
+
+        remoteVideo.current.srcObject = null;
+      }
+
+      // Stop old subtitle processing
+      stopAudioStreaming();
+      setVoiceSubtitle("");
+
+      // ALWAYS create a fresh PeerConnection for a new stranger
+      await createPeer();
+
+      console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     });
 
-    socket.on("ready", async () => {
-      if (roleRef.current !== "caller") return;
-      if (!pcRef.current) return;
+    // socket.on("ready", async () => {
+    //   if (roleRef.current !== "caller") return;
+    //   if (!pcRef.current) return;
 
-      const offer = await pcRef.current.createOffer();
-      await pcRef.current.setLocalDescription(offer);
-      socketRef.current.emit("signal", {
-        sdp: pcRef.current.localDescription,
-      });
+    //   const offer = await pcRef.current.createOffer();
+    //   await pcRef.current.setLocalDescription(offer);
+    //   socketRef.current.emit("signal", {
+    //     sdp: pcRef.current.localDescription,
+    //   });
+    // });
+
+    socket.on("ready", async () => {
+      if (roleRef.current !== "caller") {
+        return;
+      }
+
+      const pc = pcRef.current;
+
+      if (!pc) {
+        console.log("❌ Cannot create offer: PeerConnection missing");
+        return;
+      }
+
+      if (pc.signalingState !== "stable") {
+        console.log(
+          "⚠️ Cannot create offer. Signaling state:",
+          pc.signalingState,
+        );
+        return;
+      }
+
+      try {
+        console.log("📞 Creating WebRTC offer...");
+
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        });
+
+        await pc.setLocalDescription(offer);
+
+        if (!socketRef.current?.connected) {
+          console.log("❌ Socket disconnected before sending offer");
+          return;
+        }
+
+        socketRef.current.emit("signal", {
+          sdp: pc.localDescription,
+        });
+
+        console.log("📤 OFFER SENT");
+      } catch (err) {
+        console.error("❌ Offer creation error:", err);
+      }
     });
 
     socket.on("signal", async (data) => {
@@ -513,15 +753,29 @@ export default function VideoChat() {
 
       recognitionStartedOnceRef.current = false;
 
-      setTimeout(async () => {
+      setTimeout(() => {
         recognitionStartedOnceRef.current = false;
-        await createPeer();
+
+        if (!socketRef.current?.connected) {
+          return;
+        }
+
         socketRef.current.emit("join", {
           language: languageRef.current,
         });
 
         console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
-      }, 500);
+      }, 100);
+
+      // setTimeout(async () => {
+      //   recognitionStartedOnceRef.current = false;
+      //   await createPeer();
+      //   socketRef.current.emit("join", {
+      //     language: languageRef.current,
+      //   });
+
+      //   console.log("🌍 REJOIN LANGUAGE:", languageRef.current);
+      // }, 500);
     });
 
     socket.on("next-blocked", () => {
@@ -596,30 +850,74 @@ export default function VideoChat() {
     });
   }, [showChat, messages]);
 
+  // async function nextChat() {
+  //   setStatus("Looking for someone...");
+  //   setMessages([]);
+
+  //   shouldRestartRecognitionRef.current = false;
+
+  //   stopAudioStreaming();
+  //   setVoiceSubtitle("");
+
+  //   if (pcRef.current) {
+  //     pcRef.current.ontrack = null;
+  //     pcRef.current.onicecandidate = null;
+  //     pcRef.current.close();
+  //     pcRef.current = null;
+  //   }
+
+  //   if (remoteVideo.current?.srcObject) {
+  //     remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+  //     remoteVideo.current.srcObject = null;
+  //   }
+  //   await createPeer();
+
+  //   deepgramReadyRef.current = false;
+  //   socketRef.current.emit("next");
+  // }
+
   async function nextChat() {
+    console.log("⏭️ NEXT CLICKED");
+
     setStatus("Looking for someone...");
     setMessages([]);
 
+    deepgramReadyRef.current = false;
     shouldRestartRecognitionRef.current = false;
 
     stopAudioStreaming();
     setVoiceSubtitle("");
 
+    // Close current WebRTC immediately
     if (pcRef.current) {
       pcRef.current.ontrack = null;
       pcRef.current.onicecandidate = null;
+      pcRef.current.oniceconnectionstatechange = null;
+
       pcRef.current.close();
       pcRef.current = null;
     }
 
+    // Clear remote video immediately
     if (remoteVideo.current?.srcObject) {
-      remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
+      remoteVideo.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+
       remoteVideo.current.srcObject = null;
     }
-    await createPeer();
 
-    deepgramReadyRef.current = false;
-    socketRef.current.emit("next");
+    /*
+     * IMPORTANT:
+     * Do NOT call createPeer() here.
+     *
+     * Tell the server to find the next user immediately.
+     */
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("next");
+    }
+
+    console.log("📤 NEXT SENT - waiting for new match");
   }
 
   function sendMessage(e) {
