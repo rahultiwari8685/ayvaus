@@ -383,7 +383,7 @@ export default function HomePage() {
 
               {/* Heading */}
               <div className="mt-5">
-                <h3 className="text-[30px] sm:text-[34px] xl:text-[30px] font-bold tracking-tight">
+                <h3 className="text-[20px] sm:text-[24px] xl:text-[20px] font-bold tracking-tight">
                   <span className="text-blue-300">Opportunity & Corporate</span>
                 </h3>
 
