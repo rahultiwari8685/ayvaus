@@ -3,17 +3,11 @@ import Footer from "../app/serious/dashboard/components/Footer";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white overflow-x-hidden">
-      {/* =====================================================
-          BACKGROUND
-      ====================================================== */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute -top-32 -left-32 w-72 h-72 rounded-full bg-pink-500/5 blur-[90px]" />
         <div className="absolute top-1/2 -right-32 w-72 h-72 rounded-full bg-purple-500/5 blur-[90px]" />
       </div>
 
-      {/* =====================================================
-          NAVBAR
-      ====================================================== */}
       <header className="relative z-20 border-b border-white/[0.06]">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
           {/* Logo */}
@@ -50,26 +44,12 @@ export default function HomePage() {
         </nav>
       </header>
 
-      {/* =====================================================
-          MAIN
-      ====================================================== */}
       <main className="relative z-10 max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-7 pb-8">
-        {/* =====================================================
-            DESKTOP LAYOUT
-            LEFT = HERO + FUN/SERIOUS + TRUST
-            RIGHT = ONE FULL-HEIGHT CORPORATE SIDEBAR
-        ====================================================== */}
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-5 pt-5">
-          {/* =================================================
-              LEFT CONTENT
-          ================================================== */}
           <div className="min-w-0">
-            {/* =================================================
-                HERO
-            ================================================== */}
             <section>
               <div className="relative overflow-hidden rounded-[24px] border border-white/[0.10] bg-[#09090d]">
-                <div className="relative h-[250px] sm:h-[300px] lg:h-[300px]">
+                <div className="relative h-[300px] sm:h-[300px] lg:h-[300px]">
                   <img
                     src="/hero.png"
                     alt="Flirta - Meet people your way"
@@ -88,7 +68,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
 
                   <div className="relative z-10 h-full flex items-center">
-                    <div className="px-6 sm:px-8 lg:px-10 max-w-[560px]">
+                    <div className="w-full px-5 sm:px-8 lg:px-10 max-w-[560px]">
                       {/* <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/35 border border-white/10 backdrop-blur-md">
                         <span className="text-sm">🌐</span>
                         <span className="text-[10px] sm:text-xs text-white/85">
@@ -96,7 +76,8 @@ export default function HomePage() {
                         </span>
                       </div> */}
 
-                      <h2 className="mt-4 text-[38px] sm:text-[48px] lg:text-[58px] font-black tracking-[-0.05em] leading-[0.92]">
+                      <h2 className="mt-3 text-[32px] sm:text-[48px] lg:text-[58px] font-black tracking-[-0.05em] leading-[0.95]">
+                        {" "}
                         Meet people.
                         <br />
                         <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-orange-300 bg-clip-text text-transparent">
@@ -202,9 +183,6 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* =================================================
-                MODE TITLE
-            ================================================== */}
             <section className="pt-5">
               <div className="flex items-center justify-center gap-3 mb-3">
                 <span className="hidden sm:block h-px w-14 bg-gradient-to-r from-transparent to-pink-500/40" />
@@ -218,9 +196,6 @@ export default function HomePage() {
                 <span className="hidden sm:block h-px w-14 bg-gradient-to-l from-transparent to-pink-500/40" />
               </div>
 
-              {/* =================================================
-                  ONLY FUN + SERIOUS MODES
-              ================================================== */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* FUN MODE */}
                 <div className="relative overflow-hidden rounded-[22px] border border-orange-400/25 bg-gradient-to-br from-orange-500/[0.10] to-transparent p-5">
@@ -388,20 +363,8 @@ export default function HomePage() {
                 </div>
               </div>
             </section>
-
-            {/* =================================================
-                TRUST STRIP
-            ================================================== */}
           </div>
 
-          {/* =================================================
-              CORPORATE SIDEBAR
-              IMPORTANT:
-              - Only Corporate Mode
-              - Full height of the complete left content
-              - Starts beside the hero
-              - Does NOT appear again below
-          ================================================== */}
           <aside className="relative overflow-hidden rounded-[24px] border border-blue-500/35 bg-gradient-to-b from-[#06152d] via-[#071224] to-[#050912] p-6 xl:min-h-full">
             <div className="absolute -top-24 -right-20 w-60 h-60 rounded-full bg-blue-500/15 blur-[90px]" />
             <div className="absolute bottom-10 left-0 w-48 h-48 rounded-full bg-blue-700/10 blur-[80px]" />
@@ -538,19 +501,6 @@ export default function HomePage() {
       </main>
 
       <Footer />
-
-      {/* =====================================================
-          FOOTER
-      ====================================================== */}
-      {/* <footer className="relative z-10 border-t border-white/[0.05] py-5 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="text-xs font-semibold text-zinc-400">Flirta</div>
-
-          <div className="text-[9px] text-zinc-600">
-            © 2026 Flirta — Meet. Connect. Repeat.
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 }
