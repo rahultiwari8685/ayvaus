@@ -247,6 +247,11 @@ io.on("connection", async (socket) => {
         s1.partnerId = s2.id;
         s2.partnerId = s1.id;
 
+        const sessionId = crypto.randomUUID();
+
+        s1.sessionId = sessionId;
+        s2.sessionId = sessionId;
+
         if (s1.dg) s1.dg.close();
 
         s1.dg = new DeepgramService(s1, translateText);
@@ -283,8 +288,18 @@ io.on("connection", async (socket) => {
         }
 
         if (mode === "serious") {
+          // s1.emit("matched", {
+          //   role: "caller",
+          //   partner: {
+          //     name: s2.user.name,
+          //     age: s2.user.age,
+          //     gender: s2.user.gender,
+          //   },
+          // });
+
           s1.emit("matched", {
             role: "caller",
+            sessionId,
             partner: {
               name: s2.user.name,
               age: s2.user.age,
@@ -292,8 +307,18 @@ io.on("connection", async (socket) => {
             },
           });
 
+          // s2.emit("matched", {
+          //   role: "callee",
+          //   partner: {
+          //     name: s1.user.name,
+          //     age: s1.user.age,
+          //     gender: s1.user.gender,
+          //   },
+          // });
+
           s2.emit("matched", {
             role: "callee",
+            sessionId,
             partner: {
               name: s1.user.name,
               age: s1.user.age,
@@ -303,17 +328,29 @@ io.on("connection", async (socket) => {
         } else {
           s1.emit("matched", {
             role: "caller",
+            sessionId,
           });
+          // s1.emit("matched", {
+          //   role: "caller",
+          // });
+
+          // s2.emit("matched", {
+          //   role: "callee",
+          // });
 
           s2.emit("matched", {
             role: "callee",
+            sessionId,
           });
         }
 
-        setTimeout(() => {
-          s1.emit("ready");
-          s2.emit("ready");
-        }, 300);
+        // setTimeout(() => {
+        //   s1.emit("ready");
+        //   s2.emit("ready");
+        // }, 300);
+
+        s1.emit("ready");
+        s2.emit("ready");
 
         return tryMatch(mode);
       }

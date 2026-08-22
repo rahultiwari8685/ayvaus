@@ -442,7 +442,12 @@ export default function VideoChat() {
 
       if (!socketRef.current?.connected) return;
 
+      // socketRef.current.emit("signal", {
+      //   candidate: event.candidate,
+      // });
+
       socketRef.current.emit("signal", {
+        sessionId: sessionIdRef.current,
         candidate: event.candidate,
       });
     };
@@ -634,8 +639,12 @@ export default function VideoChat() {
     //   setStatus("Connecting...");
     // });
 
-    socket.on("matched", async ({ role }) => {
+    socket.on("matched", async ({ role, sessionId }) => {
       console.log("🤝 MATCHED:", role);
+
+      sessionIdRef.current = sessionId;
+
+      console.log("🆔 WEBRTC SESSION:", sessionId);
 
       deepgramReadyRef.current = false;
 
@@ -752,7 +761,12 @@ export default function VideoChat() {
 
         await pc.setLocalDescription(offer);
 
+        // socketRef.current.emit("signal", {
+        //   sdp: pc.localDescription,
+        // });
+
         socketRef.current.emit("signal", {
+          sessionId: sessionIdRef.current,
           sdp: pc.localDescription,
         });
 

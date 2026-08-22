@@ -205,10 +205,13 @@ export default function HomePage() {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xl font-bold">Fun Mode</h4>
+                      <h4 className="text-xl font-bold">Meet & Enjoy</h4>
 
-                      <p className="mt-1 text-[10px] font-semibold text-orange-300">
+                      {/* <p className="mt-1 text-[10px] font-semibold text-orange-300">
                         Instant • Random • No Signup
+                      </p> */}
+                      <p className="mt-1 text-[10px] font-semibold text-orange-300">
+                        Meet someone new.
                       </p>
 
                       <p className="mt-3 text-xs text-zinc-400 leading-relaxed">
@@ -221,7 +224,7 @@ export default function HomePage() {
                     href="/video"
                     className="mt-5 w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-sm font-bold hover:opacity-90 transition"
                   >
-                    Start Fun Mode
+                    Start from Fun
                     <span className="text-lg">→</span>
                   </a>
 
@@ -319,10 +322,11 @@ export default function HomePage() {
                       </svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xl font-bold">Serious Mode</h4>
+                      <h4 className="text-xl font-bold">Connect</h4>
 
                       <p className="mt-1 text-[10px] font-semibold text-pink-300">
-                        Verified • Dating • Relationships
+                        ❤️ Relationship • 👫 Friendship • 🤝 Networking • 🌐
+                        Community • 💬 Social
                       </p>
 
                       <p className="mt-3 text-xs text-zinc-400 leading-relaxed">
@@ -380,12 +384,12 @@ export default function HomePage() {
               {/* Heading */}
               <div className="mt-5">
                 <h3 className="text-[30px] sm:text-[34px] xl:text-[30px] font-bold tracking-tight">
-                  <span className="text-blue-400">Corporate</span> Mode
+                  <span className="text-blue-400">Opportunity & Corporate</span>
                 </h3>
 
-                {/* <p className="mt-1 text-sm text-zinc-400">
-                  Professional • Network • Grow
-                </p> */}
+                <p className="mt-1 text-sm text-zinc-400">
+                  Career • Talent • Collaborate • Grow
+                </p>
               </div>
 
               {/* Corporate visual */}
