@@ -59,6 +59,11 @@ export default function VideoChat() {
 
   const deepgramReadyRef = useRef(false);
 
+  const turnConfigRef = useRef(null);
+  const turnLoadingRef = useRef(null);
+
+  const peerReadyRef = useRef(null);
+
   useEffect(() => {
     languageRef.current = language;
   }, [language]);
@@ -318,6 +323,46 @@ export default function VideoChat() {
   //   pcRef.current = pc;
   // }
 
+  async function loadTurnCredentials() {
+    if (turnConfigRef.current) {
+      return turnConfigRef.current;
+    }
+
+    if (turnLoadingRef.current) {
+      return turnLoadingRef.current;
+    }
+
+    turnLoadingRef.current = fetch("https://api.flirtaus.com/turn-credentials")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`TURN HTTP ${res.status}`);
+        }
+
+        return res.json();
+      })
+      .then((turn) => {
+        turnConfigRef.current = {
+          urls: [
+            "turn:72.61.231.247:3478?transport=udp",
+            "turn:72.61.231.247:3478?transport=tcp",
+          ],
+          username: turn.username,
+          credential: turn.credential,
+        };
+
+        return turnConfigRef.current;
+      })
+      .catch((err) => {
+        console.error("❌ TURN credentials error:", err);
+        return null;
+      })
+      .finally(() => {
+        turnLoadingRef.current = null;
+      });
+
+    return turnLoadingRef.current;
+  }
+
   async function createPeer() {
     iceQueueRef.current = [];
 
@@ -341,11 +386,23 @@ export default function VideoChat() {
      * Do not wait for TURN credentials before creating the PeerConnection.
      * STUN can start immediately. TURN will be added when credentials arrive.
      */
+    // const pc = new RTCPeerConnection({
+    //   iceServers: [
+    //     {
+    //       urls: "stun:stun.l.google.com:19302",
+    //     },
+    //   ],
+    //   iceTransportPolicy: "all",
+    // });
+
+    const turn = turnConfigRef.current;
+
     const pc = new RTCPeerConnection({
       iceServers: [
         {
           urls: "stun:stun.l.google.com:19302",
         },
+        ...(turn ? [turn] : []),
       ],
       iceTransportPolicy: "all",
     });
@@ -436,39 +493,39 @@ export default function VideoChat() {
      * Fetch TURN credentials in the background.
      * This no longer blocks PeerConnection creation.
      */
-    fetch("https://api.flirtaus.com/turn-credentials")
-      .then((res) => res.json())
-      .then((turn) => {
-        if (!pcRef.current || pcRef.current !== pc) return;
+    // fetch("https://api.flirtaus.com/turn-credentials")
+    //   .then((res) => res.json())
+    //   .then((turn) => {
+    //     if (!pcRef.current || pcRef.current !== pc) return;
 
-        console.log("✅ TURN credentials received");
+    //     console.log("✅ TURN credentials received");
 
-        /*
-         * ICE servers cannot safely be changed by replacing
-         * the RTCPeerConnection. Use setConfiguration().
-         */
-        pc.setConfiguration({
-          iceServers: [
-            {
-              urls: "stun:stun.l.google.com:19302",
-            },
-            {
-              urls: [
-                "turn:72.61.231.247:3478?transport=udp",
-                "turn:72.61.231.247:3478?transport=tcp",
-              ],
-              username: turn.username,
-              credential: turn.credential,
-            },
-          ],
-          iceTransportPolicy: "all",
-        });
+    //     /*
+    //      * ICE servers cannot safely be changed by replacing
+    //      * the RTCPeerConnection. Use setConfiguration().
+    //      */
+    //     pc.setConfiguration({
+    //       iceServers: [
+    //         {
+    //           urls: "stun:stun.l.google.com:19302",
+    //         },
+    //         {
+    //           urls: [
+    //             "turn:72.61.231.247:3478?transport=udp",
+    //             "turn:72.61.231.247:3478?transport=tcp",
+    //           ],
+    //           username: turn.username,
+    //           credential: turn.credential,
+    //         },
+    //       ],
+    //       iceTransportPolicy: "all",
+    //     });
 
-        console.log("🟢 TURN added to active PeerConnection");
-      })
-      .catch((err) => {
-        console.log("⚠️ TURN credentials failed, continuing with STUN:", err);
-      });
+    //     console.log("🟢 TURN added to active PeerConnection");
+    //   })
+    //   .catch((err) => {
+    //     console.log("⚠️ TURN credentials failed, continuing with STUN:", err);
+    //   });
 
     return pc;
   }
@@ -530,16 +587,31 @@ export default function VideoChat() {
     //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     // }
 
+    // async function start() {
+    //   await initCamera();
+
+    //   if (!mounted) return;
+
+    //   console.log("🎥 Camera ready");
+    //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+
+    //   // DO NOT createPeer() here.
+    //   // PeerConnection should be created only after a stranger is matched.
+    // }
+
     async function start() {
+      const turnPromise = loadTurnCredentials();
+
       await initCamera();
 
       if (!mounted) return;
 
-      console.log("🎥 Camera ready");
-      console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+      // Load TURN in parallel while camera is initializing
+      await turnPromise;
 
-      // DO NOT createPeer() here.
-      // PeerConnection should be created only after a stranger is matched.
+      console.log("🎥 Camera ready");
+      console.log("🌍 TURN ready");
+      console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
 
     socket.on("online-users", (count) => {
@@ -585,7 +657,10 @@ export default function VideoChat() {
       setVoiceSubtitle("");
 
       // ALWAYS create a fresh PeerConnection for a new stranger
-      await createPeer();
+      // await createPeer();
+
+      peerReadyRef.current = createPeer();
+      await peerReadyRef.current;
 
       console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     });
@@ -601,9 +676,58 @@ export default function VideoChat() {
     //   });
     // });
 
+    // socket.on("ready", async () => {
+    //   if (roleRef.current !== "caller") {
+    //     return;
+    //   }
+
+    //   const pc = pcRef.current;
+
+    //   if (!pc) {
+    //     console.log("❌ Cannot create offer: PeerConnection missing");
+    //     return;
+    //   }
+
+    //   if (pc.signalingState !== "stable") {
+    //     console.log(
+    //       "⚠️ Cannot create offer. Signaling state:",
+    //       pc.signalingState,
+    //     );
+    //     return;
+    //   }
+
+    //   try {
+    //     console.log("📞 Creating WebRTC offer...");
+
+    //     const offer = await pc.createOffer({
+    //       offerToReceiveAudio: true,
+    //       offerToReceiveVideo: true,
+    //     });
+
+    //     await pc.setLocalDescription(offer);
+
+    //     if (!socketRef.current?.connected) {
+    //       console.log("❌ Socket disconnected before sending offer");
+    //       return;
+    //     }
+
+    //     socketRef.current.emit("signal", {
+    //       sdp: pc.localDescription,
+    //     });
+
+    //     console.log("📤 OFFER SENT");
+    //   } catch (err) {
+    //     console.error("❌ Offer creation error:", err);
+    //   }
+    // });
+
     socket.on("ready", async () => {
       if (roleRef.current !== "caller") {
         return;
+      }
+
+      if (peerReadyRef.current) {
+        await peerReadyRef.current;
       }
 
       const pc = pcRef.current;
@@ -624,17 +748,9 @@ export default function VideoChat() {
       try {
         console.log("📞 Creating WebRTC offer...");
 
-        const offer = await pc.createOffer({
-          offerToReceiveAudio: true,
-          offerToReceiveVideo: true,
-        });
+        const offer = await pc.createOffer();
 
         await pc.setLocalDescription(offer);
-
-        if (!socketRef.current?.connected) {
-          console.log("❌ Socket disconnected before sending offer");
-          return;
-        }
 
         socketRef.current.emit("signal", {
           sdp: pc.localDescription,
