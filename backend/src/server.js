@@ -860,6 +860,11 @@ io.on("connection", async (socket) => {
       socket.partnerId = partnerSocket.id;
       partnerSocket.partnerId = socket.id;
 
+      const sessionId = crypto.randomUUID();
+
+      socket.sessionId = sessionId;
+      partnerSocket.sessionId = sessionId;
+
       socket.dg?.close();
 
       socket.dg = new DeepgramService(socket, translateText);
@@ -887,6 +892,7 @@ io.on("connection", async (socket) => {
 
       socket.emit("matched", {
         role: "caller",
+        sessionId,
         partner: {
           name: partnerSocket.user.name,
           age: partnerSocket.user.age,
@@ -896,6 +902,7 @@ io.on("connection", async (socket) => {
 
       partnerSocket.emit("matched", {
         role: "callee",
+        sessionId,
         partner: {
           name: socket.user.name,
           age: socket.user.age,
@@ -903,10 +910,13 @@ io.on("connection", async (socket) => {
         },
       });
 
-      setTimeout(() => {
-        socket.emit("ready");
-        partnerSocket.emit("ready");
-      }, 300);
+      // setTimeout(() => {
+      //   socket.emit("ready");
+      //   partnerSocket.emit("ready");
+      // }, 300);
+
+      socket.emit("ready");
+      partnerSocket.emit("ready");
 
       console.log(`🔁 Reconnected ${userId} ↔ ${partnerId}`);
     } catch (err) {
