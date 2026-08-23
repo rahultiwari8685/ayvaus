@@ -123,7 +123,9 @@ async function translateText(text, targetLang) {
 io.on("connection", async (socket) => {
   socket.audioQueue ??= [];
 
+  // socket.language = "en-US";
   socket.language = "en-US";
+  socket.subtitleLanguage = "en-US";
 
   socket.dg = null;
 
@@ -340,9 +342,16 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("join", ({ language } = {}) => {
-    socket.language = language || socket.language || "en-US";
+    if (language && typeof language === "string") {
+      socket.language = language;
+      socket.subtitleLanguage = language;
+    }
 
-    console.log("🌍 JOIN LANGUAGE:", socket.id, socket.language);
+    console.log("🌍 JOIN LANGUAGE:", {
+      socket: socket.id,
+      language: socket.language,
+      subtitleLanguage: socket.subtitleLanguage,
+    });
 
     const queue = socket.mode === "serious" ? seriousQueue : randomQueue;
 
@@ -360,23 +369,44 @@ io.on("connection", async (socket) => {
   //   console.log("🌍", socket.id, "Subtitle Language:", socket.language);
   // });
 
+  // socket.on("update-language", (language) => {
+  //   if (!language || typeof language !== "string") {
+  //     console.log("⚠️ Invalid subtitle language:", language);
+  //     return;
+  //   }
+
+  //   socket.language = language;
+
+  //   console.log(
+  //     "🌍 SUBTITLE LANGUAGE UPDATED:",
+  //     socket.id,
+  //     "=>",
+  //     socket.language,
+  //   );
+
+  //   socket.emit("language-updated", {
+  //     language: socket.language,
+  //   });
+  // });
+
   socket.on("update-language", (language) => {
     if (!language || typeof language !== "string") {
-      console.log("⚠️ Invalid subtitle language:", language);
+      console.log("❌ INVALID SUBTITLE LANGUAGE:", language);
       return;
     }
 
     socket.language = language;
+    socket.subtitleLanguage = language;
 
-    console.log(
-      "🌍 SUBTITLE LANGUAGE UPDATED:",
-      socket.id,
-      "=>",
-      socket.language,
-    );
+    console.log("🌍 LANGUAGE UPDATED:", {
+      socket: socket.id,
+      language: socket.language,
+      subtitleLanguage: socket.subtitleLanguage,
+      partnerId: socket.partnerId,
+    });
 
     socket.emit("language-updated", {
-      language: socket.language,
+      language: socket.subtitleLanguage,
     });
   });
 

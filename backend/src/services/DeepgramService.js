@@ -180,7 +180,19 @@ class DeepgramService {
           return;
         }
 
-        const targetLang = (this.socket.language || "en-US").split("-")[0];
+        // const targetLang = (this.socket.language || "en-US").split("-")[0];
+
+        const selectedLanguage =
+          this.socket.subtitleLanguage || this.socket.language || "en-US";
+
+        const targetLang = selectedLanguage.split("-")[0];
+
+        console.log("🌍 TRANSLATION TARGET:", {
+          socket: this.socket.id,
+          partner: this.socket.partnerId,
+          selectedLanguage,
+          targetLang,
+        });
 
         let finalText = transcript;
 

@@ -460,6 +460,12 @@ export default function VideoChat() {
     socket.on("connect", () => {
       console.log("🔌 Socket connected:", socket.id);
 
+      const currentLanguage = languageRef.current || "en-US";
+
+      console.log("🌍 SYNC LANGUAGE AFTER CONNECT:", currentLanguage);
+
+      socket.emit("update-language", currentLanguage);
+
       socket.emit("get-online-count");
     });
 
@@ -485,6 +491,10 @@ export default function VideoChat() {
       console.log("✅ Deepgram Ready");
 
       deepgramReadyRef.current = true;
+    });
+
+    socket.on("language-updated", ({ language }) => {
+      console.log("✅ SERVER CONFIRMED SUBTITLE LANGUAGE:", language);
     });
 
     async function start() {
