@@ -1724,14 +1724,28 @@ export default function VideoChat() {
               onChange={(e) => {
                 const newLang = e.target.value;
 
-                setLanguage(newLang);
+                console.log("🌍 SUBTITLE LANGUAGE CHANGED:", newLang);
 
+                setLanguage(newLang);
                 languageRef.current = newLang;
 
                 localStorage.setItem("subtitle_language", newLang);
 
-                socketRef.current.emit("update-language", newLang);
+                if (socketRef.current?.connected) {
+                  socketRef.current.emit("update-language", newLang);
+                }
               }}
+              // onChange={(e) => {
+              //   const newLang = e.target.value;
+
+              //   setLanguage(newLang);
+
+              //   languageRef.current = newLang;
+
+              //   localStorage.setItem("subtitle_language", newLang);
+
+              //   socketRef.current.emit("update-language", newLang);
+              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               {/* Indian Languages */}
