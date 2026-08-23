@@ -54,8 +54,18 @@ export default function VideoChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
-  const [language, setLanguage] = useState("en-US");
-  const languageRef = useRef(language);
+  // const [language, setLanguage] = useState("en-US");
+  // const languageRef = useRef(language);
+
+  const savedLanguage =
+    typeof window !== "undefined"
+      ? localStorage.getItem("subtitle_language")
+      : null;
+
+  const initialLanguage = savedLanguage || "en-US";
+
+  const [language, setLanguage] = useState(initialLanguage);
+  const languageRef = useRef(initialLanguage);
 
   const deepgramReadyRef = useRef(false);
 
@@ -69,13 +79,22 @@ export default function VideoChat() {
     languageRef.current = language;
   }, [language]);
 
-  useEffect(() => {
-    const savedLang = localStorage.getItem("subtitle_language");
+  // useEffect(() => {
+  //   const savedLang = localStorage.getItem("subtitle_language");
 
-    if (savedLang) {
-      setLanguage(savedLang);
-    }
-  }, []);
+  //   if (savedLang) {
+  //     setLanguage(savedLang);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   const savedLang = localStorage.getItem("subtitle_language");
+
+  //   if (savedLang) {
+  //     languageRef.current = savedLang;
+  //     setLanguage(savedLang);
+  //   }
+  // }, []);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -1717,6 +1736,7 @@ export default function VideoChat() {
             >
               {/* Indian Languages */}
 
+              <option value="en-US">English</option>
               <option value="hi-IN">Hindi</option>
               <option value="bn-IN">Bengali</option>
               <option value="te-IN">Telugu</option>
