@@ -354,10 +354,30 @@ io.on("connection", async (socket) => {
     void tryMatch(socket.mode);
   });
 
+  // socket.on("update-language", (language) => {
+  //   socket.language = language;
+
+  //   console.log("🌍", socket.id, "Subtitle Language:", socket.language);
+  // });
+
   socket.on("update-language", (language) => {
+    if (!language || typeof language !== "string") {
+      console.log("⚠️ Invalid subtitle language:", language);
+      return;
+    }
+
     socket.language = language;
 
-    console.log("🌍", socket.id, "Subtitle Language:", socket.language);
+    console.log(
+      "🌍 SUBTITLE LANGUAGE UPDATED:",
+      socket.id,
+      "=>",
+      socket.language,
+    );
+
+    socket.emit("language-updated", {
+      language: socket.language,
+    });
   });
 
   socket.on("ready", () => {
