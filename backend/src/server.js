@@ -98,26 +98,162 @@ function emitSeriousUsers() {
   io.emit("online-users-list", users);
 }
 
+// async function translateText(text, targetLang) {
+//   try {
+//     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+//     const res = await fetch(url);
+
+//     const data = await res.json();
+
+//     if (!Array.isArray(data)) {
+//       return text;
+//     }
+
+//     const translated = data[0]?.map((item) => item[0])?.join("");
+
+//     return translated || text;
+//   } catch (err) {
+//     console.log("Translate API error:", err.message);
+
+//     return text;
+//   }
+// }
+
 async function translateText(text, targetLang) {
-  try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-
-    const res = await fetch(url);
-
-    const data = await res.json();
-
-    if (!Array.isArray(data)) {
-      return text;
-    }
-
-    const translated = data[0]?.map((item) => item[0])?.join("");
-
-    return translated || text;
-  } catch (err) {
-    console.log("Translate API error:", err.message);
-
+  if (!text || !text.trim()) {
     return text;
   }
+
+  if (!targetLang || targetLang === "auto") {
+    return text;
+  }
+
+  const cleanTarget = targetLang.toLowerCase();
+
+  console.log("🌐 TRANSLATION REQUEST:", {
+    text,
+    targetLang: cleanTarget,
+  });
+
+  // --------------------------------------------------
+  // 1. Google Translate GTX
+  // --------------------------------------------------
+  try {
+    const url =
+      "https://translate.googleapis.com/translate_a/single" +
+      `?client=gtx` +
+      `&sl=auto` +
+      `&tl=${encodeURIComponent(cleanTarget)}` +
+      `&dt=t` +
+      `&q=${encodeURIComponent(text)}`;
+
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36",
+        Accept: "application/json,text/plain,*/*",
+      },
+    });
+
+    const responseText = await res.text();
+
+    console.log("🌐 GOOGLE STATUS:", res.status);
+
+    if (!res.ok) {
+      console.log(
+        "❌ GOOGLE TRANSLATE HTTP ERROR:",
+        res.status,
+        responseText.slice(0, 500),
+      );
+    } else {
+      try {
+        const data = JSON.parse(responseText);
+
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          const translated = data[0]
+            .filter(Boolean)
+            .map((item) => item?.[0] || "")
+            .join("")
+            .trim();
+
+          if (translated) {
+            console.log("✅ GOOGLE TRANSLATED:", {
+              original: text,
+              translated,
+              targetLang: cleanTarget,
+            });
+
+            return translated;
+          }
+        }
+      } catch (parseError) {
+        console.log("❌ GOOGLE JSON PARSE ERROR:", parseError.message);
+      }
+    }
+  } catch (err) {
+    console.log("❌ GOOGLE TRANSLATE REQUEST ERROR:", err.message);
+  }
+
+  // --------------------------------------------------
+  // 2. Fallback endpoint
+  // --------------------------------------------------
+  try {
+    const fallbackUrl =
+      "https://clients5.google.com/translate_a/t" +
+      `?client=dict-chrome-ex` +
+      `&sl=auto` +
+      `&tl=${encodeURIComponent(cleanTarget)}` +
+      `&q=${encodeURIComponent(text)}`;
+
+    const res = await fetch(fallbackUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36",
+        Accept: "application/json,text/plain,*/*",
+      },
+    });
+
+    const responseText = await res.text();
+
+    console.log("🌐 FALLBACK STATUS:", res.status);
+
+    if (res.ok) {
+      try {
+        const data = JSON.parse(responseText);
+
+        const translated = data?.sentences
+          ?.map((item) => item?.trans || "")
+          .join("")
+          .trim();
+
+        if (translated) {
+          console.log("✅ FALLBACK TRANSLATED:", {
+            original: text,
+            translated,
+            targetLang: cleanTarget,
+          });
+
+          return translated;
+        }
+      } catch (parseError) {
+        console.log("❌ FALLBACK JSON ERROR:", parseError.message);
+      }
+    }
+  } catch (err) {
+    console.log("❌ FALLBACK TRANSLATION ERROR:", err.message);
+  }
+
+  // --------------------------------------------------
+  // BOTH TRANSLATORS FAILED
+  // --------------------------------------------------
+
+  console.log("⚠️ TRANSLATION FAILED - USING ORIGINAL:", {
+    text,
+    targetLang: cleanTarget,
+  });
+
+  return text;
 }
 
 io.on("connection", async (socket) => {
