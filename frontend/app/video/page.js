@@ -63,6 +63,7 @@ export default function VideoChat() {
   const turnLoadingRef = useRef(null);
 
   const peerReadyRef = useRef(null);
+  const sessionIdRef = useRef(null);
 
   useEffect(() => {
     languageRef.current = language;
@@ -563,14 +564,18 @@ export default function VideoChat() {
       socket.emit("get-online-count");
     });
 
+    // socket.on("disconnect", (reason) => {
+    //   console.log("Disconnected:", reason);
+
+    //   if (reason === "ping timeout") {
+    //     console.log("Reconnecting...");
+
+    //     socket.connect();
+    //   }
+    // });
+
     socket.on("disconnect", (reason) => {
-      console.log("Disconnected:", reason);
-
-      if (reason === "ping timeout") {
-        console.log("Reconnecting...");
-
-        socket.connect();
-      }
+      console.log("🔌 Socket disconnected:", reason);
     });
 
     socket.on("connect_error", (err) => {
@@ -604,18 +609,31 @@ export default function VideoChat() {
     //   // PeerConnection should be created only after a stranger is matched.
     // }
 
+    // async function start() {
+    //   const turnPromise = loadTurnCredentials();
+
+    //   await initCamera();
+
+    //   if (!mounted) return;
+
+    //   // Load TURN in parallel while camera is initializing
+    //   await turnPromise;
+
+    //   console.log("🎥 Camera ready");
+    //   console.log("🌍 TURN ready");
+    //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+    // }
+
     async function start() {
-      const turnPromise = loadTurnCredentials();
+      loadTurnCredentials().catch((err) => {
+        console.log("⚠️ TURN preload failed:", err);
+      });
 
       await initCamera();
 
       if (!mounted) return;
 
-      // Load TURN in parallel while camera is initializing
-      await turnPromise;
-
       console.log("🎥 Camera ready");
-      console.log("🌍 TURN ready");
       console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
     }
 
@@ -779,6 +797,16 @@ export default function VideoChat() {
     socket.on("signal", async (data) => {
       if (!pcRef.current) return;
 
+      if (!data?.sessionId) {
+        console.log("⚠️ Signal ignored: missing sessionId");
+        return;
+      }
+
+      if (data.sessionId !== sessionIdRef.current) {
+        console.log("⚠️ Old WebRTC signal ignored:", data.sessionId);
+        return;
+      }
+
       try {
         if (data.sdp?.type === "offer") {
           await pcRef.current.setRemoteDescription(
@@ -789,10 +817,19 @@ export default function VideoChat() {
             await pcRef.current.addIceCandidate(iceQueueRef.current.shift());
           }
 
+          // const answer = await pcRef.current.createAnswer();
+          // await pcRef.current.setLocalDescription(answer);
+
+          // socketRef.current.emit("signal", {
+          //   sdp: pcRef.current.localDescription,
+          // });
+
           const answer = await pcRef.current.createAnswer();
+
           await pcRef.current.setLocalDescription(answer);
 
           socketRef.current.emit("signal", {
+            sessionId: sessionIdRef.current,
             sdp: pcRef.current.localDescription,
           });
         }

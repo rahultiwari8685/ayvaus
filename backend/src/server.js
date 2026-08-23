@@ -387,8 +387,34 @@ io.on("connection", async (socket) => {
   socket.on("signal", (data) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
 
-    partner?.emit("signal", data);
+    if (!partner) {
+      console.log("⚠️ Signal ignored: partner not found");
+      return;
+    }
+
+    if (!data?.sessionId) {
+      console.log("⚠️ Signal ignored: missing sessionId");
+      return;
+    }
+
+    if (!socket.sessionId || data.sessionId !== socket.sessionId) {
+      console.log("⚠️ Signal ignored: socket session mismatch");
+      return;
+    }
+
+    if (!partner.sessionId || data.sessionId !== partner.sessionId) {
+      console.log("⚠️ Signal ignored: partner session mismatch");
+      return;
+    }
+
+    partner.emit("signal", data);
   });
+
+  // socket.on("signal", (data) => {
+  //   const partner = io.sockets.sockets.get(socket.partnerId);
+
+  //   partner?.emit("signal", data);
+  // });
 
   socket.on("edit-message", (data) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
@@ -483,7 +509,7 @@ io.on("connection", async (socket) => {
             setTimeout(() => {
               oldPartner.lastPartnerId = null;
             }, 10000);
-          }, 300);
+          }, 0);
         }
       }
 
@@ -505,7 +531,7 @@ io.on("connection", async (socket) => {
       }, 10000);
 
       tryMatch(socket.mode);
-    }, 300);
+    }, 0);
   });
 
   socket.on("end-call", async () => {
