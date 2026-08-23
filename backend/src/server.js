@@ -127,12 +127,6 @@ io.on("connection", async (socket) => {
 
   socket.dg = null;
 
-  // socket.on("audio-stream", (audio) => {
-  //   if (!socket.dg) return;
-
-  //   socket.dg.sendAudio(audio);
-  // });
-
   socket.on("audio-stream", (audio) => {
     if (!socket.dg) return;
 
@@ -288,15 +282,6 @@ io.on("connection", async (socket) => {
         }
 
         if (mode === "serious") {
-          // s1.emit("matched", {
-          //   role: "caller",
-          //   partner: {
-          //     name: s2.user.name,
-          //     age: s2.user.age,
-          //     gender: s2.user.gender,
-          //   },
-          // });
-
           s1.emit("matched", {
             role: "caller",
             sessionId,
@@ -306,15 +291,6 @@ io.on("connection", async (socket) => {
               gender: s2.user.gender,
             },
           });
-
-          // s2.emit("matched", {
-          //   role: "callee",
-          //   partner: {
-          //     name: s1.user.name,
-          //     age: s1.user.age,
-          //     gender: s1.user.gender,
-          //   },
-          // });
 
           s2.emit("matched", {
             role: "callee",
@@ -330,13 +306,6 @@ io.on("connection", async (socket) => {
             role: "caller",
             sessionId,
           });
-          // s1.emit("matched", {
-          //   role: "caller",
-          // });
-
-          // s2.emit("matched", {
-          //   role: "callee",
-          // });
 
           s2.emit("matched", {
             role: "callee",
@@ -344,15 +313,28 @@ io.on("connection", async (socket) => {
           });
         }
 
-        // setTimeout(() => {
-        //   s1.emit("ready");
-        //   s2.emit("ready");
-        // }, 300);
+        setTimeout(() => {
+          if (s1.partnerId === s2.id && s2.partnerId === s1.id) {
+            s1.emit("ready");
+            s2.emit("ready");
 
-        s1.emit("ready");
-        s2.emit("ready");
+            console.log(
+              "🚦 READY SENT:",
+              s1.id,
+              "<->",
+              s2.id,
+              "| Session:",
+              sessionId,
+            );
+          }
+        }, 100);
 
         return tryMatch(mode);
+
+        // s1.emit("ready");
+        // s2.emit("ready");
+
+        // return tryMatch(mode);
       }
     }
   }
@@ -369,7 +351,7 @@ io.on("connection", async (socket) => {
     }
 
     emitOnlineCount();
-    tryMatch(socket.mode);
+    void tryMatch(socket.mode);
   });
 
   socket.on("update-language", (language) => {
@@ -409,12 +391,6 @@ io.on("connection", async (socket) => {
 
     partner.emit("signal", data);
   });
-
-  // socket.on("signal", (data) => {
-  //   const partner = io.sockets.sockets.get(socket.partnerId);
-
-  //   partner?.emit("signal", data);
-  // });
 
   socket.on("edit-message", (data) => {
     const partner = io.sockets.sockets.get(socket.partnerId);
@@ -468,12 +444,6 @@ io.on("connection", async (socket) => {
 
           await conn.save();
           socket.connectionId = null;
-
-          // const partner = io.sockets.sockets.get(socket.partnerId);
-
-          // if (partner) {
-          //   partner.connectionId = null;
-          // }
 
           console.log("⏭️ Connection skipped:", conn._id);
         }
@@ -909,11 +879,6 @@ io.on("connection", async (socket) => {
           gender: socket.user.gender,
         },
       });
-
-      // setTimeout(() => {
-      //   socket.emit("ready");
-      //   partnerSocket.emit("ready");
-      // }, 300);
 
       socket.emit("ready");
       partnerSocket.emit("ready");

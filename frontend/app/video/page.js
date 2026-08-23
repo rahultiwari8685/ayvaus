@@ -439,14 +439,20 @@ export default function VideoChat() {
     const socket = socketRef.current;
 
     socket.on("connect", () => {
-      console.log("Connected:", socket.id);
-
-      socket.emit("join", {
-        language: languageRef.current,
-      });
+      console.log("🔌 Socket connected:", socket.id);
 
       socket.emit("get-online-count");
     });
+
+    // socket.on("connect", () => {
+    //   console.log("Connected:", socket.id);
+
+    //   socket.emit("join", {
+    //     language: languageRef.current,
+    //   });
+
+    //   socket.emit("get-online-count");
+    // });
 
     socket.on("disconnect", (reason) => {
       console.log("🔌 Socket disconnected:", reason);
@@ -463,23 +469,80 @@ export default function VideoChat() {
     });
 
     async function start() {
-      loadTurnCredentials().catch((err) => {
-        console.log("⚠️ TURN preload failed:", err);
-      });
+      try {
+        loadTurnCredentials().catch((err) => {
+          console.log("⚠️ TURN preload failed:", err);
+        });
 
-      await initCamera();
+        await initCamera();
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      console.log("🎥 Camera ready");
-      console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+        console.log("🎥 Camera ready");
+        console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+
+        // IMPORTANT:
+        // Join matchmaking ONLY after camera is ready.
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("join", {
+            language: languageRef.current,
+          });
+
+          console.log("🚀 JOIN SENT AFTER CAMERA READY");
+        }
+      } catch (err) {
+        console.error("❌ Camera initialization failed:", err);
+
+        setStatus("Camera permission required");
+      }
     }
+
+    // async function start() {
+    //   loadTurnCredentials().catch((err) => {
+    //     console.log("⚠️ TURN preload failed:", err);
+    //   });
+
+    //   await initCamera();
+
+    //   if (!mounted) return;
+
+    //   console.log("🎥 Camera ready");
+    //   console.log("🌍 INITIAL LANGUAGE:", languageRef.current);
+    // }
 
     socket.on("online-users", (count) => {
       setOnlineCount(count);
     });
 
     start();
+
+    // socket.on("matched", async ({ role, sessionId }) => {
+    //   console.log("🤝 MATCHED:", role);
+
+    //   sessionIdRef.current = sessionId;
+
+    //   console.log("🆔 WEBRTC SESSION:", sessionId);
+
+    //   deepgramReadyRef.current = false;
+
+    //   roleRef.current = role;
+
+    //   setStatus("Connecting...");
+
+    //   // Clear old remote stream
+    //   if (remoteVideo.current?.srcObject) {
+    //     remoteVideo.current.srcObject
+    //       .getTracks()
+    //       .forEach((track) => track.stop());
+
+    //     remoteVideo.current.srcObject = null;
+    //   }
+
+    //   peerReadyRef.current = createPeer();
+    //   await peerReadyRef.current;
+
+    //   console.log("🌍 MATCH LANGUAGE:", languageRef.current);
+    // });
 
     socket.on("matched", async ({ role, sessionId }) => {
       console.log("🤝 MATCHED:", role);
@@ -503,38 +566,120 @@ export default function VideoChat() {
         remoteVideo.current.srcObject = null;
       }
 
-      peerReadyRef.current = createPeer();
-      await peerReadyRef.current;
+      // Safety: camera MUST exist before creating PeerConnection
+      if (!streamRef.current) {
+        console.log("⏳ Camera not ready yet. Waiting...");
 
+        try {
+          await initCamera();
+        } catch (err) {
+          console.error("❌ Cannot initialize camera:", err);
+          setStatus("Camera permission required");
+          return;
+        }
+      }
+
+      peerReadyRef.current = createPeer();
+
+      const pc = await peerReadyRef.current;
+
+      if (!pc) {
+        console.error("❌ PeerConnection was not created");
+
+        setStatus("Connection failed");
+
+        return;
+      }
+
+      console.log("✅ PeerConnection ready for session:", sessionId);
       console.log("🌍 MATCH LANGUAGE:", languageRef.current);
     });
 
+    // socket.on("ready", async () => {
+    //   if (roleRef.current !== "caller") {
+    //     return;
+    //   }
+
+    //   if (peerReadyRef.current) {
+    //     await peerReadyRef.current;
+    //   }
+
+    //   const pc = pcRef.current;
+
+    //   if (!pc) {
+    //     console.log("❌ Cannot create offer: PeerConnection missing");
+    //     return;
+    //   }
+
+    //   if (pc.signalingState !== "stable") {
+    //     console.log(
+    //       "⚠️ Cannot create offer. Signaling state:",
+    //       pc.signalingState,
+    //     );
+    //     return;
+    //   }
+
+    //   try {
+    //     console.log("📞 Creating WebRTC offer...");
+
+    //     const offer = await pc.createOffer();
+
+    //     await pc.setLocalDescription(offer);
+
+    //     socketRef.current.emit("signal", {
+    //       sessionId: sessionIdRef.current,
+    //       sdp: pc.localDescription,
+    //     });
+
+    //     console.log("📤 OFFER SENT");
+    //   } catch (err) {
+    //     console.error("❌ Offer creation error:", err);
+    //   }
+    // });
+
     socket.on("ready", async () => {
       if (roleRef.current !== "caller") {
+        console.log("⏳ READY received by callee");
         return;
       }
 
-      if (peerReadyRef.current) {
-        await peerReadyRef.current;
-      }
-
-      const pc = pcRef.current;
-
-      if (!pc) {
-        console.log("❌ Cannot create offer: PeerConnection missing");
-        return;
-      }
-
-      if (pc.signalingState !== "stable") {
-        console.log(
-          "⚠️ Cannot create offer. Signaling state:",
-          pc.signalingState,
-        );
-        return;
-      }
+      console.log("🚦 CALLER READY");
 
       try {
-        console.log("📞 Creating WebRTC offer...");
+        if (peerReadyRef.current) {
+          await peerReadyRef.current;
+        }
+
+        // Extra safety if matched arrived before camera was ready
+        if (!pcRef.current) {
+          console.log("⏳ PeerConnection missing. Creating now...");
+
+          peerReadyRef.current = createPeer();
+
+          await peerReadyRef.current;
+        }
+
+        const pc = pcRef.current;
+
+        if (!pc) {
+          console.error("❌ Cannot create offer: PeerConnection missing");
+          return;
+        }
+
+        if (!sessionIdRef.current) {
+          console.error("❌ Cannot create offer: sessionId missing");
+          return;
+        }
+
+        if (pc.signalingState !== "stable") {
+          console.log(
+            "⚠️ Cannot create offer. Signaling state:",
+            pc.signalingState,
+          );
+          return;
+        }
+
+        console.log("📞 Creating WebRTC offer:", sessionIdRef.current);
 
         const offer = await pc.createOffer();
 
@@ -545,9 +690,9 @@ export default function VideoChat() {
           sdp: pc.localDescription,
         });
 
-        console.log("📤 OFFER SENT");
+        console.log("📤 OFFER SENT:", sessionIdRef.current);
       } catch (err) {
-        console.error("❌ Offer creation error:", err);
+        console.error("❌ Ready/offer error:", err);
       }
     });
 
