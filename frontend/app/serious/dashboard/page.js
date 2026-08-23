@@ -21,13 +21,17 @@ export default function SeriousDashboard() {
   const [onlineMap, setOnlineMap] = useState({});
 
   const handleLogout = () => {
-    socket?.disconnect();
+    console.log("🚪 Logging out...");
 
+    // Remove authentication/session data first
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("reconnect_partner_id");
 
-    router.replace("/serious/login");
+    // Do NOT manually disconnect the shared SocketContext socket here.
+    // The socket will be cleaned up when the page is unloaded.
+
+    window.location.replace("/serious/login");
   };
 
   const fetchWallet = async () => {
