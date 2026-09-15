@@ -397,7 +397,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.22),transparent_58%)]" />
 
                 {/* Network lines */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] h-[130px]">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] h-[110px]">
                   <div className="absolute left-1/2 top-1/2 w-px h-full bg-blue-400/20 -translate-x-1/2 -rotate-[65deg]" />
                   <div className="absolute left-1/2 top-1/2 w-px h-full bg-blue-400/20 -translate-x-1/2 rotate-[65deg]" />
                   <div className="absolute left-1/2 top-1/2 w-full h-px bg-blue-400/20 -translate-y-1/2" />
