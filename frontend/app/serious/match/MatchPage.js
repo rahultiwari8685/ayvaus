@@ -79,6 +79,7 @@ export default function MatchPage() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
   function convertFloat32ToInt16(buffer) {
     const out = new Int16Array(buffer.length);
 
@@ -170,6 +171,43 @@ export default function MatchPage() {
 
       audioContextRef.current = null;
     }
+  }
+
+  function stopAudioStreaming() {
+    console.log("🛑 Stopping remote audio subtitle streaming");
+
+    if (workletNodeRef.current) {
+      try {
+        workletNodeRef.current.port.onmessage = null;
+        workletNodeRef.current.disconnect();
+      } catch (err) {
+        console.log("⚠️ Worklet cleanup error:", err);
+      }
+
+      workletNodeRef.current = null;
+    }
+
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.disconnect();
+      } catch (err) {
+        console.log("⚠️ Source cleanup error:", err);
+      }
+
+      sourceRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (err) {
+        console.log("⚠️ AudioContext cleanup error:", err);
+      }
+
+      audioContextRef.current = null;
+    }
+
+    console.log("✅ Remote audio subtitle streaming stopped");
   }
 
   async function initCamera() {
