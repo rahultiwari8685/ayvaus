@@ -394,8 +394,7 @@ export default function MatchPage() {
       try {
         await initCamera();
 
-        await createPeer();
-
+        // JOIN MATCHMAKING IMMEDIATELY
         const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
 
         if (reconnectPartnerId) {
@@ -413,9 +412,9 @@ export default function MatchPage() {
 
         socketRef.current.emit("get-online-count");
 
-        console.log("🚀 Joined queue");
+        console.log("🚀 Joined queue immediately");
       } catch (err) {
-        console.log("❌ Init error:", err);
+        console.error("❌ Init error:", err);
       }
     })();
 
@@ -428,17 +427,29 @@ export default function MatchPage() {
     });
 
     socketRef.current.on("matched", async ({ role, partner }) => {
+      console.log("🎯 MATCHED:", {
+        role,
+        partner,
+      });
+
       setPartner(partner);
-
-      if (!pcRef.current) {
-        await createPeer();
-      }
-
       roleRef.current = role;
       setStatus("Connecting...");
 
-      if (role === "callee") {
-        socketRef.current.emit("ready");
+      try {
+        if (!pcRef.current) {
+          await createPeer();
+        }
+
+        if (role === "callee") {
+          console.log("📡 CALLEE → sending ready");
+          socketRef.current.emit("ready");
+        }
+      } catch (err) {
+        console.error("❌ Failed to create peer after match:", err);
+
+        setStatus("Looking for someone...");
+        socketRef.current.emit("next");
       }
     });
 
