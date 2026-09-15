@@ -172,87 +172,6 @@ export default function MatchPage() {
     }
   }
 
-  async function startRemoteSubtitle(remoteAudioTrack) {
-    if (!remoteAudioTrack) {
-      console.log("❌ No remote audio track");
-      return;
-    }
-
-    if (remoteAudioTrack.kind !== "audio") {
-      console.log("❌ Track is not audio:", remoteAudioTrack.kind);
-      return;
-    }
-
-    if (audioContextRef.current) {
-      console.log("⚠️ Remote subtitle audio already started");
-      return;
-    }
-
-    console.log("🎧 Starting REMOTE audio subtitle:", {
-      trackId: remoteAudioTrack.id,
-      label: remoteAudioTrack.label,
-    });
-
-    try {
-      const audioContext = new AudioContext({
-        sampleRate: 48000,
-      });
-
-      await audioContext.resume();
-
-      console.log("🎧 AudioContext Sample Rate:", audioContext.sampleRate);
-
-      await audioContext.audioWorklet.addModule("/audio-worklet.js");
-
-      audioContextRef.current = audioContext;
-
-      const remoteAudioStream = new MediaStream([remoteAudioTrack]);
-
-      const source = audioContext.createMediaStreamSource(remoteAudioStream);
-
-      sourceRef.current = source;
-
-      const worklet = new AudioWorkletNode(audioContext, "audio-processor");
-
-      workletNodeRef.current = worklet;
-
-      source.connect(worklet);
-
-      // Keep remote audio audible
-      const gainNode = audioContext.createGain();
-
-      gainNode.gain.value = 1;
-
-      source.connect(gainNode);
-
-      gainNode.connect(audioContext.destination);
-
-      worklet.port.onmessage = (event) => {
-        if (!deepgramReadyRef.current) {
-          return;
-        }
-
-        if (!socketRef.current?.connected) {
-          return;
-        }
-
-        const pcm = convertFloat32ToInt16(event.data);
-
-        if (!pcm || pcm.byteLength === 0) {
-          return;
-        }
-
-        socketRef.current.emit("audio-stream", new Uint8Array(pcm));
-      };
-
-      console.log("✅ REMOTE audio -> Deepgram started");
-    } catch (err) {
-      console.error("❌ Remote subtitle audio error:", err);
-
-      audioContextRef.current = null;
-    }
-  }
-
   async function initCamera() {
     if (streamRef.current) return;
 
@@ -388,31 +307,82 @@ export default function MatchPage() {
       deepgramReadyRef.current = true;
     });
 
+    // (async () => {
+    //   console.log("✅ MatchPage initialized");
+
+    //   try {
+    //     await initCamera();
+
+    //     // JOIN MATCHMAKING IMMEDIATELY
+    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
+
+    //     if (reconnectPartnerId) {
+    //       socketRef.current.emit("reconnect-user", {
+    //         token,
+    //         partnerId: reconnectPartnerId,
+    //       });
+
+    //       localStorage.removeItem("reconnect_partner_id");
+    //     } else {
+    //       socketRef.current.emit("join", {
+    //         language: languageRef.current,
+    //       });
+    //     }
+
+    //     socketRef.current.emit("get-online-count");
+
+    //     console.log("🚀 Joined queue immediately");
+    //   } catch (err) {
+    //     console.error("❌ Init error:", err);
+    //   }
+    // })();
+
     (async () => {
       console.log("✅ MatchPage initialized");
 
       try {
         await initCamera();
 
-        // JOIN MATCHMAKING IMMEDIATELY
-        const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
+        const joinQueue = () => {
+          if (!socketRef.current?.connected) {
+            console.log("⚠️ Socket still not connected");
+            return;
+          }
 
-        if (reconnectPartnerId) {
-          socketRef.current.emit("reconnect-user", {
-            token,
-            partnerId: reconnectPartnerId,
-          });
+          const reconnectPartnerId = localStorage.getItem(
+            "reconnect_partner_id",
+          );
 
-          localStorage.removeItem("reconnect_partner_id");
+          if (reconnectPartnerId) {
+            console.log("🔄 Reconnecting to partner:", reconnectPartnerId);
+
+            socketRef.current.emit("reconnect-user", {
+              token,
+              partnerId: reconnectPartnerId,
+            });
+
+            localStorage.removeItem("reconnect_partner_id");
+          } else {
+            console.log("🚀 Joining matchmaking:", {
+              language: languageRef.current,
+              socketId: socketRef.current.id,
+            });
+
+            socketRef.current.emit("join", {
+              language: languageRef.current,
+            });
+          }
+
+          socketRef.current.emit("get-online-count");
+        };
+
+        if (socketRef.current.connected) {
+          joinQueue();
         } else {
-          socketRef.current.emit("join", {
-            language: languageRef.current,
-          });
+          console.log("⏳ Waiting for Socket.IO connection...");
+
+          socketRef.current.once("connect", joinQueue);
         }
-
-        socketRef.current.emit("get-online-count");
-
-        console.log("🚀 Joined queue immediately");
       } catch (err) {
         console.error("❌ Init error:", err);
       }
@@ -463,7 +433,15 @@ export default function MatchPage() {
     });
 
     socketRef.current.on("signal", async (data) => {
-      if (!pcRef.current) return;
+      if (!pcRef.current) {
+        console.log("⚠️ Signal received before PeerConnection ready:", {
+          offer: !!data.offer,
+          answer: !!data.answer,
+          candidate: !!data.candidate,
+        });
+
+        return;
+      }
 
       try {
         if (data.offer) {
@@ -596,10 +574,18 @@ export default function MatchPage() {
         remoteVideo.current.srcObject = null;
       }
 
-      setTimeout(async () => {
-        await createPeer();
-        socketRef.current.emit("join");
-      }, 500);
+      setTimeout(() => {
+        if (!socketRef.current?.connected) {
+          console.log("⚠️ Socket not connected, cannot rejoin");
+          return;
+        }
+
+        socketRef.current.emit("join", {
+          language: languageRef.current,
+        });
+
+        console.log("🚀 Rejoined matchmaking queue");
+      }, 100);
     });
 
     socketRef.current.on("next-blocked", () => {
@@ -712,7 +698,7 @@ export default function MatchPage() {
       remoteVideo.current.srcObject.getTracks().forEach((t) => t.stop());
       remoteVideo.current.srcObject = null;
     }
-    await createPeer();
+    // await createPeer();
 
     socketRef.current.emit("next");
   }
