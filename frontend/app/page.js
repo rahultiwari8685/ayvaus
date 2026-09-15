@@ -397,7 +397,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.22),transparent_58%)]" />
 
                 {/* Network lines */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] h-[150px]">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] h-[130px]">
                   <div className="absolute left-1/2 top-1/2 w-px h-full bg-blue-400/20 -translate-x-1/2 -rotate-[65deg]" />
                   <div className="absolute left-1/2 top-1/2 w-px h-full bg-blue-400/20 -translate-x-1/2 rotate-[65deg]" />
                   <div className="absolute left-1/2 top-1/2 w-full h-px bg-blue-400/20 -translate-y-1/2" />
@@ -432,6 +432,23 @@ export default function HomePage() {
                   <div className="absolute bottom-0 left-[68%] w-8 h-13 bg-blue-900" />
                   <div className="absolute bottom-0 right-[8%] w-12 h-20 bg-blue-950" />
                 </div>
+              </div>
+
+              {/* Bottom CTA */}
+              <div className="mt-auto pt-7">
+                <button
+                  type="button"
+                  disabled
+                  className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-600 border border-blue-400/20 text-white text-sm font-bold shadow-lg shadow-blue-900/20 cursor-not-allowed"
+                >
+                  Explore Corporate Mode
+                  <span className="text-base">→</span>
+                </button>
+
+                {/* <p className="mt-4 text-center text-[10px] leading-relaxed text-zinc-600">
+                  We're working hard to bring you the best professional
+                  networking experience.
+                </p> */}
               </div>
 
               {/* Features */}
@@ -481,23 +498,6 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-              </div>
-
-              {/* Bottom CTA */}
-              <div className="mt-auto pt-7">
-                <button
-                  type="button"
-                  disabled
-                  className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-600 border border-blue-400/20 text-white text-sm font-bold shadow-lg shadow-blue-900/20 cursor-not-allowed"
-                >
-                  Explore Corporate Mode
-                  <span className="text-base">→</span>
-                </button>
-
-                {/* <p className="mt-4 text-center text-[10px] leading-relaxed text-zinc-600">
-                  We're working hard to bring you the best professional
-                  networking experience.
-                </p> */}
               </div>
             </div>
           </aside>
