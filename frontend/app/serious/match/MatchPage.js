@@ -345,82 +345,31 @@ export default function MatchPage() {
       deepgramReadyRef.current = true;
     });
 
-    // (async () => {
-    //   console.log("✅ MatchPage initialized");
-
-    //   try {
-    //     await initCamera();
-
-    //     // JOIN MATCHMAKING IMMEDIATELY
-    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
-
-    //     if (reconnectPartnerId) {
-    //       socketRef.current.emit("reconnect-user", {
-    //         token,
-    //         partnerId: reconnectPartnerId,
-    //       });
-
-    //       localStorage.removeItem("reconnect_partner_id");
-    //     } else {
-    //       socketRef.current.emit("join", {
-    //         language: languageRef.current,
-    //       });
-    //     }
-
-    //     socketRef.current.emit("get-online-count");
-
-    //     console.log("🚀 Joined queue immediately");
-    //   } catch (err) {
-    //     console.error("❌ Init error:", err);
-    //   }
-    // })();
-
     (async () => {
       console.log("✅ MatchPage initialized");
 
       try {
         await initCamera();
 
-        const joinQueue = () => {
-          if (!socketRef.current?.connected) {
-            console.log("⚠️ Socket still not connected");
-            return;
-          }
+        // JOIN MATCHMAKING IMMEDIATELY
+        const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
 
-          const reconnectPartnerId = localStorage.getItem(
-            "reconnect_partner_id",
-          );
+        if (reconnectPartnerId) {
+          socketRef.current.emit("reconnect-user", {
+            token,
+            partnerId: reconnectPartnerId,
+          });
 
-          if (reconnectPartnerId) {
-            console.log("🔄 Reconnecting to partner:", reconnectPartnerId);
-
-            socketRef.current.emit("reconnect-user", {
-              token,
-              partnerId: reconnectPartnerId,
-            });
-
-            localStorage.removeItem("reconnect_partner_id");
-          } else {
-            console.log("🚀 Joining matchmaking:", {
-              language: languageRef.current,
-              socketId: socketRef.current.id,
-            });
-
-            socketRef.current.emit("join", {
-              language: languageRef.current,
-            });
-          }
-
-          socketRef.current.emit("get-online-count");
-        };
-
-        if (socketRef.current.connected) {
-          joinQueue();
+          localStorage.removeItem("reconnect_partner_id");
         } else {
-          console.log("⏳ Waiting for Socket.IO connection...");
-
-          socketRef.current.once("connect", joinQueue);
+          socketRef.current.emit("join", {
+            language: languageRef.current,
+          });
         }
+
+        socketRef.current.emit("get-online-count");
+
+        console.log("🚀 Joined queue immediately");
       } catch (err) {
         console.error("❌ Init error:", err);
       }
@@ -433,6 +382,33 @@ export default function MatchPage() {
         setOnlineCount(count);
       }
     });
+
+    // socketRef.current.on("matched", async ({ role, partner }) => {
+    //   console.log("🎯 MATCHED:", {
+    //     role,
+    //     partner,
+    //   });
+
+    //   setPartner(partner);
+    //   roleRef.current = role;
+    //   setStatus("Connecting...");
+
+    //   try {
+    //     if (!pcRef.current) {
+    //       await createPeer();
+    //     }
+
+    //     if (role === "callee") {
+    //       console.log("📡 CALLEE → sending ready");
+    //       socketRef.current.emit("ready");
+    //     }
+    //   } catch (err) {
+    //     console.error("❌ Failed to create peer after match:", err);
+
+    //     setStatus("Looking for someone...");
+    //     socketRef.current.emit("next");
+    //   }
+    // });
 
     socketRef.current.on("matched", async ({ role, partner }) => {
       console.log("🎯 MATCHED:", {
