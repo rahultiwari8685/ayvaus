@@ -244,12 +244,37 @@ export default function MatchPage() {
     draggingRef.current = false;
   }
 
+  // async function createPeer() {
+  //   iceQueueRef.current = [];
+
+  //   if (!streamRef.current) return;
+
+  //   if (pcRef.current) {
+  //     pcRef.current.close();
+  //     pcRef.current = null;
+  //   }
+
   async function createPeer() {
+    console.log("🔵 createPeer START", {
+      socketId: socketRef.current?.id,
+      sessionId: sessionIdRef.current,
+      hasStream: !!streamRef.current,
+    });
+
     iceQueueRef.current = [];
 
-    if (!streamRef.current) return;
+    if (!streamRef.current) {
+      console.log("❌ createPeer aborted: camera stream missing");
+      return;
+    }
 
     if (pcRef.current) {
+      console.log("♻️ Closing old PeerConnection");
+
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      pcRef.current.oniceconnectionstatechange = null;
+
       pcRef.current.close();
       pcRef.current = null;
     }
@@ -352,36 +377,6 @@ export default function MatchPage() {
       deepgramReadyRef.current = true;
     });
 
-    // (async () => {
-    //   console.log("✅ MatchPage initialized");
-
-    //   try {
-    //     await initCamera();
-
-    //     // JOIN MATCHMAKING IMMEDIATELY
-    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
-
-    //     if (reconnectPartnerId) {
-    //       socketRef.current.emit("reconnect-user", {
-    //         token,
-    //         partnerId: reconnectPartnerId,
-    //       });
-
-    //       localStorage.removeItem("reconnect_partner_id");
-    //     } else {
-    //       socketRef.current.emit("join", {
-    //         language: languageRef.current,
-    //       });
-    //     }
-
-    //     socketRef.current.emit("get-online-count");
-
-    //     console.log("🚀 Joined queue immediately");
-    //   } catch (err) {
-    //     console.error("❌ Init error:", err);
-    //   }
-    // })();
-
     (async () => {
       await initCamera();
 
@@ -427,7 +422,7 @@ export default function MatchPage() {
       }
     });
 
-    // socketRef.current.on("matched", async ({ role, partner }) => {
+    // socketRef.current.on("matched", async ({ role, partner, sessionId }) => {
     //   console.log("🎯 MATCHED:", {
     //     role,
     //     partner,
@@ -435,6 +430,9 @@ export default function MatchPage() {
 
     //   setPartner(partner);
     //   roleRef.current = role;
+    //   sessionIdRef.current = sessionId;
+
+    //   console.log("🆔 SESSION ID:", sessionId);
     //   setStatus("Connecting...");
 
     //   try {
@@ -458,51 +456,147 @@ export default function MatchPage() {
       console.log("🎯 MATCHED:", {
         role,
         partner,
+        sessionId,
       });
 
       setPartner(partner);
       roleRef.current = role;
       sessionIdRef.current = sessionId;
 
-      console.log("🆔 SESSION ID:", sessionId);
       setStatus("Connecting...");
 
       try {
-        if (!pcRef.current) {
-          await createPeer();
+        // Always create a fresh PeerConnection for a new match
+        if (pcRef.current) {
+          pcRef.current.close();
+          pcRef.current = null;
         }
 
+        iceQueueRef.current = [];
+
+        await createPeer();
+
+        console.log("✅ PeerConnection ready:", {
+          role,
+          sessionId,
+          socketId: socketRef.current?.id,
+        });
+
+        // Callee tells caller that its PeerConnection is ready
         if (role === "callee") {
           console.log("📡 CALLEE → sending ready");
-          socketRef.current.emit("ready");
+
+          socketRef.current.emit("ready", {
+            sessionId: sessionIdRef.current,
+          });
         }
       } catch (err) {
         console.error("❌ Failed to create peer after match:", err);
 
         setStatus("Looking for someone...");
+
         socketRef.current.emit("next");
       }
     });
 
-    socketRef.current.on("ready", async () => {
-      if (roleRef.current !== "caller") return;
-      if (!pcRef.current) return;
+    // socketRef.current.on("ready", async () => {
+    //   if (roleRef.current !== "caller") return;
+    //   if (!pcRef.current) return;
 
-      const offer = await pcRef.current.createOffer();
-      await pcRef.current.setLocalDescription(offer);
-      socketRef.current.emit("signal", {
-        sessionId: sessionIdRef.current,
-        offer,
+    //   const offer = await pcRef.current.createOffer();
+    //   await pcRef.current.setLocalDescription(offer);
+    //   socketRef.current.emit("signal", {
+    //     sessionId: sessionIdRef.current,
+    //     offer,
+    //   });
+    // });
+
+    socketRef.current.on("ready", async ({ sessionId } = {}) => {
+      console.log("📡 READY received:", {
+        myRole: roleRef.current,
+        sessionId,
+        currentSession: sessionIdRef.current,
+        hasPeer: !!pcRef.current,
       });
+
+      if (roleRef.current !== "caller") {
+        console.log("⚠️ READY ignored: I am not caller");
+        return;
+      }
+
+      if (
+        sessionId &&
+        sessionIdRef.current &&
+        sessionId !== sessionIdRef.current
+      ) {
+        console.log("⚠️ READY ignored: session mismatch");
+        return;
+      }
+
+      // Wait until PeerConnection exists
+      if (!pcRef.current) {
+        console.log("⏳ PeerConnection not ready, retrying...");
+
+        setTimeout(async () => {
+          if (!pcRef.current || roleRef.current !== "caller") return;
+
+          try {
+            const offer = await pcRef.current.createOffer();
+
+            await pcRef.current.setLocalDescription(offer);
+
+            socketRef.current.emit("signal", {
+              sessionId: sessionIdRef.current,
+              offer,
+            });
+
+            console.log("📤 OFFER sent after retry");
+          } catch (err) {
+            console.error("❌ Offer retry failed:", err);
+          }
+        }, 100);
+
+        return;
+      }
+
+      try {
+        const offer = await pcRef.current.createOffer();
+
+        await pcRef.current.setLocalDescription(offer);
+
+        socketRef.current.emit("signal", {
+          sessionId: sessionIdRef.current,
+          offer,
+        });
+
+        console.log("📤 OFFER sent");
+      } catch (err) {
+        console.error("❌ Offer creation failed:", err);
+      }
     });
 
     socketRef.current.on("signal", async (data) => {
+      // if (!pcRef.current) {
+      //   console.log("⚠️ Signal received before PeerConnection ready:", {
+      //     offer: !!data.offer,
+      //     answer: !!data.answer,
+      //     candidate: !!data.candidate,
+      //   });
+
+      //   return;
+      // }
+
       if (!pcRef.current) {
-        console.log("⚠️ Signal received before PeerConnection ready:", {
-          offer: !!data.offer,
-          answer: !!data.answer,
-          candidate: !!data.candidate,
-        });
+        console.log("⏳ Signal received before PeerConnection ready");
+
+        setTimeout(() => {
+          if (!pcRef.current) {
+            console.log("❌ PeerConnection still not ready for signal");
+            return;
+          }
+
+          socketRef.current.emit("signal-retry", data);
+        }, 100);
 
         return;
       }
@@ -600,15 +694,6 @@ export default function MatchPage() {
         setVoiceSubtitle(null);
       }, 4000);
     });
-
-    //     socketRef.current.on("reward-earned", (data) => {
-    //       alert(`🔥 Great Session
-    //            ⭐ Level ${data.level}
-    //        +${data.xp} XP
-    //        +${data.coins} Coins
-    //       +${data.fragments} Fragments
-    //  `);
-    //     });
 
     socketRef.current.on("partner-left", () => {
       deepgramReadyRef.current = false;
@@ -769,22 +854,6 @@ export default function MatchPage() {
 
     socketRef.current.emit("next");
   }
-
-  // function sendMessage(e) {
-  //   e.preventDefault();
-  //   if (!text.trim()) return;
-
-  //   const message = {
-  //     id: uuid(),
-  //     sender: socketRef.current.id,
-  //     text,
-  //     status: "sent",
-  //   };
-
-  //   socketRef.current.emit("chat-message", message);
-  //   setMessages((prev) => [...prev, message]);
-  //   setText("");
-  // }
 
   function sendMessage(e) {
     e.preventDefault();
@@ -1025,96 +1094,6 @@ export default function MatchPage() {
           </div>
         </div>
       )}
-
-      {/* {isMobile ? (
-        showChat && (
-          <div className="fixed inset-0 z-[900] flex flex-col bg-black/70 ">
-            <div className="flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-md">
-              <div>
-                <h2 className="text-sm font-semibold">Stranger</h2>
-                <p className="text-xs text-green-400">{status}</p>
-              </div>
-
-              <button onClick={() => setShowChat(false)} className="text-xl">
-                ✖
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
-              {messages.map((m, i) => (
-                <div
-                  key={m.id || i}
-                  className={`flex ${
-                    m.sender === socketRef.current.id
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`px-3 py-2 rounded-2xl max-w-[75%] text-sm shadow ${
-                      m.sender === socketRef.current.id
-                        ? "bg-green-500 text-black rounded-br-none"
-                        : "bg-white/80 text-black rounded-bl-none"
-                    }`}
-                  >
-                    {m.type === "image" ? (
-                      <img src={m.image} className="rounded-lg max-w-[200px]" />
-                    ) : m.type === "audio" ? (
-                      <audio controls src={m.audio} />
-                    ) : (
-                      <span>{m.text}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {typing && <p className="text-xs text-gray-300 px-3">Typing...</p>}
-
-            <form
-              onSubmit={sendMessage}
-              className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-md"
-            >
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                id="mobileImageUpload"
-                onChange={handleImage}
-              />
-              <label
-                htmlFor="mobileImageUpload"
-                className="text-xl cursor-pointer"
-              >
-                📎
-              </label>
-
-              <input
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  socketRef.current.emit("typing");
-                }}
-                className="flex-1 px-4 py-2 rounded-full bg-gray-800 text-sm outline-none"
-                placeholder="Message"
-              />
-
-              {text.trim() ? (
-                <button className="bg-green-500 text-black px-4 py-2 rounded-full">
-                  ➤
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className="text-xl"
-                >
-                  🎤
-                </button>
-              )}
-            </form>
-          </div>
-        ) */}
 
       {isMobile ? (
         showChat && (
@@ -1387,7 +1366,6 @@ export default function MatchPage() {
               </div>
             </div>
 
-            {/* ================= MESSAGES ================= */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length > 0 && (
                 <div className="flex items-center gap-3 py-2">
@@ -1484,7 +1462,6 @@ export default function MatchPage() {
               })}
             </div>
 
-            {/* ================= TYPING ================= */}
             {typing && (
               <div className="flex items-center gap-2 px-4 pb-3">
                 <div className="flex gap-1">
@@ -1501,7 +1478,6 @@ export default function MatchPage() {
               </div>
             )}
 
-            {/* ================= INPUT ================= */}
             <form
               onSubmit={sendMessage}
               className="shrink-0 p-3 border-t border-white/[0.08] bg-black/50 backdrop-blur-xl"
@@ -1562,148 +1538,7 @@ export default function MatchPage() {
             </form>
           </div>
         </div>
-
-        // <div
-        //   className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
-        //     showChat ? "translate-x-0" : "translate-x-full"
-        //   }`}
-        // >
-        //   <div className="flex flex-col h-full">
-        //     <div className="flex justify-between items-center p-4 border-b border-gray-700">
-        //       <h2 className="text-lg font-semibold">Chat</h2>
-        //       <button onClick={() => setShowChat(false)} className="text-xl">
-        //         ✖
-        //       </button>
-        //     </div>
-
-        //     <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        //       {messages.map((m, i) => (
-        //         <div
-        //           key={m.id || i}
-        //           className={`p-2 rounded-lg max-w-[75%] ${
-        //             m.sender === socketRef.current.id
-        //               ? "bg-blue-600 ml-auto"
-        //               : "bg-gray-700 mr-auto"
-        //           }`}
-        //         >
-        //           <div className="flex items-end gap-1">
-        //             {m.type === "image" ? (
-        //               <img src={m.image} className="rounded-lg max-w-xs" />
-        //             ) : m.type === "audio" ? (
-        //               <audio controls src={m.audio} className="max-w-xs" />
-        //             ) : (
-        //               <span>{m.text}</span>
-        //             )}
-
-        //             {m.edited && (
-        //               <span className="text-xs italic text-gray-300 ml-1">
-        //                 edited
-        //               </span>
-        //             )}
-
-        //             {m.sender === socketRef.current.id && (
-        //               <span className="text-xs ml-1">
-        //                 {m.status === "sent" && "✓"}
-        //                 {m.status === "delivered" && "✓✓"}
-        //                 {m.status === "seen" && (
-        //                   <span className="text-blue-400">✓✓</span>
-        //                 )}
-        //                 {m.type === "audio" && (
-        //                   <audio controls src={m.audio} className="max-w-xs" />
-        //                 )}
-
-        //                 {m.type === "image" && (
-        //                   <img src={m.image} className="rounded-lg max-w-xs" />
-        //                 )}
-        //               </span>
-        //             )}
-
-        //             {m.sender === socketRef.current.id && (
-        //               <button
-        //                 onClick={() => {
-        //                   const newText = prompt("Edit message", m.text);
-        //                   if (!newText) return;
-
-        //                   socketRef.current.emit("edit-message", {
-        //                     id: m.id,
-        //                     newText,
-        //                   });
-        //                   setMessages((prev) =>
-        //                     prev.map((msg) =>
-        //                       msg.id === m.id
-        //                         ? { ...msg, text: newText, edited: true }
-        //                         : msg,
-        //                     ),
-        //                   );
-        //                 }}
-        //                 className="text-xs text-gray-300 ml-2"
-        //               >
-        //                 ✏
-        //               </button>
-        //             )}
-        //           </div>
-        //         </div>
-        //       ))}
-        //     </div>
-
-        //     {typing && (
-        //       <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
-        //     )}
-
-        //     <form
-        //       onSubmit={sendMessage}
-        //       className="p-4 flex  border-t border-gray-700"
-        //     >
-        //       <input
-        //         value={text}
-        //         onChange={(e) => {
-        //           setText(e.target.value);
-        //           socketRef.current.emit("typing");
-        //         }}
-        //         className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
-        //         placeholder="Type a message..."
-        //       />
-
-        //       <button
-        //         type="button"
-        //         onClick={isRecording ? stopRecording : startRecording}
-        //         className="bg-purple-600 px-3 rounded"
-        //       >
-        //         {isRecording ? "Stop" : "🎙"}
-        //       </button>
-        //       <input
-        //         type="file"
-        //         accept="image/*"
-        //         hidden
-        //         id="imageUpload"
-        //         onChange={handleImage}
-        //       />
-
-        //       <label htmlFor="imageUpload" className="cursor-pointer px-2">
-        //         📷
-        //       </label>
-        //       <button className="bg-green-600 px-4 rounded">Send</button>
-        //     </form>
-        //   </div>
-        // </div>
       )}
-
-      {/* {!(isMobile && showChat) && (
-        <div className="fixed bottom-[165px] md:bottom-[135px] left-1/2 -translate-x-1/2 z-50">
-          {partner ? (
-            <div className="bg-black/70 backdrop-blur-lg px-6 py-3 rounded-xl border border-white/10 shadow-xl text-center">
-              <p className="text-white font-semibold text-sm">
-                ❤️ {partner.name}, {partner.age}
-              </p>
-              <p className="text-gray-400 text-xs">{partner.gender}</p>
-            </div>
-          ) : (
-            <div className="text-gray-400 text-sm text-center">
-              Searching for match...
-            </div>
-          )}
-        </div>
-      )} */}
 
       {!(isMobile && showChat) && (
         <div
@@ -1712,58 +1547,6 @@ export default function MatchPage() {
             paddingBottom: "env(safe-area-inset-bottom)",
           }}
         >
-          {/* LANGUAGE SELECTOR */}
-          {/* <div className="flex justify-center">
-            <select
-              value={language}
-              onChange={(e) => {
-                const newLang = e.target.value;
-
-                setLanguage(newLang);
-
-                languageRef.current = newLang;
-
-                localStorage.setItem("subtitle_language", newLang);
-
-                socketRef.current.emit("update-language", newLang);
-              }}
-              className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
-            >
-              <option value="hi-IN">Hindi</option>
-              <option value="bn-IN">Bengali — বাংলা</option>
-              <option value="te-IN">Telugu — తెలుగు</option>
-              <option value="mr-IN">Marathi — मराठी</option>
-              <option value="ta-IN">Tamil — தமிழ்</option>
-              <option value="ur-IN">Urdu — اردو</option>
-              <option value="gu-IN">Gujarati — ગુજરાતી</option>
-              <option value="kn-IN">Kannada — ಕನ್ನಡ</option>
-              <option value="ml-IN">Malayalam — മലയാളം</option>
-              <option value="or-IN">Odia — ଓଡ଼ିଆ</option>
-              <option value="pa-IN">Punjabi — ਪੰਜਾਬੀ</option>
-              <option value="as-IN">Assamese — অসমীয়া</option>
-              <option value="ma-IN">Maithili — मैथिली</option>
-              <option value="sa-IN">Sanskrit — संस्कृतम्</option>
-              <option value="ne-IN">Nepali — नेपाली</option>
-              <option value="kok-IN">Konkani — कोंकणी</option>
-              <option value="sd-IN">Sindhi — سنڌي</option>
-              <option value="doi-IN">Dogri — डोगरी</option>
-              <option value="mni-IN">Manipuri — মৈতৈলোন্</option>
-              <option value="sat-IN">Santali — ᱥᱟᱱᱛᱟᱲᱤ</option>
-              <option value="ks-IN">Kashmiri — कश्मीरी</option>
-              <option value="bho-IN">Bhojpuri — भोजपुरी</option>
-
-              <option value="en-US">English</option>
-              <option value="es-ES">Spanish</option>
-              <option value="fr-FR">French</option>
-              <option value="de-DE">German</option>
-              <option value="it-IT">Italian</option>
-              <option value="ru-RU">Russian</option>
-              <option value="ja-JP">Japanese</option>
-              <option value="ko-KR">Korean</option>
-              <option value="zh-CN">Chinese</option>
-            </select>
-          </div> */}
-
           {/* STRANGER + LANGUAGE */}
           <div className="flex items-center justify-between gap-3 w-full">
             {/* STRANGER INFO */}
