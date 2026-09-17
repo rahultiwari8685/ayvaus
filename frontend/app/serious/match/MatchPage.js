@@ -1098,7 +1098,6 @@ export default function MatchPage() {
       {isMobile ? (
         showChat && (
           <div className="fixed inset-0 z-[1000] bg-[#07070a] text-white flex flex-col">
-            {/* ================= HEADER ================= */}
             <div className="shrink-0 px-4 py-3 border-b border-white/[0.08] bg-black/50 backdrop-blur-xl">
               <div className="flex items-center gap-3">
                 {/* Close */}
@@ -1109,7 +1108,6 @@ export default function MatchPage() {
                   ←
                 </button>
 
-                {/* Avatar */}
                 <div className="relative shrink-0">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-sm font-bold">
                     F
@@ -1141,7 +1139,6 @@ export default function MatchPage() {
               </div>
             </div>
 
-            {/* ================= MESSAGES ================= */}
             <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
               {messages.length > 0 && (
                 <div className="flex items-center gap-3 py-2">
@@ -1255,7 +1252,6 @@ export default function MatchPage() {
               )}
             </div>
 
-            {/* ================= INPUT ================= */}
             <form
               onSubmit={sendMessage}
               className="shrink-0 p-3 border-t border-white/[0.08] bg-black/50 backdrop-blur-xl"
@@ -1303,7 +1299,6 @@ export default function MatchPage() {
                   </button>
                 )}
 
-                {/* SEND */}
                 {text.trim() && (
                   <button
                     type="submit"
@@ -1323,7 +1318,6 @@ export default function MatchPage() {
           }`}
         >
           <div className="flex flex-col h-full">
-            {/* ================= HEADER ================= */}
             <div className="px-4 py-3 border-b border-white/[0.08] bg-black/30 backdrop-blur-xl">
               <div className="flex items-center gap-3">
                 {/* Back */}
@@ -1547,7 +1541,6 @@ export default function MatchPage() {
             paddingBottom: "env(safe-area-inset-bottom)",
           }}
         >
-          {/* STRANGER + LANGUAGE */}
           <div className="flex items-center justify-between gap-3 w-full">
             {/* STRANGER INFO */}
             <div className="min-w-0 flex-1">
@@ -1555,12 +1548,12 @@ export default function MatchPage() {
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="min-w-0">
                     <p className="text-white font-semibold text-sm truncate">
-                      ❤️ {partner.name}, {partner.age}
+                      ❤️ {partner.name}({partner.gender}), {partner.age}
                     </p>
 
-                    <p className="text-gray-400 text-xs truncate">
+                    {/* <p className="text-gray-400 text-xs truncate">
                       {partner.gender}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               ) : (
@@ -1570,7 +1563,6 @@ export default function MatchPage() {
               )}
             </div>
 
-            {/* LANGUAGE SELECTOR */}
             <div className="flex-shrink-0">
               <select
                 value={language}
@@ -1623,7 +1615,6 @@ export default function MatchPage() {
             </div>
           </div>
 
-          {/* BUTTONS */}
           <div className="flex justify-between items-center w-full">
             {/* EXIT */}
             <div className="flex flex-col items-center text-xs text-white">
