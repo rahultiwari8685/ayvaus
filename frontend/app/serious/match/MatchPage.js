@@ -17,13 +17,16 @@ function getOrCreateUserId() {
 }
 
 export default function MatchPage() {
-  const { socket } = useSocket();
+  // const { socket } = useSocket();
+  const { socket, reconnectWithAuth } = useSocket();
+
   const socketRef = useRef(null);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const roleRef = useRef(null);
+  const sessionIdRef = useRef(null);
   const iceQueueRef = useRef([]);
 
   const audioContextRef = useRef(null);
@@ -294,7 +297,11 @@ export default function MatchPage() {
 
     pc.onicecandidate = (e) => {
       if (e.candidate) {
-        socketRef.current.emit("signal", { candidate: e.candidate });
+        // socketRef.current.emit("signal", { candidate: e.candidate });
+        socketRef.current.emit("signal", {
+          sessionId: sessionIdRef.current,
+          candidate: e.candidate,
+        });
       }
     };
 
@@ -338,23 +345,56 @@ export default function MatchPage() {
     }
 
     socketRef.current = socket;
-
+    reconnectWithAuth();
     socketRef.current.on("deepgram-ready", () => {
       console.log("✅ Serious Mode Deepgram Ready");
 
       deepgramReadyRef.current = true;
     });
 
+    // (async () => {
+    //   console.log("✅ MatchPage initialized");
+
+    //   try {
+    //     await initCamera();
+
+    //     // JOIN MATCHMAKING IMMEDIATELY
+    //     const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
+
+    //     if (reconnectPartnerId) {
+    //       socketRef.current.emit("reconnect-user", {
+    //         token,
+    //         partnerId: reconnectPartnerId,
+    //       });
+
+    //       localStorage.removeItem("reconnect_partner_id");
+    //     } else {
+    //       socketRef.current.emit("join", {
+    //         language: languageRef.current,
+    //       });
+    //     }
+
+    //     socketRef.current.emit("get-online-count");
+
+    //     console.log("🚀 Joined queue immediately");
+    //   } catch (err) {
+    //     console.error("❌ Init error:", err);
+    //   }
+    // })();
+
     (async () => {
-      console.log("✅ MatchPage initialized");
+      await initCamera();
 
-      try {
-        await initCamera();
+      const joinSeriousMode = () => {
+        console.log("❤️ Joining Serious Mode");
+        console.log("Socket ID:", socketRef.current?.id);
+        console.log("Socket connected:", socketRef.current?.connected);
 
-        // JOIN MATCHMAKING IMMEDIATELY
         const reconnectPartnerId = localStorage.getItem("reconnect_partner_id");
 
         if (reconnectPartnerId) {
+          console.log("🔄 Reconnecting with partner:", reconnectPartnerId);
+
           socketRef.current.emit("reconnect-user", {
             token,
             partnerId: reconnectPartnerId,
@@ -362,16 +402,20 @@ export default function MatchPage() {
 
           localStorage.removeItem("reconnect_partner_id");
         } else {
+          console.log("🔎 Searching Serious Mode:", languageRef.current);
+
           socketRef.current.emit("join", {
             language: languageRef.current,
           });
         }
 
         socketRef.current.emit("get-online-count");
+      };
 
-        console.log("🚀 Joined queue immediately");
-      } catch (err) {
-        console.error("❌ Init error:", err);
+      if (socketRef.current.connected) {
+        joinSeriousMode();
+      } else {
+        socketRef.current.once("connect", joinSeriousMode);
       }
     })();
 
@@ -410,7 +454,7 @@ export default function MatchPage() {
     //   }
     // });
 
-    socketRef.current.on("matched", async ({ role, partner }) => {
+    socketRef.current.on("matched", async ({ role, partner, sessionId }) => {
       console.log("🎯 MATCHED:", {
         role,
         partner,
@@ -418,6 +462,9 @@ export default function MatchPage() {
 
       setPartner(partner);
       roleRef.current = role;
+      sessionIdRef.current = sessionId;
+
+      console.log("🆔 SESSION ID:", sessionId);
       setStatus("Connecting...");
 
       try {
@@ -443,7 +490,10 @@ export default function MatchPage() {
 
       const offer = await pcRef.current.createOffer();
       await pcRef.current.setLocalDescription(offer);
-      socketRef.current.emit("signal", { offer });
+      socketRef.current.emit("signal", {
+        sessionId: sessionIdRef.current,
+        offer,
+      });
     });
 
     socketRef.current.on("signal", async (data) => {
@@ -470,7 +520,10 @@ export default function MatchPage() {
           const answer = await pcRef.current.createAnswer();
           await pcRef.current.setLocalDescription(answer);
 
-          socketRef.current.emit("signal", { answer });
+          socketRef.current.emit("signal", {
+            sessionId: sessionIdRef.current,
+            answer,
+          });
         }
 
         if (data.answer) {

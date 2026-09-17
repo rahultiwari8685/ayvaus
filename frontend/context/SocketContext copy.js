@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useRef } from "react";
+
 import { io } from "socket.io-client";
 
 const SocketContext = createContext();
@@ -12,37 +13,19 @@ export function SocketProvider({ children }) {
   const ringtoneRef = useRef(null);
 
   useEffect(() => {
-    const s = io("https://api.flirtaUs.com", {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const s = io("https://api.flirtaus.com", {
       transports: ["websocket"],
-      autoConnect: false,
-
-      auth: (cb) => {
-        const token = localStorage.getItem("token");
-
-        cb({
-          token: token || null,
-          mode: token ? "serious" : "random",
-        });
+      auth: {
+        token,
+        mode: "serious",
       },
     });
 
     setSocket(s);
-
-    s.on("connect", () => {
-      console.log("🔌 Socket connected:", s.id);
-
-      const token = localStorage.getItem("token");
-
-      console.log("🔐 Socket auth mode:", token ? "SERIOUS" : "RANDOM");
-    });
-
-    s.on("connect_error", (err) => {
-      console.error("❌ Socket connection error:", err.message);
-    });
-
-    s.on("disconnect", (reason) => {
-      console.log("🔌 Socket disconnected:", reason);
-    });
 
     s.on("incoming-reconnect-request", (data) => {
       setReconnectRequest(data);
@@ -51,7 +34,7 @@ export function SocketProvider({ children }) {
         ringtoneRef.current.currentTime = 0;
 
         ringtoneRef.current.play().catch((err) => {
-          console.log("Ringtone error:", err);
+          console.log(err);
         });
       }
     });
@@ -62,42 +45,10 @@ export function SocketProvider({ children }) {
       window.location.href = "/serious/match";
     });
 
-    // Connect using the CURRENT token
-    s.connect();
-
     return () => {
-      s.removeAllListeners();
       s.disconnect();
     };
   }, []);
-
-  /**
-   * Force Socket.IO to reconnect with the latest token.
-   *
-   * This is important after login because the token may have
-   * been added to localStorage after SocketProvider mounted.
-   */
-  const reconnectWithAuth = () => {
-    if (!socket) return;
-
-    const token = localStorage.getItem("token");
-
-    console.log(
-      "🔐 Reconnecting socket with:",
-      token ? "SERIOUS TOKEN" : "NO TOKEN",
-    );
-
-    socket.auth = {
-      token: token || null,
-      mode: token ? "serious" : "random",
-    };
-
-    if (socket.connected) {
-      socket.disconnect();
-    }
-
-    socket.connect();
-  };
 
   const acceptReconnect = () => {
     if (!socket || !reconnectRequest) return;
@@ -109,10 +60,7 @@ export function SocketProvider({ children }) {
     });
 
     ringtoneRef.current?.pause();
-
-    if (ringtoneRef.current) {
-      ringtoneRef.current.currentTime = 0;
-    }
+    ringtoneRef.current.currentTime = 0;
 
     setReconnectRequest(null);
 
@@ -121,21 +69,13 @@ export function SocketProvider({ children }) {
 
   const rejectReconnect = () => {
     ringtoneRef.current?.pause();
-
-    if (ringtoneRef.current) {
-      ringtoneRef.current.currentTime = 0;
-    }
+    ringtoneRef.current.currentTime = 0;
 
     setReconnectRequest(null);
   };
 
   return (
-    <SocketContext.Provider
-      value={{
-        socket,
-        reconnectWithAuth,
-      }}
-    >
+    <SocketContext.Provider value={{ socket }}>
       {children}
 
       {reconnectRequest && (
@@ -171,7 +111,6 @@ export function SocketProvider({ children }) {
           </div>
         </div>
       )}
-
       <audio ref={ringtoneRef} src="/sounds/call.mp3" preload="auto" loop />
     </SocketContext.Provider>
   );
