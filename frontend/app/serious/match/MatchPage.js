@@ -1217,7 +1217,7 @@ export default function MatchPage() {
         </div>
       )}
 
-      {!(isMobile && showChat) && (
+      {/* {!(isMobile && showChat) && (
         <div className="fixed bottom-[165px] md:bottom-[135px] left-1/2 -translate-x-1/2 z-50">
           {partner ? (
             <div className="bg-black/70 backdrop-blur-lg px-6 py-3 rounded-xl border border-white/10 shadow-xl text-center">
@@ -1232,7 +1232,7 @@ export default function MatchPage() {
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       {!(isMobile && showChat) && (
         <div
@@ -1242,7 +1242,7 @@ export default function MatchPage() {
           }}
         >
           {/* LANGUAGE SELECTOR */}
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <select
               value={language}
               onChange={(e) => {
@@ -1291,6 +1291,82 @@ export default function MatchPage() {
               <option value="ko-KR">Korean</option>
               <option value="zh-CN">Chinese</option>
             </select>
+          </div> */}
+
+          {/* STRANGER + LANGUAGE */}
+          <div className="flex items-center justify-between gap-3 w-full">
+            {/* STRANGER INFO */}
+            <div className="min-w-0 flex-1">
+              {partner ? (
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold text-sm truncate">
+                      ❤️ {partner.name}, {partner.age}
+                    </p>
+
+                    <p className="text-gray-400 text-xs truncate">
+                      {partner.gender}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-xs truncate">
+                  Searching for match...
+                </p>
+              )}
+            </div>
+
+            {/* LANGUAGE SELECTOR */}
+            <div className="flex-shrink-0">
+              <select
+                value={language}
+                onChange={(e) => {
+                  const newLang = e.target.value;
+
+                  setLanguage(newLang);
+
+                  languageRef.current = newLang;
+
+                  localStorage.setItem("subtitle_language", newLang);
+
+                  socketRef.current.emit("update-language", newLang);
+                }}
+                className="bg-gray-800 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none w-[150px]"
+              >
+                <option value="hi-IN">Hindi</option>
+                <option value="bn-IN">Bengali</option>
+                <option value="te-IN">Telugu</option>
+                <option value="mr-IN">Marathi</option>
+                <option value="ta-IN">Tamil</option>
+                <option value="ur-IN">Urdu</option>
+                <option value="gu-IN">Gujarati</option>
+                <option value="kn-IN">Kannada</option>
+                <option value="ml-IN">Malayalam</option>
+                <option value="or-IN">Odia</option>
+                <option value="pa-IN">Punjabi</option>
+                <option value="as-IN">Assamese</option>
+                <option value="ma-IN">Maithili</option>
+                <option value="sa-IN">Sanskrit</option>
+                <option value="ne-IN">Nepali</option>
+                <option value="kok-IN">Konkani</option>
+                <option value="sd-IN">Sindhi</option>
+                <option value="doi-IN">Dogri</option>
+                <option value="mni-IN">Manipuri</option>
+                <option value="sat-IN">Santali</option>
+                <option value="ks-IN">Kashmiri</option>
+                <option value="bho-IN">Bhojpuri</option>
+
+                <option value="en-US">English</option>
+                <option value="es-ES">Spanish</option>
+                <option value="fr-FR">French</option>
+                <option value="de-DE">German</option>
+                <option value="it-IT">Italian</option>
+                <option value="ru-RU">Russian</option>
+                <option value="ja-JP">Japanese</option>
+                <option value="ko-KR">Korean</option>
+                <option value="zh-CN">Chinese</option>
+              </select>
+            </div>
           </div>
 
           {/* BUTTONS */}
