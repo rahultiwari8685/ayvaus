@@ -1218,7 +1218,7 @@ export default function MatchPage() {
       )}
 
       {!(isMobile && showChat) && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50">
+        <div className="fixed bottom-[165px] md:bottom-[135px] left-1/2 -translate-x-1/2 z-50">
           {partner ? (
             <div className="bg-black/70 backdrop-blur-lg px-6 py-3 rounded-xl border border-white/10 shadow-xl text-center">
               <p className="text-white font-semibold text-sm">
