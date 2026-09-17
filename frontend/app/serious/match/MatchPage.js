@@ -770,19 +770,41 @@ export default function MatchPage() {
     socketRef.current.emit("next");
   }
 
+  // function sendMessage(e) {
+  //   e.preventDefault();
+  //   if (!text.trim()) return;
+
+  //   const message = {
+  //     id: uuid(),
+  //     sender: socketRef.current.id,
+  //     text,
+  //     status: "sent",
+  //   };
+
+  //   socketRef.current.emit("chat-message", message);
+  //   setMessages((prev) => [...prev, message]);
+  //   setText("");
+  // }
+
   function sendMessage(e) {
     e.preventDefault();
-    if (!text.trim()) return;
+
+    const messageText = text.trim();
+
+    if (!messageText) return;
 
     const message = {
       id: uuid(),
       sender: socketRef.current.id,
-      text,
+      text: messageText,
       status: "sent",
+      createdAt: Date.now(),
     };
 
     socketRef.current.emit("chat-message", message);
+
     setMessages((prev) => [...prev, message]);
+
     setText("");
   }
 
@@ -810,6 +832,7 @@ export default function MatchPage() {
           type: "audio",
           audio: reader.result,
           status: "sent",
+          createdAt: Date.now(),
         };
 
         socketRef.current.emit("chat-message", message);
@@ -913,6 +936,7 @@ export default function MatchPage() {
         type: "image",
         image: reader.result,
         status: "sent",
+        createdAt: Date.now(),
       };
 
       socketRef.current.emit("chat-message", message);
@@ -1002,7 +1026,7 @@ export default function MatchPage() {
         </div>
       )}
 
-      {isMobile ? (
+      {/* {isMobile ? (
         showChat && (
           <div className="fixed inset-0 z-[900] flex flex-col bg-black/70 ">
             <div className="flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-md">
@@ -1090,131 +1114,578 @@ export default function MatchPage() {
               )}
             </form>
           </div>
+        ) */}
+
+      {isMobile ? (
+        showChat && (
+          <div className="fixed inset-0 z-[1000] bg-[#07070a] text-white flex flex-col">
+            {/* ================= HEADER ================= */}
+            <div className="shrink-0 px-4 py-3 border-b border-white/[0.08] bg-black/50 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                {/* Close */}
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70 transition"
+                >
+                  ←
+                </button>
+
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-sm font-bold">
+                    F
+                  </div>
+
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#07070a]" />
+                </div>
+
+                {/* User */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-sm font-semibold text-white">Stranger</h2>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+
+                    <span className="text-[10px] text-emerald-400">
+                      {status === "Connected" ? "Connected" : status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* More */}
+                <button
+                  type="button"
+                  className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/60"
+                >
+                  ⋮
+                </button>
+              </div>
+            </div>
+
+            {/* ================= MESSAGES ================= */}
+            <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
+              {messages.length > 0 && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+
+                  <span className="text-[9px] uppercase tracking-wider text-white/30">
+                    Today
+                  </span>
+
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                </div>
+              )}
+
+              {messages.map((m, i) => {
+                const isMine = m.sender === socketRef.current.id;
+
+                return (
+                  <div
+                    key={m.id || i}
+                    className={`flex ${
+                      isMine ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[78%] overflow-hidden ${
+                        isMine
+                          ? "bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl rounded-br-md"
+                          : "bg-white/[0.07] border border-white/[0.08] rounded-2xl rounded-bl-md"
+                      }`}
+                    >
+                      {/* IMAGE */}
+                      {m.type === "image" ? (
+                        <img
+                          src={m.image}
+                          alt="Shared image"
+                          className="max-w-[240px] max-h-[300px] w-auto object-cover"
+                        />
+                      ) : m.type === "audio" ? (
+                        /* AUDIO */
+                        <div className="p-3">
+                          <audio
+                            controls
+                            src={m.audio}
+                            className="w-[220px] max-w-full"
+                          />
+                        </div>
+                      ) : (
+                        /* TEXT */
+                        <div className="px-4 py-2.5">
+                          <p className="text-sm leading-relaxed break-words">
+                            {m.text}
+                          </p>
+
+                          {m.edited && (
+                            <span className="text-[9px] italic opacity-50 ml-1">
+                              edited
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* TIME + STATUS */}
+                      <div
+                        className={`px-3 pb-2 flex items-center justify-end gap-1 ${
+                          m.type === "image" ? "pt-1" : ""
+                        }`}
+                      >
+                        <span className="text-[9px] opacity-40">
+                          {new Date(
+                            m.createdAt || Date.now(),
+                          ).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </span>
+
+                        {isMine && (
+                          <span
+                            className={`text-[10px] ${
+                              m.status === "seen"
+                                ? "text-cyan-300"
+                                : "text-white/50"
+                            }`}
+                          >
+                            {m.status === "sent" && "✓"}
+                            {m.status === "delivered" && "✓✓"}
+                            {m.status === "seen" && "✓✓"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* TYPING */}
+              {typing && (
+                <div className="flex items-center gap-2 px-2 py-2">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" />
+
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce [animation-delay:150ms]" />
+
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce [animation-delay:300ms]" />
+                  </div>
+
+                  <span className="text-[10px] text-white/40">
+                    Stranger is typing
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* ================= INPUT ================= */}
+            <form
+              onSubmit={sendMessage}
+              className="shrink-0 p-3 border-t border-white/[0.08] bg-black/50 backdrop-blur-xl"
+            >
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.06] border border-white/[0.08]">
+                {/* IMAGE */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  id="mobileImageUpload"
+                  onChange={handleImage}
+                />
+
+                <label
+                  htmlFor="mobileImageUpload"
+                  className="w-9 h-9 shrink-0 rounded-xl hover:bg-white/10 flex items-center justify-center cursor-pointer text-white/60 transition"
+                >
+                  +
+                </label>
+
+                {/* TEXT */}
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    socketRef.current?.emit("typing");
+                  }}
+                  className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder:text-white/30"
+                  placeholder="Write a message..."
+                />
+
+                {/* MIC */}
+                {!text.trim() && (
+                  <button
+                    type="button"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
+                      isRecording
+                        ? "bg-red-500 text-white"
+                        : "hover:bg-white/10 text-white/60"
+                    }`}
+                  >
+                    🎤
+                  </button>
+                )}
+
+                {/* SEND */}
+                {text.trim() && (
+                  <button
+                    type="submit"
+                    className="w-9 h-9 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center font-bold shadow-lg shadow-pink-500/20"
+                  >
+                    ➤
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
         )
       ) : (
         <div
-          className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
+          className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-[#07070a]/95 backdrop-blur-xl shadow-2xl border-l border-white/[0.08] transform transition-transform duration-300 z-50 ${
             showChat ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center p-4 border-b border-gray-700">
-              <h2 className="text-lg font-semibold">Chat</h2>
-              <button onClick={() => setShowChat(false)} className="text-xl">
-                ✖
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((m, i) => (
-                <div
-                  key={m.id || i}
-                  className={`p-2 rounded-lg max-w-[75%] ${
-                    m.sender === socketRef.current.id
-                      ? "bg-blue-600 ml-auto"
-                      : "bg-gray-700 mr-auto"
-                  }`}
+            {/* ================= HEADER ================= */}
+            <div className="px-4 py-3 border-b border-white/[0.08] bg-black/30 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                {/* Back */}
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70 transition"
                 >
-                  <div className="flex items-end gap-1">
-                    {m.type === "image" ? (
-                      <img src={m.image} className="rounded-lg max-w-xs" />
-                    ) : m.type === "audio" ? (
-                      <audio controls src={m.audio} className="max-w-xs" />
-                    ) : (
-                      <span>{m.text}</span>
-                    )}
+                  ←
+                </button>
 
-                    {m.edited && (
-                      <span className="text-xs italic text-gray-300 ml-1">
-                        edited
-                      </span>
-                    )}
+                {/* Avatar */}
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-sm font-bold">
+                    F
+                  </div>
 
-                    {m.sender === socketRef.current.id && (
-                      <span className="text-xs ml-1">
-                        {m.status === "sent" && "✓"}
-                        {m.status === "delivered" && "✓✓"}
-                        {m.status === "seen" && (
-                          <span className="text-blue-400">✓✓</span>
-                        )}
-                        {m.type === "audio" && (
-                          <audio controls src={m.audio} className="max-w-xs" />
-                        )}
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-gray-900" />
+                </div>
 
-                        {m.type === "image" && (
-                          <img src={m.image} className="rounded-lg max-w-xs" />
-                        )}
-                      </span>
-                    )}
+                {/* User */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-sm font-semibold text-white">Stranger</h2>
 
-                    {m.sender === socketRef.current.id && (
-                      <button
-                        onClick={() => {
-                          const newText = prompt("Edit message", m.text);
-                          if (!newText) return;
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
 
-                          socketRef.current.emit("edit-message", {
-                            id: m.id,
-                            newText,
-                          });
-                          setMessages((prev) =>
-                            prev.map((msg) =>
-                              msg.id === m.id
-                                ? { ...msg, text: newText, edited: true }
-                                : msg,
-                            ),
-                          );
-                        }}
-                        className="text-xs text-gray-300 ml-2"
-                      >
-                        ✏
-                      </button>
-                    )}
+                    <span className="text-[11px] text-emerald-400">
+                      {status}
+                    </span>
                   </div>
                 </div>
-              ))}
+
+                {/* More */}
+                <button
+                  type="button"
+                  className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/60"
+                >
+                  ⋮
+                </button>
+              </div>
             </div>
 
+            {/* ================= MESSAGES ================= */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.length > 0 && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+
+                  <span className="text-[9px] uppercase tracking-wider text-white/30">
+                    Today
+                  </span>
+
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                </div>
+              )}
+
+              {messages.map((m, i) => {
+                const isMine = m.sender === socketRef.current.id;
+
+                return (
+                  <div
+                    key={m.id || i}
+                    className={`flex ${
+                      isMine ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[78%] overflow-hidden ${
+                        isMine
+                          ? "bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl rounded-br-md"
+                          : "bg-white/[0.07] border border-white/[0.08] rounded-2xl rounded-bl-md"
+                      }`}
+                    >
+                      {/* IMAGE */}
+                      {m.type === "image" ? (
+                        <img
+                          src={m.image}
+                          alt="Shared image"
+                          className="max-w-[240px] max-h-[300px] w-auto object-cover"
+                        />
+                      ) : m.type === "audio" ? (
+                        /* AUDIO */
+                        <div className="p-3">
+                          <audio
+                            controls
+                            src={m.audio}
+                            className="w-[220px] max-w-full"
+                          />
+                        </div>
+                      ) : (
+                        /* TEXT */
+                        <div className="px-4 py-2.5">
+                          <p className="text-sm leading-relaxed break-words">
+                            {m.text}
+                          </p>
+
+                          {m.edited && (
+                            <span className="text-[9px] italic opacity-50 ml-1">
+                              edited
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* TIME + STATUS */}
+                      <div
+                        className={`px-3 pb-2 flex items-center justify-end gap-1 ${
+                          m.type === "image" ? "pt-1" : ""
+                        }`}
+                      >
+                        <span className="text-[9px] opacity-40">
+                          {new Date(
+                            m.createdAt || Date.now(),
+                          ).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </span>
+
+                        {isMine && (
+                          <span
+                            className={`text-[10px] ${
+                              m.status === "seen"
+                                ? "text-cyan-300"
+                                : "text-white/50"
+                            }`}
+                          >
+                            {m.status === "sent" && "✓"}
+                            {m.status === "delivered" && "✓✓"}
+                            {m.status === "seen" && "✓✓"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ================= TYPING ================= */}
             {typing && (
-              <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
+              <div className="flex items-center gap-2 px-4 pb-3">
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" />
+
+                  <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce [animation-delay:150ms]" />
+
+                  <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce [animation-delay:300ms]" />
+                </div>
+
+                <span className="text-[10px] text-white/40">
+                  Stranger is typing
+                </span>
+              </div>
             )}
 
+            {/* ================= INPUT ================= */}
             <form
               onSubmit={sendMessage}
-              className="p-4 flex  border-t border-gray-700"
+              className="shrink-0 p-3 border-t border-white/[0.08] bg-black/50 backdrop-blur-xl"
             >
-              <input
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  socketRef.current.emit("typing");
-                }}
-                className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
-                placeholder="Type a message..."
-              />
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.06] border border-white/[0.08]">
+                {/* IMAGE */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  id="imageUpload"
+                  onChange={handleImage}
+                />
 
-              <button
-                type="button"
-                onClick={isRecording ? stopRecording : startRecording}
-                className="bg-purple-600 px-3 rounded"
-              >
-                {isRecording ? "Stop" : "🎙"}
-              </button>
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                id="imageUpload"
-                onChange={handleImage}
-              />
+                <label
+                  htmlFor="imageUpload"
+                  className="w-9 h-9 shrink-0 rounded-xl hover:bg-white/10 flex items-center justify-center cursor-pointer text-white/60 transition"
+                >
+                  +
+                </label>
 
-              <label htmlFor="imageUpload" className="cursor-pointer px-2">
-                📷
-              </label>
-              <button className="bg-green-600 px-4 rounded">Send</button>
+                {/* TEXT */}
+                <input
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    socketRef.current?.emit("typing");
+                  }}
+                  className="flex-1 min-w-0 bg-transparent outline-none text-sm text-white placeholder:text-white/30"
+                  placeholder="Write a message..."
+                />
+
+                {/* MICROPHONE */}
+                {!text.trim() && (
+                  <button
+                    type="button"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
+                      isRecording
+                        ? "bg-red-500 text-white"
+                        : "hover:bg-white/10 text-white/60"
+                    }`}
+                  >
+                    🎤
+                  </button>
+                )}
+
+                {/* SEND */}
+                {text.trim() && (
+                  <button
+                    type="submit"
+                    className="w-9 h-9 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center font-bold shadow-lg shadow-pink-500/20"
+                  >
+                    ➤
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>
+
+        // <div
+        //   className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-gray-900/95 backdrop-blur-lg shadow-2xl transform transition-transform duration-300 z-50 ${
+        //     showChat ? "translate-x-0" : "translate-x-full"
+        //   }`}
+        // >
+        //   <div className="flex flex-col h-full">
+        //     <div className="flex justify-between items-center p-4 border-b border-gray-700">
+        //       <h2 className="text-lg font-semibold">Chat</h2>
+        //       <button onClick={() => setShowChat(false)} className="text-xl">
+        //         ✖
+        //       </button>
+        //     </div>
+
+        //     <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        //       {messages.map((m, i) => (
+        //         <div
+        //           key={m.id || i}
+        //           className={`p-2 rounded-lg max-w-[75%] ${
+        //             m.sender === socketRef.current.id
+        //               ? "bg-blue-600 ml-auto"
+        //               : "bg-gray-700 mr-auto"
+        //           }`}
+        //         >
+        //           <div className="flex items-end gap-1">
+        //             {m.type === "image" ? (
+        //               <img src={m.image} className="rounded-lg max-w-xs" />
+        //             ) : m.type === "audio" ? (
+        //               <audio controls src={m.audio} className="max-w-xs" />
+        //             ) : (
+        //               <span>{m.text}</span>
+        //             )}
+
+        //             {m.edited && (
+        //               <span className="text-xs italic text-gray-300 ml-1">
+        //                 edited
+        //               </span>
+        //             )}
+
+        //             {m.sender === socketRef.current.id && (
+        //               <span className="text-xs ml-1">
+        //                 {m.status === "sent" && "✓"}
+        //                 {m.status === "delivered" && "✓✓"}
+        //                 {m.status === "seen" && (
+        //                   <span className="text-blue-400">✓✓</span>
+        //                 )}
+        //                 {m.type === "audio" && (
+        //                   <audio controls src={m.audio} className="max-w-xs" />
+        //                 )}
+
+        //                 {m.type === "image" && (
+        //                   <img src={m.image} className="rounded-lg max-w-xs" />
+        //                 )}
+        //               </span>
+        //             )}
+
+        //             {m.sender === socketRef.current.id && (
+        //               <button
+        //                 onClick={() => {
+        //                   const newText = prompt("Edit message", m.text);
+        //                   if (!newText) return;
+
+        //                   socketRef.current.emit("edit-message", {
+        //                     id: m.id,
+        //                     newText,
+        //                   });
+        //                   setMessages((prev) =>
+        //                     prev.map((msg) =>
+        //                       msg.id === m.id
+        //                         ? { ...msg, text: newText, edited: true }
+        //                         : msg,
+        //                     ),
+        //                   );
+        //                 }}
+        //                 className="text-xs text-gray-300 ml-2"
+        //               >
+        //                 ✏
+        //               </button>
+        //             )}
+        //           </div>
+        //         </div>
+        //       ))}
+        //     </div>
+
+        //     {typing && (
+        //       <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
+        //     )}
+
+        //     <form
+        //       onSubmit={sendMessage}
+        //       className="p-4 flex  border-t border-gray-700"
+        //     >
+        //       <input
+        //         value={text}
+        //         onChange={(e) => {
+        //           setText(e.target.value);
+        //           socketRef.current.emit("typing");
+        //         }}
+        //         className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
+        //         placeholder="Type a message..."
+        //       />
+
+        //       <button
+        //         type="button"
+        //         onClick={isRecording ? stopRecording : startRecording}
+        //         className="bg-purple-600 px-3 rounded"
+        //       >
+        //         {isRecording ? "Stop" : "🎙"}
+        //       </button>
+        //       <input
+        //         type="file"
+        //         accept="image/*"
+        //         hidden
+        //         id="imageUpload"
+        //         onChange={handleImage}
+        //       />
+
+        //       <label htmlFor="imageUpload" className="cursor-pointer px-2">
+        //         📷
+        //       </label>
+        //       <button className="bg-green-600 px-4 rounded">Send</button>
+        //     </form>
+        //   </div>
+        // </div>
       )}
 
       {/* {!(isMobile && showChat) && (

@@ -54,8 +54,6 @@ export default function VideoChat() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
   const [voiceSubtitle, setVoiceSubtitle] = useState(null);
-  // const [language, setLanguage] = useState("en-US");
-  // const languageRef = useRef(language);
 
   const savedLanguage =
     typeof window !== "undefined"
@@ -78,23 +76,6 @@ export default function VideoChat() {
   useEffect(() => {
     languageRef.current = language;
   }, [language]);
-
-  // useEffect(() => {
-  //   const savedLang = localStorage.getItem("subtitle_language");
-
-  //   if (savedLang) {
-  //     setLanguage(savedLang);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   const savedLang = localStorage.getItem("subtitle_language");
-
-  //   if (savedLang) {
-  //     languageRef.current = savedLang;
-  //     setLanguage(savedLang);
-  //   }
-  // }, []);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -1227,9 +1208,6 @@ export default function VideoChat() {
           className="pointer-events-none fixed z-[999999] bottom-[150px] left-1/2 -translate-x-1/2 w-[90%] max-w-2xl opacity-100 scale-100"
         >
           <div className="mx-auto px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-            {/* <p className="text-center text-white font-semibold text-base md:text-lg leading-snug tracking-wide drop-shadow">
-              {voiceSubtitle?.text}
-            </p> */}
             <p className="text-center text-white font-extrabold text-lg md:text-xl leading-snug tracking-wide drop-shadow">
               {voiceSubtitle?.text}
             </p>
@@ -1471,13 +1449,6 @@ export default function VideoChat() {
           }`}
         >
           <div className="flex flex-col h-full">
-            {/* <div className="flex justify-between items-center p-4 border-b border-gray-700">
-              <h2 className="text-lg font-semibold">Chat</h2>
-              <button onClick={() => setShowChat(false)} className="text-xl">
-                ✖
-              </button>
-            </div> */}
-
             <div className="px-4 py-3 border-b border-white/[0.08] bg-black/30 backdrop-blur-xl">
               <div className="flex items-center gap-3">
                 {/* Back */}
@@ -1532,12 +1503,6 @@ export default function VideoChat() {
               {messages.map((m, i) => (
                 <div
                   key={m.id || i}
-                  // className={`p-2 rounded-lg max-w-[75%] ${
-                  //   m.sender === socketRef.current.id
-                  //     ? "bg-gradient-to-r from-pink-500 to-rose-500 ml-auto"
-                  //     : "bg-white/[0.08] border border-white/[0.08] mr-auto"
-                  // }`}
-
                   className={`max-w-[78%] overflow-hidden ${
                     m.sender === socketRef.current.id
                       ? "bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl rounded-br-md ml-auto"
@@ -1605,10 +1570,6 @@ export default function VideoChat() {
                 </div>
               ))}
             </div>
-
-            {/* {typing && (
-              <p className="text-xs text-gray-400 px-4 pb-2">Typing...</p>
-            )} */}
 
             {typing && (
               <div className="flex items-center gap-2 px-4 pb-3">
@@ -1684,41 +1645,6 @@ export default function VideoChat() {
                 )}
               </div>
             </form>
-
-            {/* <form
-              onSubmit={sendMessage}
-              className="p-4 flex  border-t border-gray-700"
-            >
-              <input
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  socketRef.current.emit("typing");
-                }}
-                className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
-                placeholder="Type a message..."
-              />
-
-              <button
-                type="button"
-                onClick={isRecording ? stopRecording : startRecording}
-                className="bg-purple-600 px-3 rounded"
-              >
-                {isRecording ? "Stop" : "🎙"}
-              </button>
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                id="imageUpload"
-                onChange={handleImage}
-              />
-
-              <label htmlFor="imageUpload" className="cursor-pointer px-2">
-                📷
-              </label>
-              <button className="bg-green-600 px-4 rounded">Send</button>
-            </form> */}
           </div>
         </div>
       )}
@@ -1745,17 +1671,6 @@ export default function VideoChat() {
                   socketRef.current.emit("update-language", newLang);
                 }
               }}
-              // onChange={(e) => {
-              //   const newLang = e.target.value;
-
-              //   setLanguage(newLang);
-
-              //   languageRef.current = newLang;
-
-              //   localStorage.setItem("subtitle_language", newLang);
-
-              //   socketRef.current.emit("update-language", newLang);
-              // }}
               className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-white/10"
             >
               {/* Indian Languages */}
