@@ -6,6 +6,26 @@ const UserSchema = new mongoose.Schema(
     email: String,
     password: String,
 
+    // Start Corporate Mode
+
+    accountType: {
+      type: String,
+      enum: ["user", "employee", "company", "admin"],
+      default: "user",
+    },
+
+    corporateProfileCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    corporateVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // End Corporate Mode
+
     age: Number,
     gender: String,
     looking_for: String,

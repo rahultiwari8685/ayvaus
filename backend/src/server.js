@@ -17,6 +17,7 @@ import redeemRoutes from "./routes/redeemRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import DeepgramService from "./services/DeepgramService.js";
+import corporateAuthRoutes from "./src/routes/corporateAuthRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -28,6 +29,7 @@ app.use("/api/serious", seriousRoutes);
 app.use("/api/redeem", redeemRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/corporate/auth", corporateAuthRoutes);
 app.use(
   cors({
     origin: ["https://flirtaus.com", "https://www.flirtaus.com"],
@@ -97,28 +99,6 @@ function emitSeriousUsers() {
 
   io.emit("online-users-list", users);
 }
-
-// async function translateText(text, targetLang) {
-//   try {
-//     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-
-//     const res = await fetch(url);
-
-//     const data = await res.json();
-
-//     if (!Array.isArray(data)) {
-//       return text;
-//     }
-
-//     const translated = data[0]?.map((item) => item[0])?.join("");
-
-//     return translated || text;
-//   } catch (err) {
-//     console.log("Translate API error:", err.message);
-
-//     return text;
-//   }
-// }
 
 async function translateText(text, targetLang) {
   if (!text || !text.trim()) {
