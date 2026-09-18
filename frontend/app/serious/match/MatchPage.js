@@ -17,7 +17,6 @@ function getOrCreateUserId() {
 }
 
 export default function MatchPage() {
-  // const { socket } = useSocket();
   const { socket, reconnectWithAuth } = useSocket();
 
   const socketRef = useRef(null);
@@ -244,16 +243,6 @@ export default function MatchPage() {
     draggingRef.current = false;
   }
 
-  // async function createPeer() {
-  //   iceQueueRef.current = [];
-
-  //   if (!streamRef.current) return;
-
-  //   if (pcRef.current) {
-  //     pcRef.current.close();
-  //     pcRef.current = null;
-  //   }
-
   async function createPeer() {
     console.log("🔵 createPeer START", {
       socketId: socketRef.current?.id,
@@ -395,7 +384,10 @@ export default function MatchPage() {
             partnerId: reconnectPartnerId,
           });
 
-          localStorage.removeItem("reconnect_partner_id");
+          console.log("📤 reconnect-user emitted:", {
+            partnerId: reconnectPartnerId,
+            socketId: socketRef.current?.id,
+          });
         } else {
           console.log("🔎 Searching Serious Mode:", languageRef.current);
 
@@ -422,36 +414,6 @@ export default function MatchPage() {
       }
     });
 
-    // socketRef.current.on("matched", async ({ role, partner, sessionId }) => {
-    //   console.log("🎯 MATCHED:", {
-    //     role,
-    //     partner,
-    //   });
-
-    //   setPartner(partner);
-    //   roleRef.current = role;
-    //   sessionIdRef.current = sessionId;
-
-    //   console.log("🆔 SESSION ID:", sessionId);
-    //   setStatus("Connecting...");
-
-    //   try {
-    //     if (!pcRef.current) {
-    //       await createPeer();
-    //     }
-
-    //     if (role === "callee") {
-    //       console.log("📡 CALLEE → sending ready");
-    //       socketRef.current.emit("ready");
-    //     }
-    //   } catch (err) {
-    //     console.error("❌ Failed to create peer after match:", err);
-
-    //     setStatus("Looking for someone...");
-    //     socketRef.current.emit("next");
-    //   }
-    // });
-
     socketRef.current.on("matched", async ({ role, partner, sessionId }) => {
       console.log("🎯 MATCHED:", {
         role,
@@ -466,7 +428,6 @@ export default function MatchPage() {
       setStatus("Connecting...");
 
       try {
-        // Always create a fresh PeerConnection for a new match
         if (pcRef.current) {
           pcRef.current.close();
           pcRef.current = null;
@@ -482,7 +443,6 @@ export default function MatchPage() {
           socketId: socketRef.current?.id,
         });
 
-        // Callee tells caller that its PeerConnection is ready
         if (role === "callee") {
           console.log("📡 CALLEE → sending ready");
 
@@ -498,18 +458,6 @@ export default function MatchPage() {
         socketRef.current.emit("next");
       }
     });
-
-    // socketRef.current.on("ready", async () => {
-    //   if (roleRef.current !== "caller") return;
-    //   if (!pcRef.current) return;
-
-    //   const offer = await pcRef.current.createOffer();
-    //   await pcRef.current.setLocalDescription(offer);
-    //   socketRef.current.emit("signal", {
-    //     sessionId: sessionIdRef.current,
-    //     offer,
-    //   });
-    // });
 
     socketRef.current.on("ready", async ({ sessionId } = {}) => {
       console.log("📡 READY received:", {
@@ -576,16 +524,6 @@ export default function MatchPage() {
     });
 
     socketRef.current.on("signal", async (data) => {
-      // if (!pcRef.current) {
-      //   console.log("⚠️ Signal received before PeerConnection ready:", {
-      //     offer: !!data.offer,
-      //     answer: !!data.answer,
-      //     candidate: !!data.candidate,
-      //   });
-
-      //   return;
-      // }
-
       if (!pcRef.current) {
         console.log("⏳ Signal received before PeerConnection ready");
 
