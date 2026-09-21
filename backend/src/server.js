@@ -20,6 +20,8 @@ import DeepgramService from "./services/DeepgramService.js";
 import corporateAuthRoutes from "./routes/corporateAuthRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
+import employeeVerificationRoutes from "./routes/employeeVerificationRoutes.js";
+import companyVerificationRoutes from "./routes/companyVerificationRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -1212,6 +1214,9 @@ app.post("/api/user/online-status", (req, res) => {
 });
 app.use("/api/corporate/employee", employeeRoutes);
 app.use("/api/corporate/company", companyRoutes);
+app.use("/api/corporate/employee/verification", employeeVerificationRoutes);
+
+app.use("/api/corporate/company/verification", companyVerificationRoutes);
 
 server.listen(5000, () => {
   console.log("🚀 Backend running on port 5000");

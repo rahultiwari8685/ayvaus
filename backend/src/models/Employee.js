@@ -121,6 +121,38 @@ const EmployeeSchema = new mongoose.Schema(
       enum: ["pending", "under_review", "verified", "rejected"],
       default: "pending",
     },
+
+    verificationStatus: {
+      type: String,
+      enum: ["pending", "under_review", "verified", "rejected"],
+      default: "pending",
+    },
+
+    verificationSubmittedAt: {
+      type: Date,
+      default: null,
+    },
+
+    verificationReviewedAt: {
+      type: Date,
+      default: null,
+    },
+
+    verificationReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    verificationNote: {
+      type: String,
+      default: "",
+    },
+
+    verificationDocuments: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

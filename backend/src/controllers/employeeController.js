@@ -66,7 +66,7 @@ export const updateEmployeeProfile = async (req, res) => {
     // Only update fields that were provided
     if (profilePhoto !== undefined) employee.profilePhoto = profilePhoto;
 
-    if (dateOfBirth !== undefined) employee.dateOfBirth = dateOfBirth;
+    if (dateOfBirth !== undefined) employee.datefOBirth = dateOfBirth;
 
     if (location !== undefined) employee.location = location;
 
