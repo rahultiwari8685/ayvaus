@@ -22,6 +22,7 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import employeeVerificationRoutes from "./routes/employeeVerificationRoutes.js";
 import companyVerificationRoutes from "./routes/companyVerificationRoutes.js";
+import corporateAdminVerificationRoutes from "./routes/corporateAdminVerificationRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -1217,7 +1218,7 @@ app.use("/api/corporate/company", companyRoutes);
 app.use("/api/corporate/employee/verification", employeeVerificationRoutes);
 
 app.use("/api/corporate/company/verification", companyVerificationRoutes);
-
+app.use("/api/corporate/admin", corporateAdminVerificationRoutes);
 server.listen(5000, () => {
   console.log("🚀 Backend running on port 5000");
 });

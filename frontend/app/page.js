@@ -12,8 +12,6 @@ export default function HomePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2.5">
-
-
             <div>
               <h1 className="text-lg font-bold tracking-tight leading-none">
                 Flirta
@@ -374,8 +372,9 @@ export default function HomePage() {
             <div className="relative h-full min-h-[550px] xl:min-h-0 flex flex-col">
               {/* Badge */}
               <div>
-                <span className="inline-flex px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[9px] uppercase tracking-[0.14em] font-bold text-blue-300">
-                  Coming Soon
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[9px] uppercase tracking-[0.14em] font-bold text-blue-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Corporate Mode
                 </span>
               </div>
 
@@ -434,14 +433,15 @@ export default function HomePage() {
 
               {/* Bottom CTA */}
               <div className="mt-auto pt-7">
-                <button
-                  type="button"
-                  disabled
-                  className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-600 border border-blue-400/20 text-white text-sm font-bold shadow-lg shadow-blue-900/20 cursor-not-allowed"
+                <a
+                  href="/corporate"
+                  className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 border border-blue-400/30 text-white text-sm font-bold shadow-lg shadow-blue-900/30 hover:from-blue-500 hover:to-indigo-500 hover:shadow-blue-900/50 transition-all duration-300"
                 >
                   Explore Corporate Mode
-                  <span className="text-base">→</span>
-                </button>
+                  <span className="text-base transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </a>
 
                 {/* <p className="mt-4 text-center text-[10px] leading-relaxed text-zinc-600">
                   We're working hard to bring you the best professional
