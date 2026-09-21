@@ -83,7 +83,6 @@ export default function EmployeeRegisterPage() {
   return (
     <div className="min-h-screen bg-[#050b16] text-white flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        {/* Back */}
         <Link
           href="/corporate"
           className="text-sm text-zinc-500 hover:text-white transition"
@@ -91,7 +90,6 @@ export default function EmployeeRegisterPage() {
           ← Back to Corporate
         </Link>
 
-        {/* Card */}
         <div className="mt-6 rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-7 sm:p-8">
           {/* Logo */}
           <div className="flex items-center gap-3">
