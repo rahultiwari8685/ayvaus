@@ -72,7 +72,7 @@ export default function EmployeeRegisterPage() {
 
       localStorage.setItem("corporate_user", JSON.stringify(data.user));
 
-      router.push("/corporate/employee/dashboard");
+      router.push("/dashboard");
     } catch (error) {
       setError(error.message);
     } finally {
