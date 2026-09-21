@@ -12,9 +12,7 @@ export default function HomePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2.5">
-            {/* <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-              <span className="text-base">♥</span>
-            </div> */}
+
 
             <div>
               <h1 className="text-lg font-bold tracking-tight leading-none">
