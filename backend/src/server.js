@@ -18,6 +18,7 @@ import userRoutes from "./routes/userRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import DeepgramService from "./services/DeepgramService.js";
 import corporateAuthRoutes from "./routes/corporateAuthRoutes.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,6 +31,7 @@ app.use("/api/redeem", redeemRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/corporate/auth", corporateAuthRoutes);
+
 app.use(
   cors({
     origin: ["https://flirtaus.com", "https://www.flirtaus.com"],
@@ -1207,6 +1209,7 @@ app.post("/api/user/online-status", (req, res) => {
 
   res.json(result);
 });
+app.use("/api/corporate/employee", employeeRoutes);
 
 server.listen(5000, () => {
   console.log("🚀 Backend running on port 5000");
