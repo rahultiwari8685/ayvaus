@@ -36,7 +36,7 @@ export default function EmployeeDashboard() {
   const fetchProfile = async (token) => {
     try {
       const response = await fetch(
-        `${API_URL}/api/corporate/employee/profile`,
+        `${API_URL}/api/corporate/register/employee/profile`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

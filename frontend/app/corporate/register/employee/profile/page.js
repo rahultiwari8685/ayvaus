@@ -80,11 +80,14 @@ export default function EmployeeProfilePage() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_URL}/api/corporate/employee/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/corporate/register/employee/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       const data = await res.json();
 
