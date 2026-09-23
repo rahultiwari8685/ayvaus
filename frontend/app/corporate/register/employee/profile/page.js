@@ -181,10 +181,6 @@ export default function EmployeeProfilePage() {
     }));
   };
 
-  // -------------------------
-  // SKILLS
-  // -------------------------
-
   const addSkill = () => {
     const skill = skillInput.trim();
 
@@ -205,10 +201,6 @@ export default function EmployeeProfilePage() {
       profile.skills.filter((_, i) => i !== index),
     );
   };
-
-  // -------------------------
-  // PREFERRED LOCATIONS
-  // -------------------------
 
   const addPreferredLocation = () => {
     const location = locationInput.trim();
@@ -231,10 +223,6 @@ export default function EmployeeProfilePage() {
       profile.preferredLocations.filter((_, i) => i !== index),
     );
   };
-
-  // -------------------------
-  // EDUCATION
-  // -------------------------
 
   const updateEducation = (index, field, value) => {
     const updated = [...profile.education];
@@ -259,10 +247,6 @@ export default function EmployeeProfilePage() {
       profile.education.filter((_, i) => i !== index),
     );
   };
-
-  // -------------------------
-  // EMPLOYMENT
-  // -------------------------
 
   const updateEmployment = (index, field, value) => {
     const updated = [...profile.employmentHistory];
@@ -291,10 +275,6 @@ export default function EmployeeProfilePage() {
     );
   };
 
-  // -------------------------
-  // CHECKBOXES
-  // -------------------------
-
   const toggleArrayValue = (field, value) => {
     const current = profile[field] || [];
 
@@ -307,10 +287,6 @@ export default function EmployeeProfilePage() {
       updateField(field, [...current, value]);
     }
   };
-
-  // -------------------------
-  // SAVE
-  // -------------------------
 
   const saveProfile = async () => {
     try {
@@ -342,14 +318,17 @@ export default function EmployeeProfilePage() {
           profile.noticePeriod === "" ? null : Number(profile.noticePeriod),
       };
 
-      const res = await fetch(`${API_URL}/api/corporate/employee/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/corporate/register/employee/profile`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       const data = await res.json();
 
@@ -893,10 +872,6 @@ export default function EmployeeProfilePage() {
     </div>
   );
 }
-
-/* =========================
-   COMPONENTS
-========================= */
 
 function Section({ number, title, description, children }) {
   return (

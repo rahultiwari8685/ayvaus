@@ -30,10 +30,9 @@ export const navigation = [
     to: '/redeemRequest',
     icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
   },
-  // {
-  //   component: CNavItem,
-  //   name: 'Rewards',
-  //   to: '/rewards',
-  //   icon: <CIcon icon={cilGift} customClassName="nav-icon" />,
-  // },
+  {
+    component: CNavItem,
+    name: 'Corporate Verification',
+    to: '/corporate/verification',
+  },
 ]
