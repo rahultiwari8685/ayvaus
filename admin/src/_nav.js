@@ -34,5 +34,6 @@ export const navigation = [
     component: CNavItem,
     name: 'Corporate Verification',
     to: '/corporate/verification',
+    icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
   },
 ]
