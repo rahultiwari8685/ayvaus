@@ -11,11 +11,12 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/redeemRequest', name: 'Redeem Request', element: RedeemRequest },
-{
-  path: '/corporate/verification',
-  name: 'Corporate Verification',
-  element: <CorporateVerification />,
-}
+  {
+    path: '/corporate/verification',
+    name: 'Corporate Verification',
+    element: CorporateVerification,
+  },
+
   { path: '/ChangePassword', name: 'Change Password', element: ChangePassword },
   { path: '/Users', name: 'Users', element: Users },
 ]
