@@ -3,7 +3,7 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
 const ChangePassword = React.lazy(() => import('./views/pages/changePassword/ChangePassword'))
-import CorporateVerification from './views/corporate/CorporateVerification'
+import CorporateVerification from './views/pages/corporate/CorporateVerification.js'
 const Users = React.lazy(() => import('./views/pages/users/Users'))
 const RedeemRequest = React.lazy(() => import('./views/pages/redeemRequest/RedeemRequest'))
 
