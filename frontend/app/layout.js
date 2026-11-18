@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SocketProvider } from "@/context/SocketContext";
 import { Toaster } from "react-hot-toast";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleAnalytics from "../app/components/GoogleAnalytics.jsx";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
